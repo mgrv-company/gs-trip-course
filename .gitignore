@@ -1,2 +1,8 @@
-data/
+data/*
+!data/overrides.json
+!data/fetch_hours.py
+!data/build_places.py
+!data/hours.json
+!data/places_tagged.json
 test/shot_*.png
+test/live*.png

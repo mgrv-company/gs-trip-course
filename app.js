@@ -142,6 +142,8 @@ function pick(pool, ans, dayZone, used, usedCat, dayIdx, slotTime) {
   if (slotTime !== undefined) {
     // 휴무·영업시간 밖 가게 제외 (정보 없는 곳은 통과시키되 카드에 확인 문구)
     candidates = candidates.filter(p => isOpenAt(p, dayIdx, slotTime) !== false);
+    // 예약 필수 가게는 도착 당일(DAY 1)에는 제안하지 않음
+    if (dayIdx === 0) candidates = candidates.filter(p => !p.r);
   }
   const ranked = candidates
     .map(p => ({ p, s: score(p, ans, dayZone) - (usedCat.has(p.c) ? 2 : 0) + (slotTime !== undefined && isOpenAt(p, dayIdx, slotTime) === true ? 2 : 0) }))
@@ -235,9 +237,9 @@ function cardHTML(slot, idx) {
   const img = p.img ? `<img class="ph" src="${p.img}" alt="" loading="lazy" onerror="this.remove()">` : '';
   return `<div class="slot"><div class="time">${slot.time}</div>
     <div class="card ${p.img ? 'pic' : ''}" data-idx="${idx}">
-      <div class="nm">${p.n}</div>
+      <div class="nm">${p.n}${p.r ? ' <span class="rsv">☎ 예약 필수</span>' : ''}</div>
       <div class="ct">${p.c} · ${p.a.replace('강원특별자치도 ', '').replace('강원 ', '')}</div>
-      <div class="hr">🕐 ${hoursText(p, slot.dayIdx)}</div>
+      <div class="hr">🕐 ${hoursText(p, slot.dayIdx)}${p.note ? `<br>💬 ${p.note}` : ''}</div>
       <div class="mv">${moveText(p, answers.car)}${slot.optional ? ' · 선택 코스' : ''}</div>
       <div class="links">
         <a href="${p.u}" target="_blank"><span>네이버지도 ↗</span></a>
@@ -274,9 +276,9 @@ function render(course) {
       const alt = pick(pool, answers, zone, usedGlobal, new Set(), dayIdx, st);
       if (!alt) { btn.textContent = '대안 없음'; return; }
       usedGlobal.delete(cur);
-      $('.nm', card).textContent = alt.n;
+      $('.nm', card).innerHTML = alt.n + (alt.r ? ' <span class="rsv">☎ 예약 필수</span>' : '');
       $('.ct', card).textContent = alt.c + ' · ' + alt.a.replace('강원특별자치도 ', '').replace('강원 ', '');
-      $('.hr', card).textContent = '🕐 ' + hoursText(alt, dayIdx);
+      $('.hr', card).innerHTML = '🕐 ' + hoursText(alt, dayIdx) + (alt.note ? `<br>💬 ${alt.note}` : '');
       $('.mv', card).textContent = moveText(alt, answers.car);
       $('a', card).href = alt.u;
       const ph = $('.ph', card);
