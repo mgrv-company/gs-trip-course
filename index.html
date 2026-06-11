@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>맹그로브 고성 · 로컬 트립 코스</title>
+<meta name="description" content="맹그로브 고성 CA가 직접 가본 속초·고성 맛집으로 만드는 맞춤 여행 코스">
+<style>
+  :root {
+    --green: #1d5c4f;
+    --green-light: #e8f2ef;
+    --sand: #faf7f2;
+    --ink: #243230;
+    --gray: #7a8a86;
+    --line: #e3e0d8;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Apple SD Gothic Neo', 'Pretendard', 'Malgun Gothic', sans-serif;
+    background: var(--sand); color: var(--ink);
+    line-height: 1.55; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 24px 18px 60px; }
+  header { text-align: center; padding: 28px 0 8px; }
+  header .badge {
+    display: inline-block; background: var(--green); color: #fff;
+    font-size: 12px; letter-spacing: 1px; padding: 4px 12px; border-radius: 99px;
+  }
+  header h1 { font-size: 26px; margin: 12px 0 6px; letter-spacing: -0.5px; }
+  header p { color: var(--gray); font-size: 14px; }
+
+  .step { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 20px 18px; margin-top: 16px; }
+  .step h2 { font-size: 16px; margin-bottom: 4px; }
+  .step .sub { font-size: 13px; color: var(--gray); margin-bottom: 12px; }
+  .opts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .opt {
+    border: 1.5px solid var(--line); background: #fff; border-radius: 12px;
+    padding: 10px 14px; font-size: 14px; cursor: pointer; user-select: none;
+    transition: all .15s;
+  }
+  .opt.on { border-color: var(--green); background: var(--green-light); color: var(--green); font-weight: 700; }
+
+  .go {
+    width: 100%; margin-top: 20px; padding: 16px; border: 0; border-radius: 14px;
+    background: var(--green); color: #fff; font-size: 17px; font-weight: 700; cursor: pointer;
+  }
+  .go:disabled { background: #b9c6c2; cursor: default; }
+
+  /* 결과 */
+  #result { display: none; }
+  .day { margin-top: 26px; }
+  .day h3 {
+    font-size: 18px; color: var(--green); display: flex; align-items: center; gap: 8px;
+  }
+  .day h3 .tag { font-size: 12px; background: var(--green-light); color: var(--green); padding: 2px 10px; border-radius: 99px; font-weight: 600; }
+  .slot { display: flex; gap: 12px; margin-top: 14px; }
+  .slot .time {
+    flex: 0 0 52px; font-size: 12px; font-weight: 700; color: var(--gray);
+    padding-top: 14px; text-align: center;
+  }
+  .card {
+    flex: 1; background: #fff; border: 1px solid var(--line); border-radius: 14px;
+    padding: 14px 14px; position: relative; overflow: hidden;
+  }
+  .card.pic { padding-right: 92px; }
+  .card .ph {
+    position: absolute; right: 0; top: 0; bottom: 0; width: 84px;
+    object-fit: cover; height: 100%;
+  }
+  .card .nm { font-weight: 800; font-size: 15.5px; }
+  .card .ct { font-size: 12.5px; color: var(--gray); margin-top: 2px; }
+  .card .mv { font-size: 12.5px; color: var(--green); font-weight: 600; margin-top: 6px; }
+  .card a { color: inherit; text-decoration: none; }
+  .card .links { margin-top: 8px; display: flex; gap: 6px; }
+  .card .links span, .card .reroll {
+    font-size: 12px; border: 1px solid var(--line); border-radius: 8px; padding: 3px 9px; color: var(--ink);
+  }
+  .card .reroll { cursor: pointer; background: var(--sand); }
+  .land .card { background: var(--green-light); border-color: #cfe3dd; }
+  .note { font-size: 12.5px; color: var(--gray); margin-top: 18px; text-align: center; }
+  .again {
+    width: 100%; margin-top: 24px; padding: 14px; border: 1.5px solid var(--green);
+    border-radius: 14px; background: #fff; color: var(--green); font-size: 15px; font-weight: 700; cursor: pointer;
+  }
+  footer { text-align: center; margin-top: 40px; font-size: 12px; color: var(--gray); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="badge">MANGROVE GOSEONG</span>
+    <h1>로컬 트립 코스 만들기</h1>
+    <p>커뮤니티 어드바이저가 직접 다녀본<br>속초·고성 가게들로 코스를 짜 드려요</p>
+  </header>
+
+  <div id="quiz">
+    <div class="step" data-key="days">
+      <h2>① 얼마나 머무세요?</h2>
+      <div class="sub">체크인~체크아웃 기준</div>
+      <div class="opts">
+        <div class="opt" data-v="1">당일</div>
+        <div class="opt" data-v="2">1박 2일</div>
+        <div class="opt" data-v="3">2박 3일</div>
+        <div class="opt" data-v="4">3박 이상</div>
+      </div>
+    </div>
+
+    <div class="step" data-key="car">
+      <h2>② 이동 수단은요?</h2>
+      <div class="sub">속초 시내까지 차로 20~30분 거리예요</div>
+      <div class="opts">
+        <div class="opt" data-v="yes">자차 · 렌터카</div>
+        <div class="opt" data-v="no">뚜벅이 (도보·택시)</div>
+      </div>
+    </div>
+
+    <div class="step" data-key="purpose">
+      <h2>③ 이번 여행의 목적은?</h2>
+      <div class="sub">하나만 골라주세요</div>
+      <div class="opts">
+        <div class="opt" data-v="rest">푹 쉬러 왔어요</div>
+        <div class="opt" data-v="food">맛집 탐방</div>
+        <div class="opt" data-v="tour">관광 · 나들이</div>
+        <div class="opt" data-v="work">워케이션</div>
+      </div>
+    </div>
+
+    <div class="step" data-key="style">
+      <h2>④ 취향은 어느 쪽?</h2>
+      <div class="sub">하나만 골라주세요</div>
+      <div class="opts">
+        <div class="opt" data-v="mood">감성 · 카페 · 사진</div>
+        <div class="opt" data-v="local">로컬 · 노포 · 현지인 맛집</div>
+        <div class="opt" data-v="any">둘 다 좋아요</div>
+      </div>
+    </div>
+
+    <div class="step" data-key="taste" data-multi="1">
+      <h2>⑤ 어떤 음식이 끌리세요?</h2>
+      <div class="sub">여러 개 골라도 돼요</div>
+      <div class="opts">
+        <div class="opt" data-v="all">다 잘 먹어요</div>
+        <div class="opt" data-v="해산물">해산물 · 회</div>
+        <div class="opt" data-v="고기">고기</div>
+        <div class="opt" data-v="면">면 · 국수</div>
+        <div class="opt" data-v="한식">한식 · 국밥 · 백반</div>
+        <div class="opt" data-v="일식">일식</div>
+        <div class="opt" data-v="양식">양식 · 브런치</div>
+        <div class="opt" data-v="분식">분식</div>
+      </div>
+    </div>
+
+    <button class="go" id="goBtn" disabled>코스 만들기</button>
+  </div>
+
+  <div id="result"></div>
+
+  <footer>
+    맹그로브 고성 프런트(CA) 추천 · 영업시간은 방문 전 네이버지도에서 확인해 주세요 🌊
+  </footer>
+</div>
+
+<script src="places.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
