@@ -19,7 +19,62 @@ const $ = (s, el) => (el || document).querySelector(s);
 const $$ = (s, el) => Array.from((el || document).querySelectorAll(s));
 
 // ── 설문 상태 ──────────────────────────────────────
-const answers = { days: null, car: null, purpose: null, style: null, taste: [] };
+const answers = { checkin: null, days: null, car: null, purpose: null, style: null, taste: [] };
+
+// 입실일: 기본값 오늘
+const dateInput = document.getElementById('checkinDate');
+(() => {
+  const t = new Date();
+  dateInput.value = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+  answers.checkin = dateInput.value;
+})();
+dateInput.addEventListener('change', () => { answers.checkin = dateInput.value; });
+
+// ── 영업시간 ──────────────────────────────────────
+const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
+
+function weekdayOf(dayIdx) { // DAY n의 요일 이름
+  const d = new Date(answers.checkin + 'T00:00:00');
+  d.setDate(d.getDate() + dayIdx);
+  return DAY_NAMES[d.getDay()];
+}
+
+function toMin(hhmm) {
+  const [h, m] = hhmm.split(':').map(Number);
+  return h * 60 + m;
+}
+
+// 영업시간 정보가 없을 때: 카테고리상 저녁 장사 가게는 낮 슬롯에 안 넣음
+const EVENING_ONLY = /포장마차|BAR|이자카야|요리주점|맥주|호프|술집|와인|펍|야식/i;
+
+// slotTime("12:00")에 영업 중인가? true/false/null(정보 없음)
+function isOpenAt(p, dayIdx, slotTime) {
+  if (!p.h) {
+    if (EVENING_ONLY.test(p.c) && toMin(slotTime) < 17 * 60) return false;
+    return null;
+  }
+  const day = weekdayOf(dayIdx);
+  if (!(day in p.h)) return null;
+  const range = p.h[day];
+  if (range === null) return false; // 정기휴무
+  const [s, e] = range.split('-');
+  const t = toMin(slotTime);
+  let start = toMin(s), end = toMin(e);
+  if (end <= start) end += 24 * 60; // 새벽까지 영업 (예: 17:00-02:00)
+  // 마감 30분 전까지는 입장 가능으로 간주
+  return t >= start && t <= end - 30;
+}
+
+function hoursText(p, dayIdx) {
+  if (!p.h) return '영업시간 정보 없음 · 방문 전 확인';
+  const day = weekdayOf(dayIdx);
+  const range = p.h[day];
+  const closedDays = Object.keys(p.h).filter(d => p.h[d] === null);
+  const closedTxt = closedDays.length ? ` · ${closedDays.join(',')} 휴무` : '';
+  if (!(day in p.h)) return '영업시간 확인 필요' + closedTxt;
+  if (range === null) return `${day}요일 휴무 ⚠️`;
+  return `${day} ${range.replace('-', '~')}${closedTxt}`;
+}
 
 $$('.step').forEach(step => {
   const key = step.dataset.key;
@@ -82,10 +137,14 @@ function score(p, ans, dayZone) {
   return s;
 }
 
-function pick(pool, ans, dayZone, used, usedCat) {
-  const ranked = pool
-    .filter(p => !used.has(p.n))
-    .map(p => ({ p, s: score(p, ans, dayZone) - (usedCat.has(p.c) ? 2 : 0) }))
+function pick(pool, ans, dayZone, used, usedCat, dayIdx, slotTime) {
+  let candidates = pool.filter(p => !used.has(p.n));
+  if (slotTime !== undefined) {
+    // 휴무·영업시간 밖 가게 제외 (정보 없는 곳은 통과시키되 카드에 확인 문구)
+    candidates = candidates.filter(p => isOpenAt(p, dayIdx, slotTime) !== false);
+  }
+  const ranked = candidates
+    .map(p => ({ p, s: score(p, ans, dayZone) - (usedCat.has(p.c) ? 2 : 0) + (slotTime !== undefined && isOpenAt(p, dayIdx, slotTime) === true ? 2 : 0) }))
     .sort((a, b) => b.s - a.s);
   if (!ranked.length) return null;
   const top = ranked.slice(0, 3); // 상위 3곳 중 랜덤 → 다양성
@@ -140,20 +199,20 @@ function buildCourse(ans) {
       }
     }
 
-    slots.push({ time: isFirst ? '점심' : '점심', pick: pick(meals, ans, zone, used, usedCat), pool: 'meals', zone });
+    slots.push({ time: '점심', pick: pick(meals, ans, zone, used, usedCat, d, '12:00'), pool: 'meals', zone, dayIdx: d, st: '12:00' });
 
     // 오후: 카페 (+관광 목적이면 구경거리 하나 더)
     if (ans.purpose === 'tour' || ans.purpose === 'rest') {
       const l = pickLandmark(ans, zone, used);
       if (l) slots.push({ time: '오후', fixed: l, land: true });
     }
-    slots.push({ time: '카페', pick: pick(cafes, ans, zone, used, usedCat), pool: 'cafes', zone });
+    slots.push({ time: '카페', pick: pick(cafes, ans, zone, used, usedCat, d, '15:00'), pool: 'cafes', zone, dayIdx: d, st: '15:00' });
 
     // 저녁: 마지막 날(체크아웃)은 당일치기 아니면 생략
     if (!isLast || days === 1) {
-      slots.push({ time: '저녁', pick: pick(meals, ans, zone, used, usedCat), pool: 'meals', zone });
-      const bar = pick(bars, ans, zone, used, usedCat);
-      if (bar) slots.push({ time: '밤 🍻', pick: bar, pool: 'bars', zone, optional: true });
+      slots.push({ time: '저녁', pick: pick(meals, ans, zone, used, usedCat, d, '18:30'), pool: 'meals', zone, dayIdx: d, st: '18:30' });
+      const bar = pick(bars, ans, zone, used, usedCat, d, '21:00');
+      if (bar) slots.push({ time: '밤 🍻', pick: bar, pool: 'bars', zone, optional: true, dayIdx: d, st: '21:00' });
     }
     course.push({ day: d + 1, zone, slots });
   }
@@ -178,10 +237,11 @@ function cardHTML(slot, idx) {
     <div class="card ${p.img ? 'pic' : ''}" data-idx="${idx}">
       <div class="nm">${p.n}</div>
       <div class="ct">${p.c} · ${p.a.replace('강원특별자치도 ', '').replace('강원 ', '')}</div>
+      <div class="hr">🕐 ${hoursText(p, slot.dayIdx)}</div>
       <div class="mv">${moveText(p, answers.car)}${slot.optional ? ' · 선택 코스' : ''}</div>
       <div class="links">
         <a href="${p.u}" target="_blank"><span>네이버지도 ↗</span></a>
-        <span class="reroll" data-pool="${slot.pool}" data-zone="${slot.zone}">다른 곳 ↻</span>
+        <span class="reroll" data-pool="${slot.pool}" data-zone="${slot.zone}" data-day="${slot.dayIdx}" data-st="${slot.st}">다른 곳 ↻</span>
       </div>${img}
     </div></div>`;
 }
@@ -207,13 +267,16 @@ function render(course) {
     btn.addEventListener('click', () => {
       const pool = POOLS[btn.dataset.pool]();
       const zone = btn.dataset.zone;
+      const dayIdx = parseInt(btn.dataset.day);
+      const st = btn.dataset.st;
       const card = btn.closest('.card');
       const cur = $('.nm', card).textContent;
-      const alt = pick(pool, answers, zone, usedGlobal, new Set());
+      const alt = pick(pool, answers, zone, usedGlobal, new Set(), dayIdx, st);
       if (!alt) { btn.textContent = '대안 없음'; return; }
       usedGlobal.delete(cur);
       $('.nm', card).textContent = alt.n;
       $('.ct', card).textContent = alt.c + ' · ' + alt.a.replace('강원특별자치도 ', '').replace('강원 ', '');
+      $('.hr', card).textContent = '🕐 ' + hoursText(alt, dayIdx);
       $('.mv', card).textContent = moveText(alt, answers.car);
       $('a', card).href = alt.u;
       const ph = $('.ph', card);
@@ -225,6 +288,7 @@ function render(course) {
 let lastCourse = null;
 function regenerate() {
   lastCourse = buildCourse(answers);
+  window.lastCourse = lastCourse; // 테스트 검증용
   render(lastCourse);
   window.scrollTo({ top: $('#result').offsetTop - 20, behavior: 'smooth' });
 }
