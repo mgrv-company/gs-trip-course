@@ -274,7 +274,7 @@ function cardHTML(slot, idx) {
       <div class="hr">${infoHTML(p, slot.dayIdx)}</div>
       <div class="mv">${moveText(p, answers.car)}${slot.optional ? ' · 선택 코스' : ''}</div>
       <div class="links">
-        <a href="${p.u}" target="_blank"><span>네이버지도 ↗</span></a>${p.bk ? `<a href="${p.bk}" target="_blank"><span>📅 네이버예약</span></a>` : ''}
+        <a href="${p.u}" target="_blank"><span>네이버지도 ↗</span></a>
         <span class="reroll" data-pool="${slot.pool}" data-zone="${slot.zone}" data-day="${slot.dayIdx}" data-st="${slot.st}">다른 곳 ↻</span>
         <span class="flagbtn" title="피드백">🚩</span>
       </div>${img}
