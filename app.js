@@ -271,6 +271,7 @@ function cardHTML(slot, idx) {
       <div class="links">
         <a href="${p.u}" target="_blank"><span>네이버지도 ↗</span></a>${p.bk ? `<a href="${p.bk}" target="_blank"><span>📅 네이버예약</span></a>` : ''}
         <span class="reroll" data-pool="${slot.pool}" data-zone="${slot.zone}" data-day="${slot.dayIdx}" data-st="${slot.st}">다른 곳 ↻</span>
+        <span class="flagbtn" title="피드백">🚩</span>
       </div>${img}
     </div></div>`;
 }
@@ -331,3 +332,69 @@ $('#goBtn').addEventListener('click', () => {
   $('#quiz').style.display = 'none';
   regenerate();
 });
+
+// ── 현장 피드백 (CA용 🚩) ──────────────────────────
+// 카드에서 🚩 → 유형 선택 → 폰에 쌓임 → "보내기"로 GitHub에 일괄 등록
+const FB_KEY = 'gsTripFeedback';
+const FB_REPO = 'https://github.com/yjan-max/gs-trip-course/issues/new';
+let fbPlace = null;
+
+function fbList() {
+  try { return JSON.parse(localStorage.getItem(FB_KEY)) || []; } catch (e) { return []; }
+}
+function fbSave(list) {
+  localStorage.setItem(FB_KEY, JSON.stringify(list));
+  updateFbSend();
+}
+function updateFbSend() {
+  const n = fbList().length;
+  const btn = $('#fbSend');
+  btn.style.display = n ? 'block' : 'none';
+  btn.textContent = `🚩 피드백 ${n}건 보내기`;
+}
+
+document.addEventListener('click', e => {
+  const flag = e.target.closest('.flagbtn');
+  if (!flag) return;
+  const card = flag.closest('.card');
+  fbPlace = $('.nm', card).childNodes[0].textContent.trim();
+  $('#fbTitle').textContent = `🚩 ${fbPlace}`;
+  $$('#fbSheet .fbopt').forEach(o => o.classList.remove('on'));
+  $('#fbMemo').value = '';
+  $('#fbDim').style.display = 'block';
+  $('#fbSheet').style.display = 'block';
+});
+
+$$('#fbSheet .fbopt').forEach(o => o.addEventListener('click', () => {
+  $$('#fbSheet .fbopt').forEach(x => x.classList.remove('on'));
+  o.classList.add('on');
+}));
+
+function closeFbSheet() {
+  $('#fbDim').style.display = 'none';
+  $('#fbSheet').style.display = 'none';
+}
+$('#fbDim').addEventListener('click', closeFbSheet);
+$('#fbSheet .fbclose').addEventListener('click', closeFbSheet);
+
+$('#fbSheet .fbsave').addEventListener('click', () => {
+  const sel = $('#fbSheet .fbopt.on');
+  if (!sel) { alert('유형을 골라주세요'); return; }
+  const list = fbList();
+  list.push({ place: fbPlace, type: sel.dataset.t, memo: $('#fbMemo').value.trim(), at: new Date().toISOString().slice(0, 10) });
+  fbSave(list);
+  closeFbSheet();
+});
+
+$('#fbSend').addEventListener('click', () => {
+  const list = fbList();
+  if (!list.length) return;
+  const title = `현장 피드백 ${list.length}건 (${list[0].at})`;
+  const body = list.map(f => `- [${f.type}] ${f.place}${f.memo ? ' — ' + f.memo : ''}`).join('\n');
+  window.open(`${FB_REPO}?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`, '_blank');
+  if (confirm('GitHub 등록 화면을 열었어요.\n등록을 마쳤으면 [확인]을 눌러 보낸 목록을 비워주세요.')) {
+    fbSave([]);
+  }
+});
+
+updateFbSend();
