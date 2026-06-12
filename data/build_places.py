@@ -30,6 +30,11 @@ try:
 except FileNotFoundError:
     menus = {}
 
+try:
+    photos = json.load(open('data/photos.json', encoding='utf-8'))
+except FileNotFoundError:
+    photos = {}
+
 # 메뉴 이름으로 음식 종류 추론 ("음식점"으로만 분류된 가게용)
 CUISINE_RULES = [
     ('일식', r'초밥|스시|사시미|오마카세|우동|돈가스|돈까스|라멘|텐동|소바|규동|가츠|카츠'),
@@ -92,6 +97,11 @@ for x in places:
     }
     if h:
         item['h'] = h
+
+    # 리스트 API에 썸네일이 없던 가게는 플레이스 홈 대표 사진으로 보충
+    if not item['img'] and photos.get(str(x['sid'])):
+        item['img'] = photos[str(x['sid'])]
+        stat['사진 보충'] += 1
 
     # 자동 신호 (네이버 플레이스): 예약제·평점·리뷰수·한줄소개·네이버예약
     ex = extras.get(str(x['sid'])) or {}

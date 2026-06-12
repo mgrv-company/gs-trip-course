@@ -4,6 +4,8 @@ data/*
 !data/fetch_extras.py
 !data/fetch_reviews.py
 !data/fetch_menus.py
+!data/fetch_photos.py
+!data/photos.json
 !data/menus.json
 !data/reviews_stats.json
 !data/extras.json
