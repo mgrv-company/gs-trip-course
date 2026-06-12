@@ -70,6 +70,19 @@ function noteText(p) {
   return t ? `<br>💬 ${t}` : '';
 }
 
+// 웨이팅·방문 팁 (리뷰 데이터 기반 자동 생성)
+function waitText(p) {
+  if (p.w === 2) return `<br>⏳ 웨이팅 잦은 집 — 평일이나 오픈 직후 추천${p.lu ? ' · 📲 네이버 줄서기 가능' : ''}`;
+  if (p.w === 1) return '<br>⏳ 주말 식사시간엔 대기 있을 수 있어요';
+  if (p.w === 0) return '<br>🚶 보통 워크인으로 갈 수 있어요';
+  return '';
+}
+
+// 카드 정보 블록 (영업시간 + 팁 + 메모) — 최초 렌더와 다시 뽑기에서 공용
+function infoHTML(p, dayIdx) {
+  return '🕐 ' + hoursText(p, dayIdx) + waitText(p) + noteText(p);
+}
+
 function hoursText(p, dayIdx) {
   if (!p.h) return '영업시간 정보 없음 · 방문 전 확인';
   const day = weekdayOf(dayIdx);
@@ -156,8 +169,10 @@ function pick(pool, ans, dayZone, used, usedCat, dayIdx, slotTime) {
     // 예약제 가게는 도착 당일 낮(체크인 전)에는 제안하지 않음 — 저녁부터는 ☎ 배지와 함께 허용
     if (dayIdx === 0 && toMin(slotTime) < 15 * 60) candidates = candidates.filter(p => !p.r);
   }
+  // 피크타임(점심·저녁 식사시간)엔 웨이팅 잦은 집을 약하게 감점
+  const peak = slotTime === '12:00' || slotTime === '18:30';
   const ranked = candidates
-    .map(p => ({ p, s: score(p, ans, dayZone) - (usedCat.has(p.c) ? 2 : 0) + (slotTime !== undefined && isOpenAt(p, dayIdx, slotTime) === true ? 2 : 0) }))
+    .map(p => ({ p, s: score(p, ans, dayZone) - (usedCat.has(p.c) ? 2 : 0) + (slotTime !== undefined && isOpenAt(p, dayIdx, slotTime) === true ? 2 : 0) - (peak && p.w === 2 ? 1.2 : 0) }))
     .sort((a, b) => b.s - a.s);
   if (!ranked.length) return null;
   const top = ranked.slice(0, 3); // 상위 3곳 중 랜덤 → 다양성
@@ -250,7 +265,7 @@ function cardHTML(slot, idx) {
     <div class="card ${p.img ? 'pic' : ''}" data-idx="${idx}">
       <div class="nm">${p.n}${p.r ? ' <span class="rsv">☎ 예약 필수</span>' : ''}</div>
       <div class="ct">${p.c} · ${p.a.replace('강원특별자치도 ', '').replace('강원 ', '')}${p.rv ? ` · ⭐${p.rv[0]} (${p.rv[1]})` : ''}</div>
-      <div class="hr">🕐 ${hoursText(p, slot.dayIdx)}${noteText(p)}</div>
+      <div class="hr">${infoHTML(p, slot.dayIdx)}</div>
       <div class="mv">${moveText(p, answers.car)}${slot.optional ? ' · 선택 코스' : ''}</div>
       <div class="links">
         <a href="${p.u}" target="_blank"><span>네이버지도 ↗</span></a>${p.bk ? `<a href="${p.bk}" target="_blank"><span>📅 네이버예약</span></a>` : ''}
@@ -289,7 +304,7 @@ function render(course) {
       usedGlobal.delete(cur);
       $('.nm', card).innerHTML = alt.n + (alt.r ? ' <span class="rsv">☎ 예약 필수</span>' : '');
       $('.ct', card).textContent = alt.c + ' · ' + alt.a.replace('강원특별자치도 ', '').replace('강원 ', '') + (alt.rv ? ` · ⭐${alt.rv[0]} (${alt.rv[1]})` : '');
-      $('.hr', card).innerHTML = '🕐 ' + hoursText(alt, dayIdx) + noteText(alt);
+      $('.hr', card).innerHTML = infoHTML(alt, dayIdx);
       $('.mv', card).textContent = moveText(alt, answers.car);
       $('a', card).href = alt.u;
       const ph = $('.ph', card);

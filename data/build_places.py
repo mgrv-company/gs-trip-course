@@ -20,6 +20,11 @@ try:
 except FileNotFoundError:
     extras = {}
 
+try:
+    rstats = json.load(open('data/reviews_stats.json', encoding='utf-8'))
+except FileNotFoundError:
+    rstats = {}
+
 def norm_hours(raw):
     """수집 원본 → {요일: 'HH:MM-HH:MM' | None(휴무)}. 정보 없으면 None 반환."""
     days_raw = (raw or {}).get('days') or {}
@@ -67,6 +72,20 @@ for x in places:
         item['mr'] = ex['micro']
     if ex.get('booking'):
         item['bk'] = ex['booking']
+
+    # 웨이팅 신호: 최근 리뷰 10개의 대기 언급 수 + 네이버 줄서기 도입 여부
+    rs = rstats.get(str(x['sid'])) or {}
+    if rs.get('lineup') or rs.get('wait', 0) >= 3:
+        item['w'] = 2  # 웨이팅 잦음
+        if rs.get('lineup'):
+            item['lu'] = 1
+        stat['웨이팅 잦음'] += 1
+    elif rs.get('wait', 0) >= 1:
+        item['w'] = 1  # 피크타임 대기 가능
+        stat['대기 가능성'] += 1
+    elif rs.get('sample', 0) >= 8 and ex.get('reviews', 0) >= 50:
+        item['w'] = 0  # 워크인 무난 (리뷰 충분 + 최근 대기 언급 없음)
+        stat['워크인 무난'] += 1
 
     # 수동 피드백(overrides)은 자동 신호보다 우선
     ov = overrides.get(x['name'])
