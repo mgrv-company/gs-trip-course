@@ -65,6 +65,11 @@ function isOpenAt(p, dayIdx, slotTime) {
   return t >= start && t <= end - 30;
 }
 
+function noteText(p) {
+  const t = p.note || p.mr; // 수동 메모 우선, 없으면 네이버 한줄소개
+  return t ? `<br>💬 ${t}` : '';
+}
+
 function hoursText(p, dayIdx) {
   if (!p.h) return '영업시간 정보 없음 · 방문 전 확인';
   const day = weekdayOf(dayIdx);
@@ -134,6 +139,12 @@ function score(p, ans, dayZone) {
   }
   if (ans.purpose === 'rest' && p.z !== '속초') s += 2;
   if (ans.purpose === 'food') s += p.v.includes('로컬·노포') ? 1 : 0;
+  // 방문자 리뷰 기반 가산: 평점(4점대 후반 우대) + 리뷰 수(검증된 곳 우대)
+  if (p.rv) {
+    const [rating, count] = p.rv;
+    s += Math.max(-1, Math.min(1.6, (rating - 4.2) * 2));
+    s += Math.min(1.5, Math.log10(count + 1) * 0.6);
+  }
   return s;
 }
 
@@ -142,8 +153,8 @@ function pick(pool, ans, dayZone, used, usedCat, dayIdx, slotTime) {
   if (slotTime !== undefined) {
     // 휴무·영업시간 밖 가게 제외 (정보 없는 곳은 통과시키되 카드에 확인 문구)
     candidates = candidates.filter(p => isOpenAt(p, dayIdx, slotTime) !== false);
-    // 예약 필수 가게는 도착 당일(DAY 1)에는 제안하지 않음
-    if (dayIdx === 0) candidates = candidates.filter(p => !p.r);
+    // 예약제 가게는 도착 당일 낮(체크인 전)에는 제안하지 않음 — 저녁부터는 ☎ 배지와 함께 허용
+    if (dayIdx === 0 && toMin(slotTime) < 15 * 60) candidates = candidates.filter(p => !p.r);
   }
   const ranked = candidates
     .map(p => ({ p, s: score(p, ans, dayZone) - (usedCat.has(p.c) ? 2 : 0) + (slotTime !== undefined && isOpenAt(p, dayIdx, slotTime) === true ? 2 : 0) }))
@@ -238,11 +249,11 @@ function cardHTML(slot, idx) {
   return `<div class="slot"><div class="time">${slot.time}</div>
     <div class="card ${p.img ? 'pic' : ''}" data-idx="${idx}">
       <div class="nm">${p.n}${p.r ? ' <span class="rsv">☎ 예약 필수</span>' : ''}</div>
-      <div class="ct">${p.c} · ${p.a.replace('강원특별자치도 ', '').replace('강원 ', '')}</div>
-      <div class="hr">🕐 ${hoursText(p, slot.dayIdx)}${p.note ? `<br>💬 ${p.note}` : ''}</div>
+      <div class="ct">${p.c} · ${p.a.replace('강원특별자치도 ', '').replace('강원 ', '')}${p.rv ? ` · ⭐${p.rv[0]} (${p.rv[1]})` : ''}</div>
+      <div class="hr">🕐 ${hoursText(p, slot.dayIdx)}${noteText(p)}</div>
       <div class="mv">${moveText(p, answers.car)}${slot.optional ? ' · 선택 코스' : ''}</div>
       <div class="links">
-        <a href="${p.u}" target="_blank"><span>네이버지도 ↗</span></a>
+        <a href="${p.u}" target="_blank"><span>네이버지도 ↗</span></a>${p.bk ? `<a href="${p.bk}" target="_blank"><span>📅 네이버예약</span></a>` : ''}
         <span class="reroll" data-pool="${slot.pool}" data-zone="${slot.zone}" data-day="${slot.dayIdx}" data-st="${slot.st}">다른 곳 ↻</span>
       </div>${img}
     </div></div>`;
@@ -277,8 +288,8 @@ function render(course) {
       if (!alt) { btn.textContent = '대안 없음'; return; }
       usedGlobal.delete(cur);
       $('.nm', card).innerHTML = alt.n + (alt.r ? ' <span class="rsv">☎ 예약 필수</span>' : '');
-      $('.ct', card).textContent = alt.c + ' · ' + alt.a.replace('강원특별자치도 ', '').replace('강원 ', '');
-      $('.hr', card).innerHTML = '🕐 ' + hoursText(alt, dayIdx) + (alt.note ? `<br>💬 ${alt.note}` : '');
+      $('.ct', card).textContent = alt.c + ' · ' + alt.a.replace('강원특별자치도 ', '').replace('강원 ', '') + (alt.rv ? ` · ⭐${alt.rv[0]} (${alt.rv[1]})` : '');
+      $('.hr', card).innerHTML = '🕐 ' + hoursText(alt, dayIdx) + noteText(alt);
       $('.mv', card).textContent = moveText(alt, answers.car);
       $('a', card).href = alt.u;
       const ph = $('.ph', card);

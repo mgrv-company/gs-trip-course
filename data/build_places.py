@@ -15,6 +15,11 @@ except FileNotFoundError:
     overrides = {}
 overrides.pop('_설명', None)
 
+try:
+    extras = json.load(open('data/extras.json', encoding='utf-8'))
+except FileNotFoundError:
+    extras = {}
+
 def norm_hours(raw):
     """수집 원본 → {요일: 'HH:MM-HH:MM' | None(휴무)}. 정보 없으면 None 반환."""
     days_raw = (raw or {}).get('days') or {}
@@ -50,6 +55,20 @@ for x in places:
     }
     if h:
         item['h'] = h
+
+    # 자동 신호 (네이버 플레이스): 예약제·평점·리뷰수·한줄소개·네이버예약
+    ex = extras.get(str(x['sid'])) or {}
+    if ex.get('reserve_auto'):
+        item['r'] = 1
+        stat['예약제(자동감지)'] += 1
+    if ex.get('score') and ex.get('reviews'):
+        item['rv'] = [ex['score'], ex['reviews']]
+    if ex.get('micro'):
+        item['mr'] = ex['micro']
+    if ex.get('booking'):
+        item['bk'] = ex['booking']
+
+    # 수동 피드백(overrides)은 자동 신호보다 우선
     ov = overrides.get(x['name'])
     if ov:
         if ov.get('exclude'):
