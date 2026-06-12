@@ -152,6 +152,7 @@ function score(p, ans, dayZone) {
   }
   if (ans.purpose === 'rest' && p.z !== '속초') s += 2;
   if (ans.purpose === 'food') s += p.v.includes('로컬·노포') ? 1 : 0;
+  if (p.ca) s += 2.5; // CA 강력 추천은 어떤 조건에서든 우선
   // 방문자 리뷰 기반 가산: 평점(4점대 후반 우대) + 리뷰 수(검증된 곳 우대)
   if (p.rv) {
     const [rating, count] = p.rv;
@@ -263,7 +264,7 @@ function cardHTML(slot, idx) {
   const img = p.img ? `<img class="ph" src="${p.img}" alt="" loading="lazy" onerror="this.remove()">` : '';
   return `<div class="slot"><div class="time">${slot.time}</div>
     <div class="card ${p.img ? 'pic' : ''}" data-idx="${idx}">
-      <div class="nm">${p.n}${p.r ? ' <span class="rsv">☎ 예약 필수</span>' : ''}</div>
+      <div class="nm">${p.n}${p.ca ? ' <span class="capick">💚 CA 강추</span>' : ''}${p.r ? ' <span class="rsv">☎ 예약 필수</span>' : ''}</div>
       <div class="ct">${p.c} · ${p.a.replace('강원특별자치도 ', '').replace('강원 ', '')}${p.rv ? ` · ⭐${p.rv[0]} (${p.rv[1]})` : ''}</div>
       <div class="hr">${infoHTML(p, slot.dayIdx)}</div>
       <div class="mv">${moveText(p, answers.car)}${slot.optional ? ' · 선택 코스' : ''}</div>
@@ -302,7 +303,7 @@ function render(course) {
       const alt = pick(pool, answers, zone, usedGlobal, new Set(), dayIdx, st);
       if (!alt) { btn.textContent = '대안 없음'; return; }
       usedGlobal.delete(cur);
-      $('.nm', card).innerHTML = alt.n + (alt.r ? ' <span class="rsv">☎ 예약 필수</span>' : '');
+      $('.nm', card).innerHTML = alt.n + (alt.ca ? ' <span class="capick">💚 CA 강추</span>' : '') + (alt.r ? ' <span class="rsv">☎ 예약 필수</span>' : '');
       $('.ct', card).textContent = alt.c + ' · ' + alt.a.replace('강원특별자치도 ', '').replace('강원 ', '') + (alt.rv ? ` · ⭐${alt.rv[0]} (${alt.rv[1]})` : '');
       $('.hr', card).innerHTML = infoHTML(alt, dayIdx);
       $('.mv', card).textContent = moveText(alt, answers.car);

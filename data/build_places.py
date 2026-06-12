@@ -97,6 +97,9 @@ for x in places:
             item['r'] = 1
         if ov.get('note'):
             item['note'] = ov['note']
+        if ov.get('pick'):
+            item['ca'] = 1  # CA 강력 추천
+            stat['CA 강추'] += 1
     slim.append(item)
 
 # 오타 방지: 매칭 안 된 피드백 이름 경고
