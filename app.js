@@ -67,20 +67,25 @@ function isOpenAt(p, dayIdx, slotTime) {
 
 function noteText(p) {
   const t = p.note || p.mr; // 수동 메모 우선, 없으면 네이버 한줄소개
-  return t ? `<br>💬 ${t}` : '';
+  return t ? `💬 ${t}` : '';
 }
 
 // 웨이팅·방문 팁 (리뷰 데이터 기반 자동 생성)
 function waitText(p) {
-  if (p.w === 2) return `<br>⏳ 웨이팅 잦은 집 — 평일이나 오픈 직후 추천${p.lu ? ' · 📲 네이버 줄서기 가능' : ''}`;
-  if (p.w === 1) return '<br>⏳ 주말 식사시간엔 대기 있을 수 있어요';
-  if (p.w === 0) return '<br>🚶 보통 워크인으로 갈 수 있어요';
+  if (p.w === 2) return `⏳ 웨이팅 잦은 집 — 평일이나 오픈 직후 추천${p.lu ? ' · 📲 네이버 줄서기 가능' : ''}`;
+  if (p.w === 1) return '⏳ 주말 식사시간엔 대기 있을 수 있어요';
+  if (p.w === 0) return '🚶 보통 워크인으로 갈 수 있어요';
   return '';
 }
 
-// 카드 정보 블록 (영업시간 + 팁 + 메모) — 최초 렌더와 다시 뽑기에서 공용
+// 카드 정보 블록 (메뉴 + 영업시간 + 팁 + 메모) — 최초 렌더와 다시 뽑기에서 공용
 function infoHTML(p, dayIdx) {
-  return '🕐 ' + hoursText(p, dayIdx) + waitText(p) + noteText(p);
+  const lines = [];
+  if (p.m && p.m.length) lines.push(`🍽 ${p.m.join(' · ')}`);
+  lines.push('🕐 ' + hoursText(p, dayIdx));
+  if (waitText(p)) lines.push(waitText(p));
+  if (noteText(p)) lines.push(noteText(p));
+  return lines.join('<br>');
 }
 
 function hoursText(p, dayIdx) {

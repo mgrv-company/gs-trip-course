@@ -1,6 +1,6 @@
 # places_tagged.json + hours.json → places.js 재생성
 # 실행: python data/build_places.py  (프로젝트 루트 기준)
-import json, io, sys
+import json, io, re, sys
 from collections import Counter
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
@@ -24,6 +24,38 @@ try:
     rstats = json.load(open('data/reviews_stats.json', encoding='utf-8'))
 except FileNotFoundError:
     rstats = {}
+
+try:
+    menus = json.load(open('data/menus.json', encoding='utf-8'))
+except FileNotFoundError:
+    menus = {}
+
+# 메뉴 이름으로 음식 종류 추론 ("음식점"으로만 분류된 가게용)
+CUISINE_RULES = [
+    ('일식', r'초밥|스시|사시미|오마카세|우동|돈가스|돈까스|라멘|텐동|소바|규동|가츠|카츠'),
+    ('베트남 음식', r'쌀국수|분짜|반미|월남쌈'),
+    ('태국 음식', r'팟타이|똠얌|푸팟퐁'),
+    ('중식', r'짜장|짬뽕|탕수육|마라|양장피|군만두'),
+    ('양식', r'파스타|피자|스테이크|버거|리조또|브런치|오믈렛'),
+    ('해산물', r'물회|모둠회|회덮밥|대게|킹크랩|조개|가리비|생선구이|생선조림|곰치|도치|섭국|성게|멍게|해물|아구|장어|문어|오징어|새우|전복|회\b'),
+    ('고기 요리', r'갈비|삼겹|한우|불고기|닭갈비|목살|껍데기|곱창|대창|수육'),
+    ('한식', r'국밥|순대|백반|정식|찌개|전골|감자탕|옹심이|막국수|냉면|칼국수|만두|비빔밥|두부|보쌈|족발|닭볶음탕|제육|동태'),
+]
+CUISINE_TO_FOOD = {'일식': ['일식'], '베트남 음식': ['아시안'], '태국 음식': ['아시안'], '중식': ['아시안'],
+                   '양식': ['양식'], '해산물': ['해산물'], '고기 요리': ['고기'], '한식': ['한식']}
+
+def infer_cuisine(menu_items):
+    text = ' '.join(mi['name'] for mi in menu_items)
+    best, best_n = None, 0
+    for label, pat in CUISINE_RULES:
+        n = len(re.findall(pat, text))
+        if n > best_n:
+            best, best_n = label, n
+    return best
+
+def fmt_price(p):
+    digits = re.sub(r'[^0-9]', '', str(p or ''))
+    return f'{int(digits):,}원' if digits else ''
 
 def norm_hours(raw):
     """수집 원본 → {요일: 'HH:MM-HH:MM' | None(휴무)}. 정보 없으면 None 반환."""
@@ -72,6 +104,20 @@ for x in places:
         item['mr'] = ex['micro']
     if ex.get('booking'):
         item['bk'] = ex['booking']
+
+    # 대표 메뉴 (추천 우선 최대 2개) + 음식 종류 보정
+    mlist = menus.get(str(x['sid'])) or []
+    if mlist:
+        item['m'] = [f"{mi['name']}{(' ' + fmt_price(mi['price'])) if fmt_price(mi['price']) else ''}" for mi in mlist[:2]]
+    if item['c'] == '음식점':
+        cuisine = infer_cuisine(mlist) if mlist else None
+        if cuisine:
+            item['c'] = cuisine
+            item['f'] = CUISINE_TO_FOOD[cuisine]
+            stat['종류 보정(메뉴 기반)'] += 1
+        elif item['f']:
+            item['c'] = item['f'][0]  # 메뉴 정보 없으면 식성 태그로라도 표기
+            stat['종류 보정(태그 기반)'] += 1
 
     # 웨이팅 신호: 최근 리뷰 10개의 대기 언급 수 + 네이버 줄서기 도입 여부
     rs = rstats.get(str(x['sid'])) or {}

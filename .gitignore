@@ -3,6 +3,8 @@ data/*
 !data/fetch_hours.py
 !data/fetch_extras.py
 !data/fetch_reviews.py
+!data/fetch_menus.py
+!data/menus.json
 !data/reviews_stats.json
 !data/extras.json
 !data/build_places.py
