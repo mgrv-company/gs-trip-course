@@ -178,11 +178,18 @@ function pick(pool, ans, dayZone, used, usedCat, dayIdx, slotTime) {
   // 피크타임(점심·저녁 식사시간)엔 웨이팅 잦은 집을 약하게 감점
   const peak = slotTime === '12:00' || slotTime === '18:30';
   const ranked = candidates
-    .map(p => ({ p, s: score(p, ans, dayZone) - (usedCat.has(p.c) ? 2 : 0) + (slotTime !== undefined && isOpenAt(p, dayIdx, slotTime) === true ? 2 : 0) - (peak && p.w === 2 ? 1.2 : 0) }))
+    .map(p => ({ p, s: score(p, ans, dayZone) - (usedCat.has(p.c) ? 2 : 0) + (slotTime !== undefined && isOpenAt(p, dayIdx, slotTime) === true ? 2 : 0) - (peak && p.w === 2 ? 1.2 : 0) - (recentPicks.has(p.n) ? 3 : 0) }))
     .sort((a, b) => b.s - a.s);
   if (!ranked.length) return null;
-  const top = ranked.slice(0, 3); // 상위 3곳 중 랜덤 → 다양성
-  const chosen = top[Math.floor(Math.random() * top.length)].p;
+  // 상위 7곳 가중치 추첨: 점수 높을수록 잘 뽑히되, 다시 뽑을 때마다 변화가 생기게
+  const top = ranked.slice(0, 7);
+  const weights = top.map((_, i) => top.length - i);
+  let roll = Math.random() * weights.reduce((a, b) => a + b, 0);
+  let chosen = top[0].p;
+  for (let i = 0; i < top.length; i++) {
+    roll -= weights[i];
+    if (roll <= 0) { chosen = top[i].p; break; }
+  }
   used.add(chosen.n);
   usedCat.add(chosen.c);
   return chosen;
@@ -320,10 +327,15 @@ function render(course) {
   });
 }
 
+// 직전 코스에 나왔던 가게들 — 다시 뽑기에서 감점해서 새 가게가 나오게
+let recentPicks = new Set();
+
 let lastCourse = null;
 function regenerate() {
   lastCourse = buildCourse(answers);
   window.lastCourse = lastCourse; // 테스트 검증용
+  recentPicks = new Set();
+  lastCourse.forEach(day => day.slots.forEach(s => { if (s.pick) recentPicks.add(s.pick.n); }));
   render(lastCourse);
   window.scrollTo({ top: $('#result').offsetTop - 20, behavior: 'smooth' });
 }
