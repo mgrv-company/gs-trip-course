@@ -1,6 +1,8 @@
 data/*
 !data/overrides.json
 !data/fetch_hours.py
+!data/fetch_extras.py
+!data/extras.json
 !data/build_places.py
 !data/hours.json
 !data/places_tagged.json
