@@ -20,14 +20,17 @@
     background: var(--sand); color: var(--ink);
     line-height: 1.55; -webkit-font-smoothing: antialiased;
   }
-  /* 맹그로브 고성 사진 배경 + 회색 레이어로 은은하게 (내용 가독성 유지) */
-  body::before {
-    content: ""; position: fixed; inset: 0; z-index: -1;
-    background-image:
-      linear-gradient(rgba(237, 236, 233, 0.80), rgba(237, 236, 233, 0.88)),
-      url('assets/goseong-bg.webp');
+  /* 맹그로브 고성 사진 배경: 2→3→7→4 자동 크로스페이드 + 회색 레이어로 은은하게 */
+  .bg-rotator { position: fixed; inset: 0; z-index: -2; }
+  .bg-slide {
+    position: absolute; inset: 0;
     background-size: cover; background-position: center;
+    opacity: 0; transition: opacity 1.5s ease-in-out;
   }
+  .bg-slide.is-active { opacity: 1; }
+  .bg-overlay { position: fixed; inset: 0; z-index: -1; background: rgba(237, 236, 233, 0.84); }
+  /* 모션 최소화 설정 사용자: 전환 끄고 첫 장면만 */
+  @media (prefers-reduced-motion: reduce) { .bg-slide { transition: none; } }
   .wrap { max-width: 480px; margin: 0 auto; padding: 24px 18px 60px; }
   header { text-align: center; padding: 28px 0 8px; }
   header .badge {
@@ -123,6 +126,15 @@
 </style>
 </head>
 <body>
+<!-- 배경 사진 회전 레이어 (2→3→7→4 크로스페이드) + 회색 레이어 -->
+<div class="bg-rotator" aria-hidden="true">
+  <div class="bg-slide" style="background-image:url('assets/goseong-hero-2.webp')"></div>
+  <div class="bg-slide" style="background-image:url('assets/goseong-hero-3.webp')"></div>
+  <div class="bg-slide" style="background-image:url('assets/goseong-hero-7.webp')"></div>
+  <div class="bg-slide" style="background-image:url('assets/goseong-hero-4.webp')"></div>
+</div>
+<div class="bg-overlay" aria-hidden="true"></div>
+
 <div class="wrap">
   <header>
     <span class="badge">MANGROVE GOSEONG</span>
@@ -219,6 +231,23 @@
 
 <script src="places.js"></script>
 <script src="app.js"></script>
+
+<!-- 배경 사진 자동 회전: 약 7초마다 다음 장으로 부드럽게 전환 -->
+<script>
+  (function () {
+    var slides = document.querySelectorAll('.bg-slide');
+    if (!slides.length) return;
+    var i = 0;
+    slides[0].classList.add('is-active');
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || slides.length < 2) return; // 모션 최소화 설정이면 첫 장면만 고정
+    setInterval(function () {
+      slides[i].classList.remove('is-active');
+      i = (i + 1) % slides.length;
+      slides[i].classList.add('is-active');
+    }, 7000);
+  })();
+</script>
 
 <!--
   Agentation 시각 피드백 도구.
