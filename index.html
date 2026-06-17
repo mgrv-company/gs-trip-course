@@ -210,5 +210,27 @@
 
 <script src="places.js"></script>
 <script src="app.js"></script>
+
+<!--
+  Agentation 시각 피드백 도구.
+  주소 끝에 ?edit 를 붙여 열 때만(예: index.html?edit) 화면에 도구바가 뜬다.
+  투숙객이 보는 일반 QR 주소에서는 절대 로드되지 않는다 (개발자 전용).
+  사용법: ?edit 로 연다 → 우하단 아이콘 클릭 → 고칠 부분 클릭/메모 → 복사 → Claude 에게 붙여넣기.
+-->
+<script type="module">
+  if (new URLSearchParams(location.search).has('edit')) {
+    try {
+      const { createElement } = await import('https://esm.sh/react@18');
+      const { createRoot } = await import('https://esm.sh/react-dom@18/client');
+      const { Agentation } = await import('https://esm.sh/agentation?deps=react@18,react-dom@18');
+      const mount = document.createElement('div');
+      document.body.appendChild(mount);
+      createRoot(mount).render(createElement(Agentation));
+    } catch (err) {
+      console.error('Agentation 로드 실패:', err);
+      alert('피드백 도구를 불러오지 못했어요. 인터넷 연결을 확인하세요.\n' + err);
+    }
+  }
+</script>
 </body>
 </html>
