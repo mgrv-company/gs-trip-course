@@ -20,6 +20,14 @@
     background: var(--sand); color: var(--ink);
     line-height: 1.55; -webkit-font-smoothing: antialiased;
   }
+  /* 맹그로브 고성 사진 배경 + 회색 레이어로 은은하게 (내용 가독성 유지) */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: -1;
+    background-image:
+      linear-gradient(rgba(237, 236, 233, 0.80), rgba(237, 236, 233, 0.88)),
+      url('assets/goseong-bg.webp');
+    background-size: cover; background-position: center;
+  }
   .wrap { max-width: 480px; margin: 0 auto; padding: 24px 18px 60px; }
   header { text-align: center; padding: 28px 0 8px; }
   header .badge {
