@@ -20,7 +20,7 @@
     background: var(--sand); color: var(--ink);
     line-height: 1.55; -webkit-font-smoothing: antialiased;
   }
-  /* 맹그로브 고성 사진 배경: 2→3→7→4 자동 크로스페이드 + 회색 레이어로 은은하게 */
+  /* 맹그로브 고성 사진 배경: 새로고침마다 한 장(2→3→7→4 순환) + 회색 레이어로 은은하게 */
   .bg-rotator { position: fixed; inset: 0; z-index: -2; }
   .bg-slide {
     position: absolute; inset: 0;
@@ -126,7 +126,7 @@
 </style>
 </head>
 <body>
-<!-- 배경 사진 회전 레이어 (2→3→7→4 크로스페이드) + 회색 레이어 -->
+<!-- 배경 사진 레이어 (새로고침마다 2→3→7→4 순환) + 회색 레이어 -->
 <div class="bg-rotator" aria-hidden="true">
   <div class="bg-slide" style="background-image:url('assets/goseong-hero-2.webp')"></div>
   <div class="bg-slide" style="background-image:url('assets/goseong-hero-3.webp')"></div>
@@ -232,20 +232,16 @@
 <script src="places.js"></script>
 <script src="app.js"></script>
 
-<!-- 배경 사진 자동 회전: 약 7초마다 다음 장으로 부드럽게 전환 -->
+<!-- 배경 사진: 새로고침할 때마다 다음 장으로 (2→3→7→4 순환, 마지막 순서 기억) -->
 <script>
   (function () {
     var slides = document.querySelectorAll('.bg-slide');
     if (!slides.length) return;
-    var i = 0;
-    slides[0].classList.add('is-active');
-    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce || slides.length < 2) return; // 모션 최소화 설정이면 첫 장면만 고정
-    setInterval(function () {
-      slides[i].classList.remove('is-active');
-      i = (i + 1) % slides.length;
-      slides[i].classList.add('is-active');
-    }, 7000);
+    var n = slides.length;
+    var prev = parseInt(localStorage.getItem('gsBgIndex'), 10);
+    var i = isNaN(prev) ? 0 : (prev + 1) % n; // 첫 방문은 2번, 이후 새로고침마다 다음 장
+    slides[i].classList.add('is-active');
+    try { localStorage.setItem('gsBgIndex', String(i)); } catch (e) {}
   })();
 </script>
 
