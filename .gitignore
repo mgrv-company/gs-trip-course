@@ -1,5 +1,6 @@
 data/*
 !data/overrides.json
+!data/manual_places.json
 !data/fetch_hours.py
 !data/fetch_extras.py
 !data/fetch_reviews.py

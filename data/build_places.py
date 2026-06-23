@@ -8,6 +8,25 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 DAYS = ['월', '화', '수', '목', '금', '토', '일']
 
 places = json.load(open('data/places_tagged.json', encoding='utf-8'))
+
+# 어드민에서 직접 추가한 가게 — 네이버 자동수집 목록 뒤에 병합.
+# 별도 파일이라 주기 갱신(places_tagged.json 재생성)에도 지워지지 않음.
+try:
+    manual = json.load(open('data/manual_places.json', encoding='utf-8'))
+except FileNotFoundError:
+    manual = []
+if isinstance(manual, list):
+    existing_sids = {x.get('sid') for x in places}
+    for m in manual:
+        if m.get('sid') and m['sid'] not in existing_sids:
+            # build 로직이 참조하는 키들이 없으면 안전한 기본값으로 채움
+            m.setdefault('food', []); m.setdefault('vibe', [])
+            m.setdefault('thumb', ''); m.setdefault('address', '')
+            m.setdefault('naver', ''); m.setdefault('zone', '')
+            m.setdefault('dist_km', 0); m.setdefault('category', m.get('type', ''))
+            places.append(m)
+            existing_sids.add(m['sid'])
+
 hours = json.load(open('data/hours.json', encoding='utf-8'))
 try:
     overrides = json.load(open('data/overrides.json', encoding='utf-8'))

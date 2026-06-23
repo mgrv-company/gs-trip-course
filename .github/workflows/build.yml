@@ -1,0 +1,50 @@
+name: rebuild places.js
+
+# 어드민/주기갱신이 data/ 안의 데이터를 바꾸면 자동으로 build_places.py 를 돌려
+# places.js 를 다시 생성·커밋한다. places.js 는 data/ 밖이라 재트리거 루프가 없다.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'data/overrides.json'
+      - 'data/manual_places.json'
+      - 'data/places_tagged.json'
+      - 'data/hours.json'
+      - 'data/extras.json'
+      - 'data/menus.json'
+      - 'data/reviews_stats.json'
+      - 'data/photos.json'
+      - 'data/build_places.py'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rebuild-places
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Rebuild places.js
+        run: python data/build_places.py
+
+      - name: Commit if changed
+        run: |
+          git config user.name "gs-trip-bot"
+          git config user.email "actions@github.com"
+          if git diff --quiet -- places.js; then
+            echo "변경 없음 — 커밋 생략"
+          else
+            git add places.js
+            git commit -m "chore: rebuild places.js (auto)"
+            git push
+          fi
