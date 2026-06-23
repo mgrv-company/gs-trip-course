@@ -3,268 +3,121 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>맹그로브 고성 · 로컬 트립 코스</title>
-<meta name="description" content="맹그로브 고성 CA가 직접 가본 속초·고성 맛집으로 만드는 맞춤 여행 코스">
+<title>맹그로브 고성 · 지금 갈만한 곳</title>
+<meta name="description" content="맹그로브 고성 CA 추천 — 지금 문 연, 가까운, 안 붐비는 속초·고성 맛집과 카페">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/favicon-180.png">
 <style>
   :root {
-    --green: #1d5c4f;
-    --green-light: #e8f2ef;
-    --sand: #faf7f2;
-    --ink: #243230;
-    --gray: #7a8a86;
-    --line: #e3e0d8;
+    --green: #1d5c4f; --green-light: #e8f2ef; --sand: #faf7f2;
+    --ink: #243230; --gray: #7a8a86; --line: #e3e0d8; --key: #00b453;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: 'Apple SD Gothic Neo', 'Pretendard', 'Malgun Gothic', sans-serif;
-    background: var(--sand); color: var(--ink);
-    line-height: 1.55; -webkit-font-smoothing: antialiased;
+    background: var(--sand); color: var(--ink); line-height: 1.55; -webkit-font-smoothing: antialiased;
   }
-  /* 맹그로브 고성 사진 배경: 새로고침마다 한 장(2→3→7→4 순환) + 회색 레이어로 은은하게 */
   .bg-rotator { position: fixed; inset: 0; z-index: -2; }
-  .bg-slide {
-    position: absolute; inset: 0;
-    background-size: cover; background-position: center;
-    opacity: 0; transition: opacity 1.5s ease-in-out;
-  }
+  .bg-slide { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 1.5s; }
   .bg-slide.is-active { opacity: 1; }
-  .bg-overlay { position: fixed; inset: 0; z-index: -1; background: rgba(237, 236, 233, 0.84); }
-  /* 모션 최소화 설정 사용자: 전환 끄고 첫 장면만 */
+  .bg-overlay { position: fixed; inset: 0; z-index: -1; background: rgba(237, 236, 233, 0.86); }
   @media (prefers-reduced-motion: reduce) { .bg-slide { transition: none; } }
-  .wrap { max-width: 480px; margin: 0 auto; padding: 24px 18px 60px; }
-  header { text-align: center; padding: 28px 0 8px; }
-  header .badge {
-    /* 맹그로브 홈페이지 키컬러로 통일 */
-    display: inline-block; background: #00b453; color: #fff;
-    font-size: 12px; letter-spacing: 1px; padding: 4px 12px; border-radius: 99px;
-  }
-  header h1 { font-size: 26px; margin: 12px 0 6px; letter-spacing: -0.5px; }
-  header p { color: var(--gray); font-size: 14px; }
 
-  .step { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 20px 18px; margin-top: 16px; }
-  .step h2 { font-size: 16px; margin-bottom: 4px; }
-  .step .sub { font-size: 13px; color: var(--gray); margin-bottom: 12px; }
-  .opts { display: flex; flex-wrap: wrap; gap: 8px; }
-  .opt {
-    border: 1.5px solid var(--line); background: #fff; border-radius: 12px;
-    padding: 10px 14px; font-size: 14px; cursor: pointer; user-select: none;
-    transition: all .15s;
-  }
-  .opt.on { border-color: var(--green); background: var(--green-light); color: var(--green); font-weight: 700; }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 20px 16px 40px; }
+  header { text-align: center; padding: 20px 0 6px; }
+  header .badge { display: inline-block; background: var(--key); color: #fff; font-size: 11px; letter-spacing: 1px; padding: 4px 12px; border-radius: 99px; }
+  header h1 { font-size: 24px; margin: 11px 0 4px; letter-spacing: -0.5px; }
+  header .ctx { color: var(--gray); font-size: 13px; }
 
-  .go {
-    width: 100%; margin-top: 20px; padding: 16px; border: 0; border-radius: 14px;
-    background: var(--green); color: #fff; font-size: 17px; font-weight: 700; cursor: pointer;
-  }
-  .go:disabled { background: #b9c6c2; cursor: default; }
+  .segs { display: flex; gap: 7px; margin-top: 18px; }
+  .seg { flex: 1; text-align: center; padding: 10px 4px; border: 1.5px solid var(--line); background: #fff; border-radius: 12px; font-size: 13.5px; font-weight: 600; cursor: pointer; user-select: none; }
+  .seg.on { border-color: var(--green); background: var(--green-light); color: var(--green); }
 
-  /* 결과 */
-  #result { display: none; }
-  .day { margin-top: 26px; }
-  .day h3 {
-    font-size: 18px; color: var(--green); display: flex; align-items: center; gap: 8px;
-  }
-  .day h3 .tag { font-size: 12px; background: var(--green-light); color: var(--green); padding: 2px 10px; border-radius: 99px; font-weight: 600; }
-  .slot { display: flex; gap: 12px; margin-top: 14px; }
-  .slot .time {
-    flex: 0 0 52px; font-size: 12px; font-weight: 700; color: var(--gray);
-    padding-top: 14px; text-align: center;
-  }
-  .card {
-    flex: 1; background: #fff; border: 1px solid var(--line); border-radius: 14px;
-    padding: 14px 14px; position: relative; overflow: hidden;
-  }
-  .card.pic { padding-right: 112px; }
-  .card .ph {
-    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-    width: 88px; height: 88px; border-radius: 12px; object-fit: cover;
-  }
+  .slotlabel { font-size: 15px; font-weight: 800; margin: 20px 2px 4px; }
+  .slotsub { font-size: 12.5px; color: var(--gray); margin-bottom: 6px; }
+
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-top: 12px; position: relative; overflow: hidden; }
+  .card.pic { padding-right: 108px; min-height: 112px; }
+  .card .ph { position: absolute; right: 12px; top: 14px; width: 84px; height: 84px; border-radius: 12px; object-fit: cover; }
   .card .nm { font-weight: 800; font-size: 15.5px; }
   .card .ct { font-size: 12.5px; color: var(--gray); margin-top: 2px; }
-  .card .hr { font-size: 12px; color: #9a6b2f; margin-top: 4px; }
-  .card .rsv { font-size: 11px; background: #fdeaea; color: #b03a3a; padding: 2px 7px; border-radius: 99px; font-weight: 700; vertical-align: 1px; }
-  .card .capick { font-size: 11px; background: var(--green-light); color: var(--green); padding: 2px 7px; border-radius: 99px; font-weight: 700; vertical-align: 1px; }
+  .card .ct .rv { color: #9a6b2f; margin-left: 4px; }
+  .card .info { font-size: 12.5px; color: #4a5854; margin-top: 7px; line-height: 1.7; }
+  .card .links { margin-top: 8px; }
+  .card .links a { font-size: 12px; color: var(--green); text-decoration: none; border: 1px solid var(--line); border-radius: 8px; padding: 4px 9px; display: inline-block; }
+  .b { font-size: 10.5px; padding: 1.5px 7px; border-radius: 99px; font-weight: 700; vertical-align: 2px; }
+  .b.ca { background: var(--green-light); color: var(--green); }
+  .b.rsv { background: #fdeaea; color: #b03a3a; }
+  .b.open { background: #e7f7ee; color: #138a4e; }
+  .b.chk { background: #fff4e0; color: #9a6b2f; }
+  .empty { text-align: center; color: var(--gray); font-size: 14px; padding: 36px 10px; }
 
-  /* 현장 피드백(🚩) — CA용 */
-  .card .links .flagbtn { cursor: pointer; font-size: 12px; border: 1px solid var(--line); border-radius: 8px; padding: 3px 8px; color: var(--gray); background: #fff; }
-  #fbDim { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 40; }
-  #fbSheet {
-    display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
-    background: #fff; border-radius: 20px 20px 0 0; padding: 22px 20px 30px;
-    box-shadow: 0 -8px 30px rgba(0,0,0,.18); max-width: 480px; margin: 0 auto;
-  }
-  #fbSheet h4 { font-size: 15px; margin-bottom: 4px; }
-  #fbSheet .fbopt {
-    display: block; width: 100%; text-align: left; background: var(--sand);
-    border: 1.5px solid var(--line); border-radius: 12px; padding: 11px 14px;
-    font-size: 14px; margin-top: 8px; cursor: pointer; font-family: inherit;
-  }
-  #fbSheet .fbopt.on { border-color: var(--green); background: var(--green-light); font-weight: 700; }
-  #fbSheet textarea { width: 100%; margin-top: 10px; padding: 10px; border: 1.5px solid var(--line); border-radius: 12px; font-family: inherit; font-size: 14px; resize: none; box-sizing: border-box; }
-  #fbSheet .fbsave { width: 100%; margin-top: 12px; padding: 13px; border: 0; border-radius: 12px; background: var(--green); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; }
-  #fbSheet .fbclose { position: absolute; top: 14px; right: 18px; border: 0; background: none; font-size: 17px; cursor: pointer; color: var(--gray); }
-  #fbSend {
-    display: none; position: fixed; right: 16px; bottom: 18px; z-index: 30;
-    background: var(--green); color: #fff; border: 0; border-radius: 99px;
-    padding: 12px 18px; font-size: 14px; font-weight: 700; cursor: pointer;
-    box-shadow: 0 4px 14px rgba(29,92,79,.4);
-  }
-  .card .mv { font-size: 12.5px; color: var(--green); font-weight: 600; margin-top: 6px; }
-  .card a { color: inherit; text-decoration: none; }
-  .card .links { margin-top: 8px; display: flex; gap: 6px; }
-  .card .links span, .card .reroll {
-    font-size: 12px; border: 1px solid var(--line); border-radius: 8px; padding: 3px 9px; color: var(--ink);
-  }
-  .card .reroll { cursor: pointer; background: var(--sand); }
-  .land .card { background: var(--green-light); border-color: #cfe3dd; }
-  .note { font-size: 12.5px; color: var(--gray); margin-top: 18px; text-align: center; }
-  .again {
-    width: 100%; margin-top: 24px; padding: 14px; border: 1.5px solid var(--green);
-    border-radius: 14px; background: #fff; color: var(--green); font-size: 15px; font-weight: 700; cursor: pointer;
-  }
-  footer { text-align: center; margin-top: 40px; font-size: 12px; color: var(--gray); }
+  /* 섹션 버튼 그리드 */
+  .nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 26px; }
+  .navbtn { background: #fff; border: 1.5px solid var(--line); border-radius: 14px; padding: 16px 8px; text-align: center; cursor: pointer; font-size: 13px; font-weight: 700; }
+  .navbtn .ic { display: block; font-size: 22px; margin-bottom: 5px; }
+  .navbtn .sub { display: block; font-size: 10.5px; color: var(--gray); font-weight: 500; margin-top: 2px; }
+
+  /* 섹션 오버레이 */
+  #section { display: none; position: fixed; inset: 0; background: var(--sand); z-index: 30; overflow-y: auto; }
+  #section.show { display: block; }
+  #section .shead { position: sticky; top: 0; background: var(--sand); display: flex; align-items: center; gap: 10px; padding: 16px; border-bottom: 1px solid var(--line); }
+  #section .shead h2 { font-size: 17px; flex: 1; }
+  #secClose { border: 0; background: #fff; border: 1.5px solid var(--line); border-radius: 10px; padding: 7px 12px; font-size: 14px; cursor: pointer; }
+  #secBody { max-width: 480px; margin: 0 auto; padding: 6px 16px 50px; }
+
+  footer { text-align: center; color: var(--gray); font-size: 11.5px; margin-top: 30px; }
+  footer a { color: var(--gray); }
 </style>
 </head>
 <body>
-<!-- 배경 사진 레이어 (새로고침마다 2→3→7→4 순환) + 회색 레이어 -->
-<div class="bg-rotator" aria-hidden="true">
-  <div class="bg-slide" style="background-image:url('assets/goseong-hero-2.webp')"></div>
+<div class="bg-rotator">
+  <div class="bg-slide is-active" style="background-image:url('assets/goseong-hero-2.webp')"></div>
   <div class="bg-slide" style="background-image:url('assets/goseong-hero-3.webp')"></div>
   <div class="bg-slide" style="background-image:url('assets/goseong-hero-7.webp')"></div>
-  <div class="bg-slide" style="background-image:url('assets/goseong-hero-4.webp')"></div>
 </div>
-<div class="bg-overlay" aria-hidden="true"></div>
+<div class="bg-overlay"></div>
 
 <div class="wrap">
   <header>
-    <span class="badge">MANGROVE GOSEONG</span>
-    <h1>로컬 트립 코스 만들기</h1>
-    <p>커뮤니티 매니저가 직접 추천하는<br>속초·고성 가게들로 코스를 짜 드려요</p>
+    <span class="badge">MANGROVE 고성</span>
+    <h1>지금 갈만한 곳</h1>
+    <div class="ctx"><span id="ctxTime"></span> · CA가 직접 가본 곳</div>
   </header>
 
-  <div id="quiz">
-    <div class="step" data-key="checkin">
-      <h2>⓪ 입실일이 언제예요?</h2>
-      <div class="sub">요일별 휴무·영업시간을 맞춰드려요</div>
-      <input type="date" id="checkinDate" style="width:100%;padding:12px;border:1.5px solid var(--line);border-radius:12px;font-size:15px;font-family:inherit;background:#fff;">
-    </div>
-
-    <div class="step" data-key="days">
-      <h2>① 얼마나 머무세요?</h2>
-      <div class="sub">체크인~체크아웃 기준</div>
-      <div class="opts">
-        <div class="opt" data-v="1">당일</div>
-        <div class="opt" data-v="2">1박 2일</div>
-        <div class="opt" data-v="3">2박 3일</div>
-        <div class="opt" data-v="4">3박 이상</div>
-      </div>
-    </div>
-
-    <div class="step" data-key="car">
-      <h2>② 이동 수단은요?</h2>
-      <div class="sub">속초 시내까지 차로 20~30분 거리예요</div>
-      <div class="opts">
-        <div class="opt" data-v="yes">자차 · 렌터카</div>
-        <div class="opt" data-v="no">뚜벅이 (도보·택시)</div>
-      </div>
-    </div>
-
-    <div class="step" data-key="purpose">
-      <h2>③ 이번 여행의 목적은?</h2>
-      <div class="sub">하나만 골라주세요</div>
-      <div class="opts">
-        <div class="opt" data-v="rest">푹 쉬러 왔어요</div>
-        <div class="opt" data-v="food">맛집 탐방</div>
-        <div class="opt" data-v="tour">관광 · 나들이</div>
-        <div class="opt" data-v="work">워케이션</div>
-      </div>
-    </div>
-
-    <div class="step" data-key="style">
-      <h2>④ 취향은 어느 쪽?</h2>
-      <div class="sub">하나만 골라주세요</div>
-      <div class="opts">
-        <div class="opt" data-v="mood">감성 · 카페 · 사진</div>
-        <div class="opt" data-v="local">로컬 · 노포 · 현지인 맛집</div>
-        <div class="opt" data-v="any">둘 다 좋아요</div>
-      </div>
-    </div>
-
-    <div class="step" data-key="taste" data-multi="1">
-      <h2>⑤ 어떤 음식이 끌리세요?</h2>
-      <div class="sub">여러 개 골라도 돼요</div>
-      <div class="opts">
-        <div class="opt" data-v="all">다 잘 먹어요</div>
-        <div class="opt" data-v="해산물">해산물 · 회</div>
-        <div class="opt" data-v="고기">고기</div>
-        <div class="opt" data-v="면">면 · 국수</div>
-        <div class="opt" data-v="한식">한식 · 국밥 · 백반</div>
-        <div class="opt" data-v="일식">일식</div>
-        <div class="opt" data-v="양식">양식 · 브런치</div>
-        <div class="opt" data-v="분식">분식</div>
-      </div>
-    </div>
-
-    <button class="go" id="goBtn" disabled>코스 만들기</button>
+  <div class="segs">
+    <div class="seg on" data-slot="auto">✨ 지금추천</div>
+    <div class="seg" data-slot="meal">🍚 밥</div>
+    <div class="seg" data-slot="cafe">☕ 카페</div>
+    <div class="seg" data-slot="bar">🍻 술집</div>
   </div>
 
-  <div id="result"></div>
+  <div class="slotlabel" id="slotLabel"></div>
+  <div class="slotsub">지금 문 연 · 가까운 · 안 붐비는 순</div>
+  <div id="nowList"></div>
 
-  <footer>
-    맹그로브 고성 · 영업시간은 방문 전 네이버지도에서 확인해 주세요 🌊
-  </footer>
+  <div class="nav">
+    <div class="navbtn" data-sec="takeout"><span class="ic">🍱</span>포장·배달<span class="sub">객실에서</span></div>
+    <div class="navbtn" data-sec="activity"><span class="ic">🏄</span>액티비티<span class="sub">준비중</span></div>
+    <div class="navbtn" data-sec="beach"><span class="ic">🏖</span>해수욕장<span class="sub">준비중</span></div>
+    <div class="navbtn" data-sec="festival"><span class="ic">🎉</span>축제<span class="sub">준비중</span></div>
+    <div class="navbtn" data-sec="course"><span class="ic">🗺</span>트립코스<span class="sub">추천 일정</span></div>
+  </div>
+
+  <footer>맹그로브 고성 · 속초·고성 로컬 정보 · <a href="course.html">트립 코스 짜기</a></footer>
 </div>
 
-<div id="fbDim"></div>
-<div id="fbSheet">
-  <button class="fbclose" type="button">✕</button>
-  <h4 id="fbTitle">🚩 피드백</h4>
-  <button class="fbopt" type="button" data-t="강추">💚 CA 강력 추천이에요</button>
-  <button class="fbopt" type="button" data-t="예약필수">☎ 예약해야 갈 수 있는 곳이에요</button>
-  <button class="fbopt" type="button" data-t="제외">🙅 코스에서 빼주세요</button>
-  <button class="fbopt" type="button" data-t="정보틀림">⚠️ 영업시간·정보가 실제와 달라요</button>
-  <button class="fbopt" type="button" data-t="메모">💬 안내 메모를 붙일게요</button>
-  <textarea id="fbMemo" rows="2" placeholder="선택사항: 자세한 내용 (예: 주말엔 웨이팅 1시간)"></textarea>
-  <button class="fbsave" type="button">저장</button>
+<!-- 섹션 오버레이 -->
+<div id="section">
+  <div class="shead">
+    <h2 id="secTitle"></h2>
+    <button id="secClose">✕ 닫기</button>
+  </div>
+  <div id="secBody"></div>
 </div>
-<button id="fbSend" type="button"></button>
 
 <script src="places.js"></script>
-<script src="app.js"></script>
-
-<!-- 배경 사진: 새로고침할 때마다 다음 장으로 (2→3→7→4 순환, 마지막 순서 기억) -->
-<script>
-  (function () {
-    var slides = document.querySelectorAll('.bg-slide');
-    if (!slides.length) return;
-    var n = slides.length;
-    var prev = parseInt(localStorage.getItem('gsBgIndex'), 10);
-    var i = isNaN(prev) ? 0 : (prev + 1) % n; // 첫 방문은 2번, 이후 새로고침마다 다음 장
-    slides[i].classList.add('is-active');
-    try { localStorage.setItem('gsBgIndex', String(i)); } catch (e) {}
-  })();
-</script>
-
-<!--
-  Agentation 시각 피드백 도구.
-  주소 끝에 ?edit 를 붙여 열 때만(예: index.html?edit) 화면에 도구바가 뜬다.
-  투숙객이 보는 일반 QR 주소에서는 절대 로드되지 않는다 (개발자 전용).
-  사용법: ?edit 로 연다 → 우하단 아이콘 클릭 → 고칠 부분 클릭/메모 → 복사 → Claude 에게 붙여넣기.
--->
-<script type="module">
-  if (new URLSearchParams(location.search).has('edit')) {
-    try {
-      const { createElement } = await import('https://esm.sh/react@18');
-      const { createRoot } = await import('https://esm.sh/react-dom@18/client');
-      const { Agentation } = await import('https://esm.sh/agentation?deps=react@18,react-dom@18');
-      const mount = document.createElement('div');
-      document.body.appendChild(mount);
-      createRoot(mount).render(createElement(Agentation));
-    } catch (err) {
-      console.error('Agentation 로드 실패:', err);
-      alert('피드백 도구를 불러오지 못했어요. 인터넷 연결을 확인하세요.\n' + err);
-    }
-  }
-</script>
+<script src="home.js"></script>
 </body>
 </html>
