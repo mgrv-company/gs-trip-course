@@ -79,8 +79,20 @@ def infer_cuisine(menu_items):
     return best
 
 def fmt_price(p):
-    digits = re.sub(r'[^0-9]', '', str(p or ''))
-    return f'{int(digits):,}원' if digits else ''
+    s = str(p or '')
+    m = re.search(r'\d[\d,]*', s)          # 첫 숫자 묶음만 (범위·시가 등 방어)
+    if not m:
+        return ''
+    digits = re.sub(r'[^0-9]', '', m.group())
+    if not digits:
+        return ''
+    n = int(digits)
+    if n >= 1000000:                       # 메뉴 1개가 100만원↑ → 깨진 데이터로 보고 가격 생략
+        return ''
+    out = f'{n:,}원'
+    if '~' in s or '-' in s:               # 원본이 범위면 ~ 표시
+        out += '~'
+    return out
 
 def norm_hours(raw):
     """수집 원본 → {요일: 'HH:MM-HH:MM' | None(휴무)}. 정보 없으면 None 반환."""
