@@ -19,7 +19,7 @@ const BAR_GROUPS = [
   { label: '바·맥주', cats: ['BAR', '바(BAR)', '맥주', '호프'] },
   { label: '요리주점·안주', cats: ['요리주점', '퓨전', '육류', '고기', '해물', '생선', '술집'] },
 ];
-const FEEDBACK_ENDPOINT = '';   // 피드백 수신 Apps Script /exec URL — 배포 후 채우면 슬랙으로 전송됨
+const FEEDBACK_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyWVX0t2ciXvhz0l6eesmMYTxpgsfHlWotcmzxH5t8JhAEizxfnBEWDPrUFgr5ImXXj/exec';   // Apps Script → 슬랙 #gs-routine (브라우저 no-cors POST)
 
 function toMin(hhmm) { const [h, m] = hhmm.split(':').map(Number); return h * 60 + m; }
 
