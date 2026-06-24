@@ -107,6 +107,8 @@
   .navbtn { background: #fff; border: 1.5px solid var(--line); border-radius: 14px; padding: 16px 8px; text-align: center; cursor: pointer; font-size: 13px; font-weight: 700; color: var(--ink); }
   .navbtn .ic { display: block; font-size: 22px; margin-bottom: 5px; }
   .navbtn .sub { display: block; font-size: 10.5px; color: var(--gray); font-weight: 500; margin-top: 2px; }
+  .navlabel { font-size: 13.5px; font-weight: 800; margin: 26px 2px 0; }
+  .navlabel + .nav { margin-top: 9px; }
 
   #section { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 30; overflow-y: auto; }
   #section.show { display: block; }
@@ -160,6 +162,14 @@
   <div id="nowList"></div>
   <div class="notice">📍 위 리스트는 네이버 지도에 기반한 정보로 안내됩니다. 가게 사정에 따라 변동이 있을 수 있으니, 방문 전 유선으로 확인해보시길 추천해요.</div>
 
+  <div class="navlabel">🔎 이렇게도 찾아보기</div>
+  <div class="nav">
+    <div class="navbtn" data-sec="walk"><span class="ic">🚶</span>걸어서<span class="sub">도보·근거리</span></div>
+    <div class="navbtn" data-sec="capick"><span class="ic">💚</span>CA 강추<span class="sub">찐 추천</span></div>
+    <div class="navbtn" data-sec="time"><span class="ic">🎯</span>아침·심야<span class="sub">시간대</span></div>
+  </div>
+
+  <div class="navlabel">📂 더 둘러보기</div>
   <div class="nav">
     <div class="navbtn" data-sec="takeout"><span class="ic">🍱</span>포장·배달<span class="sub">객실에서</span></div>
     <div class="navbtn" data-sec="activity"><span class="ic">🏄</span>액티비티<span class="sub">레포츠·캠핑</span></div>
@@ -202,7 +212,7 @@
 
 <script src="places.js?v=5"></script>
 <script src="tour.js?v=1"></script>
-<script src="home.js?v=7"></script>
+<script src="home.js?v=8"></script>
 <!-- PC 배경 사진: 새로고침마다 다음 장(2→3→7→4 순환). 모바일에선 CSS로 숨겨져 단색만 보임 -->
 <script>
   (function () {
