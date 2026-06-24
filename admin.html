@@ -8,18 +8,24 @@
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" href="assets/favicon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --green: #1d5c4f; --green-light: #e8f2ef; --sand: #faf7f2;
-    --ink: #243230; --gray: #7a8a86; --line: #e3e0d8;
+    /* 맹그로브 브랜드 토큰 (홈과 통일) */
+    --green: #00b453; --green-deep: #0a7a3c; --green-light: #eafdf1; --bg: #f6f5f2; --sand: #f6f5f2;
+    --ink: #1f1e1d; --gray: #76776c; --line: #ececea;
     --red: #b03a3a; --red-light: #fdeaea;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    font-family: 'Apple SD Gothic Neo', 'Pretendard', 'Malgun Gothic', sans-serif;
-    background: var(--sand); color: var(--ink); line-height: 1.55;
+    font-family: 'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+    background: var(--bg); color: var(--ink); line-height: 1.55;
     -webkit-font-smoothing: antialiased;
   }
+  .topbar { background: var(--ink); color: #fff; display: flex; align-items: center; gap: 10px; padding: 13px 16px; }
+  .topbar .wm { font-weight: 800; font-size: 16px; letter-spacing: -0.3px; }
+  .topbar .pg { font-size: 12.5px; color: #cfcfca; font-weight: 600; margin-left: auto; }
   .wrap { max-width: 560px; margin: 0 auto; padding: 20px 16px 80px; }
   header { padding: 14px 0 6px; }
   header .badge {
@@ -84,6 +90,7 @@
 </style>
 </head>
 <body>
+<div class="topbar"><span class="wm">mangrove</span><span class="pg">고성 · 가게 관리</span></div>
 <div class="wrap">
   <header>
     <span class="badge">ADMIN</span>
