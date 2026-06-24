@@ -82,7 +82,7 @@ function waitText(p) {
   return '';
 }
 
-function cardHTML(p) {
+function cardHTML(p, idx) {
   const badges = [];
   if (p.ca) badges.push('<span class="b ca">💚 강추</span>');
   if (p.r) badges.push('<span class="b rsv">☎ 예약</span>');
@@ -95,13 +95,16 @@ function cardHTML(p) {
   if (waitText(p)) lines.push(waitText(p));
   const memo = p.note || p.mr;
   if (memo) lines.push('💬 ' + memo);
-  const rv = p.rv ? `<span class="rv">⭐ ${p.rv[0]} (${p.rv[1]})</span>` : '';
-  return `<div class="card${p.img ? ' pic' : ''}">
+  const rv = p.rv ? `<span class="rv">★ ${p.rv[0]} (${p.rv[1]})</span>` : '';
+  const num = idx ? `<span class="num">${idx}</span>` : '';
+  return `<div class="card">
     ${p.img ? `<img class="ph" src="${p.img}" loading="lazy" alt="">` : ''}
-    <div class="nm">${p.n} ${badges.join(' ')}</div>
-    <div class="ct">${p.c} · ${moveText(p)} ${rv}</div>
-    <div class="info">${lines.join('<br>')}</div>
-    <div class="links">${p.u ? `<a href="${p.u}" target="_blank" rel="noopener">네이버지도 ↗</a>` : ''}${p.bk ? ` <a href="${p.bk}" target="_blank" rel="noopener">📅 예약</a>` : ''}</div>
+    <div class="body">
+      <div class="rk">${num}<span class="nm">${p.n}</span> ${badges.join(' ')}</div>
+      <div class="ct">${p.c} · ${moveText(p)} ${rv}</div>
+      <div class="info">${lines.join('<br>')}</div>
+      <div class="links">${p.u ? `<a href="${p.u}" target="_blank" rel="noopener">네이버 지도에서 보기 →</a>` : ''}${p.bk ? ` <a href="${p.bk}" target="_blank" rel="noopener">📅 예약</a>` : ''}</div>
+    </div>
   </div>`;
 }
 
@@ -110,12 +113,14 @@ function tourCardHTML(p) {
   const lines = [];
   if (p.addr) lines.push('📍 ' + p.addr);
   if (p.tel) lines.push('☎ ' + p.tel);
-  return `<div class="card${p.img ? ' pic' : ''}">
+  return `<div class="card">
     ${p.img ? `<img class="ph" src="${p.img}" loading="lazy" alt="">` : ''}
-    <div class="nm">${p.n}</div>
-    <div class="ct">${p.d != null ? moveText({ d: p.d }) : ''}</div>
-    <div class="info">${lines.join('<br>')}</div>
-    <div class="links"><a href="${p.u}" target="_blank" rel="noopener">네이버지도 ↗</a></div>
+    <div class="body">
+      <div class="rk"><span class="nm">${p.n}</span></div>
+      <div class="ct">${p.d != null ? moveText({ d: p.d }) : ''}</div>
+      <div class="info">${lines.join('<br>')}</div>
+      <div class="links"><a href="${p.u}" target="_blank" rel="noopener">네이버 지도에서 보기 →</a></div>
+    </div>
   </div>`;
 }
 
@@ -153,10 +158,10 @@ function renderNow() {
     .sort((a, b) => (openNow(b, now) === true ? 1 : 0) - (openNow(a, now) === true ? 1 : 0));
   recent = recent.concat(picks.map(p => p.n));   // 누적: 한 바퀴 다 돌 때까지 계속 제외
 
-  $('#slotLabel').textContent = curSlot === 'auto' ? SLOT_LABEL[slot] : ({ meal: '🍚 든든한 한 끼', cafe: '☕ 카페&디저트', bar: '🍻 술과 함께' })[slot];
+  $('#slotLabel').textContent = curSlot === 'auto' ? '영업중' : ({ meal: '든든한 한 끼', cafe: '카페', bar: '술과 함께' })[slot];
   $('#slotSub').textContent = curFilter ? `'${curFilter}' 중에서 골라봤어요` : '지금 문 연 곳 중에서 골라봤어요';
   $('#nowList').innerHTML = picks.length
-    ? picks.map(cardHTML).join('')
+    ? picks.map((p, i) => cardHTML(p, i + 1)).join('')
     : `<p class="empty">지금 시간엔 '${curFilter || type}' 추천이 없어요. 옵션이나 종류를 바꿔보세요.</p>`;
 }
 
@@ -236,7 +241,7 @@ function openSection(key) {
   const tourNote = '<div class="notice" style="margin-top:0;margin-bottom:6px">📍 한국관광공사 정보 기반이에요. 방문 전 운영 여부를 확인해보세요.</div>';
   if (key === 'takeout') {
     const list = PLACES.filter(p => p.to);
-    html = list.length ? list.map(cardHTML).join('') : '<p class="empty">등록된 포장·배달 가게가 없어요.</p>';
+    html = list.length ? list.map(p => cardHTML(p)).join('') : '<p class="empty">등록된 포장·배달 가게가 없어요.</p>';
   } else if (key === 'activity' && typeof TOUR !== 'undefined') {
     html = tourNote + TOUR.activities.map(tourCardHTML).join('');
   } else if (key === 'beach' && typeof TOUR !== 'undefined') {

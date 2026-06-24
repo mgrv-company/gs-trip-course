@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>디자인 비교 — 현재 vs 개선안</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* 현재 토큰 */
+    --o-green:#05c653; --o-green-deep:#04a847; --o-green-light:#eafff3; --o-ink:#191414; --o-gray:#76776c; --o-line:#e4ede7; --o-bg:#f4faf7; --o-soft:#edf5f0; --o-gold:#f0c34b; --o-gold-bg:#fff3cd;
+    /* 개선안(공식 브랜드값) */
+    --n-green:#00b453; --n-green2:#09c15e; --n-green-light:#eafdf1; --n-ink:#1f1e1d; --n-gray:#9a9a93; --n-line:#ececea; --n-bg:#f6f5f2;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Inter','Pretendard',-apple-system,'Apple SD Gothic Neo',sans-serif;background:#1f1e1d;color:#fff;padding:28px 18px 60px}
+  .head{max-width:900px;margin:0 auto 10px;text-align:center}
+  .head h1{font-size:24px;font-weight:800;letter-spacing:-.5px}
+  .head p{font-size:13.5px;color:#bdbdbd;margin-top:8px;line-height:1.6}
+  .stage{display:flex;gap:34px;justify-content:center;flex-wrap:wrap;margin-top:30px}
+  .col{width:390px;max-width:100%}
+  .tag{text-align:center;font-size:13px;font-weight:700;margin-bottom:12px;padding:6px 0;border-radius:99px}
+  .tag.as{background:#3a3937;color:#cfcfca}
+  .tag.to{background:var(--n-green);color:#fff}
+  /* 폰 프레임 */
+  .phone{height:760px;border-radius:34px;overflow:hidden;background:#000;padding:9px;box-shadow:0 20px 50px rgba(0,0,0,.45)}
+  .screen{height:100%;border-radius:26px;overflow-y:auto;overflow-x:hidden}
+  .screen::-webkit-scrollbar{width:0}
+  .note{font-size:12px;color:#bdbdbd;line-height:1.75;margin-top:14px;padding:0 4px}
+  .note b{color:#fff}
+  .note .n-to{color:#5fe39a}
+
+  /* ============ 공통 화면 내부 ============ */
+  .scr{min-height:100%}
+  /* ---- AS-IS (현재) ---- */
+  .as .scr{background:var(--o-bg);color:var(--o-ink);line-height:1.55}
+  .as .topbar{background:var(--o-ink);color:#fff;display:flex;align-items:center;gap:10px;padding:13px 16px}
+  .as .topbar .wm{font-weight:800;font-size:16px}
+  .as .topbar .div{width:1px;height:14px;background:#555}
+  .as .topbar .pg{font-size:13px;color:#cfcfca;font-weight:600}
+  .as .wrap{padding:14px 14px 30px}
+  .as .hero{border-radius:18px;overflow:hidden;position:relative;height:150px;background:var(--o-soft)}
+  .as .hero img{width:100%;height:100%;object-fit:cover}
+  .as .hero::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.5),transparent 55%)}
+  .as .hero .cap{position:absolute;left:16px;bottom:13px;color:#fff;z-index:1;text-shadow:0 1px 10px rgba(0,0,0,.5)}
+  .as .hero .cap b{font-size:21px;font-weight:800}
+  .as .hero .cap span{display:block;font-size:12px;opacity:.95}
+  .as .segs{display:flex;gap:7px;margin-top:14px}
+  .as .seg{flex:1;text-align:center;padding:9px 3px;border:1.5px solid var(--o-line);background:#fff;border-radius:11px;font-size:11.5px;font-weight:700}
+  .as .seg.on{border-color:var(--o-green);background:var(--o-green);color:#fff}
+  .as .slotrow{display:flex;justify-content:space-between;align-items:flex-end;margin:18px 2px 4px}
+  .as .slotlabel{font-size:16px;font-weight:800}
+  .as .slotsub{font-size:12px;color:var(--o-gray)}
+  .as .shuffle{border:1.5px solid var(--o-line);background:#fff;font-weight:700;font-size:12px;border-radius:10px;padding:7px 11px}
+  .as .card{background:#fff;border:1px solid var(--o-line);border-radius:16px;padding:13px;margin-top:11px;position:relative;padding-right:100px;min-height:104px}
+  .as .card .ph{position:absolute;right:12px;top:12px;width:78px;height:78px;border-radius:12px;object-fit:cover}
+  .as .card .nm{font-weight:800;font-size:15px}
+  .as .card .ct{font-size:12px;color:var(--o-gray);margin-top:2px}
+  .as .card .info{font-size:12px;color:#50514a;margin-top:6px;line-height:1.6}
+  .as .b{font-size:10px;padding:2px 7px;border-radius:99px;font-weight:700}
+  .as .b.ca{background:var(--o-green);color:#fff}
+  .as .b.open{background:var(--o-green-light);color:var(--o-green-deep)}
+  .as .links{margin-top:8px}
+  .as .links a{font-size:11.5px;color:var(--o-ink);text-decoration:none;border:1.5px solid var(--o-line);border-radius:8px;padding:5px 9px;font-weight:600}
+  .as .nav{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:20px}
+  .as .navbtn{background:#fff;border:1.5px solid var(--o-line);border-radius:14px;padding:14px 6px;text-align:center;font-size:12.5px;font-weight:700}
+  .as .navbtn .ic{display:block;font-size:21px;margin-bottom:4px}
+
+  /* ---- TO-BE (개선안) ---- */
+  .to .scr{background:var(--n-bg);color:var(--n-ink);line-height:1.5}
+  .to .topbar{background:var(--n-ink);color:#fff;display:flex;align-items:center;gap:9px;padding:16px 18px}
+  .to .topbar .logo{height:26px;display:block;position:relative;top:2px}
+  .to .topbar .pg{font-size:12.5px;color:#cfcfca;font-weight:600;margin-left:auto}
+  /* 큰 사진 히어로 */
+  .to .hero{position:relative;height:240px;overflow:hidden}
+  .to .hero img{width:100%;height:100%;object-fit:cover}
+  .to .hero::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.55),rgba(0,0,0,.05) 60%)}
+  .to .hero .cap{position:absolute;left:20px;right:20px;bottom:18px;color:#fff;z-index:1}
+  .to .hero .cap .kk{font-size:11px;font-weight:700;letter-spacing:1.5px;opacity:.9;text-transform:uppercase}
+  .to .hero .cap b{display:block;font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1.1;margin-top:5px}
+  .to .hero .cap span{display:block;font-size:12.5px;opacity:.92;margin-top:7px;font-weight:500}
+  .to .wrap{padding:22px 20px 34px}
+  .to .nowctx{font-size:12.5px;color:var(--n-gray);font-weight:600;margin-bottom:14px}
+  .to .nowctx em{color:var(--n-green);font-style:normal;font-weight:700}
+  .to .segs{display:flex;gap:8px;overflow-x:auto}
+  .to .seg{flex:0 0 auto;padding:11px 15px;border:1px solid var(--n-line);background:#fff;border-radius:12px;font-size:13px;font-weight:600;color:#4a4945;min-height:44px;display:flex;align-items:center}
+  .to .seg.on{border-color:var(--n-ink);background:var(--n-ink);color:#fff}
+  .to .slotrow{display:flex;justify-content:space-between;align-items:baseline;margin:26px 0 2px}
+  .to .slotlabel{font-size:19px;font-weight:800;letter-spacing:-.4px}
+  .to .slotsub{font-size:12.5px;color:var(--n-gray);margin-top:4px}
+  .to .shuffle{border:1px solid var(--n-line);background:#fff;font-weight:600;font-size:12.5px;border-radius:10px;padding:9px 13px;color:#4a4945;min-height:40px}
+  .to .card{background:#fff;border:1px solid var(--n-line);border-radius:18px;overflow:hidden;margin-top:16px;box-shadow:0 2px 14px rgba(31,30,29,.04)}
+  .to .card .ph{width:100%;height:150px;object-fit:cover;display:block}
+  .to .card .body{padding:15px 16px 16px}
+  .to .card .rk{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .to .card .num{font-family:'Inter';font-size:13px;font-weight:800;color:#fff;background:var(--n-green);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .to .card .nm{font-weight:800;font-size:17px;letter-spacing:-.3px}
+  .to .card .badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px}
+  .to .card .badge.ca{background:var(--n-green);color:#fff}
+  .to .card .badge.open{background:var(--n-green-light);color:#0a7a3c}
+  .to .card .ct{font-size:12.5px;color:var(--n-gray);margin-top:7px;font-family:'Inter','Pretendard',sans-serif}
+  .to .card .ct .star{color:var(--n-ink);font-weight:700}
+  .to .card .info{font-size:13px;color:#3a3937;margin-top:11px;line-height:1.85}
+  .to .links{margin-top:13px}
+  .to .links a{font-size:13px;color:var(--n-ink);text-decoration:none;border:1px solid var(--n-line);border-radius:10px;padding:9px 14px;font-weight:600;display:inline-block;min-height:40px}
+  .to .nav{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:28px}
+  .to .navbtn{background:#fff;border:1px solid var(--n-line);border-radius:14px;padding:16px 8px;text-align:center;font-size:12.5px;font-weight:700;min-height:64px}
+  .to .navbtn .ic{display:block;font-size:22px;margin-bottom:6px}
+  .to .navbtn .sub{display:block;font-size:10.5px;color:var(--n-gray);font-weight:500;margin-top:3px}
+</style>
+</head>
+<body>
+<div class="head">
+  <h1>트립코스 페이지 · 디자인 비교</h1>
+  <p>같은 가게·같은 정보 / 왼쪽=현재, 오른쪽=개선안(공식 맹그로브 디자인 적용). 폰 화면을 스크롤해서 보세요.</p>
+</div>
+
+<div class="stage">
+
+  <!-- ============ AS-IS ============ -->
+  <div class="col">
+    <div class="tag as">현재 (AS-IS)</div>
+    <div class="phone as"><div class="screen"><div class="scr">
+      <div class="topbar"><span class="wm">mangrove</span><span class="div"></span><span class="pg">고성 · 지금 갈만한 곳</span></div>
+      <div class="wrap">
+        <div class="hero">
+          <img src="../assets/goseong-hero-2.webp" alt="">
+          <div class="cap"><b>지금 갈만한 곳</b><span>CA가 직접 가본 속초·고성</span></div>
+        </div>
+        <div class="segs">
+          <div class="seg on">✨ 지금추천</div>
+          <div class="seg">🍚 든든한 한 끼</div>
+          <div class="seg">☕ 카페</div>
+          <div class="seg">🍻 술과 함께</div>
+        </div>
+        <div class="slotrow"><div><div class="slotlabel">지금 추천</div><div class="slotsub">지금 문 연 곳 중에서</div></div><button class="shuffle">🔄 다른 곳</button></div>
+
+        <div class="card">
+          <img class="ph" src="https://ldb-phinf.pstatic.net/20240606_112/1717634085141TJdPy_JPEG/IMG_0924.jpeg">
+          <div class="nm">속초회관 <span class="b ca">CA추천</span></div>
+          <div class="ct">요리주점 · 고성 7.6km · ⭐4.48 (309)</div>
+          <div class="info">레트로 음악과 어우러진 술한잔의 여유<br>수제 오뎅나베 27,000원</div>
+          <div class="links"><a>📍 네이버지도</a></div>
+        </div>
+        <div class="card">
+          <img class="ph" src="https://ldb-phinf.pstatic.net/20260415_69/1776234398830q9nuv_JPEG/%B8%DE%B4%BA%C6%C7%BB%E7%C1%F8.jpg">
+          <div class="nm">돼지신랑소주각시 <span class="b open">영업중</span></div>
+          <div class="ct">육류,고기요리 · 속초 9.03km · ⭐4.67 (226)</div>
+          <div class="info">모듬한판으로 즐기는 특수부위 천국<br>돼지왕갈비(300g) 17,000원</div>
+          <div class="links"><a>📍 네이버지도</a></div>
+        </div>
+
+        <div class="nav">
+          <div class="navbtn"><span class="ic">🍱</span>포장·배달</div>
+          <div class="navbtn"><span class="ic">🏄</span>액티비티</div>
+          <div class="navbtn"><span class="ic">🏖</span>해수욕장</div>
+          <div class="navbtn"><span class="ic">🎉</span>축제</div>
+          <div class="navbtn"><span class="ic">🗺</span>트립코스</div>
+        </div>
+      </div>
+    </div></div></div>
+    <div class="note">
+      <b>AI 티가 나는 지점</b><br>
+      · 이모지 과다 (✨🍚☕🍻🍱🏄🏖🎉🗺)<br>
+      · 작은 사진 + 정보 빽빽<br>
+      · 버튼/탭 작아서 모바일 오탭<br>
+      · 초록 배지 여러 톤 산만
+    </div>
+  </div>
+
+  <!-- ============ TO-BE ============ -->
+  <div class="col">
+    <div class="tag to">개선안 (TO-BE)</div>
+    <div class="phone to"><div class="screen"><div class="scr">
+      <div class="topbar"><img class="logo" src="../assets/mangrove-goseong-logo.svg" alt="맹그로브 고성"><span class="pg">지금 갈만한 곳</span></div>
+      <div class="hero">
+        <img src="../assets/goseong-hero-2.webp" alt="">
+        <div class="cap"><b>지금 갈만한 곳</b><span>커뮤니티 매니저가 추천해요</span></div>
+      </div>
+      <div class="wrap">
+        <div class="nowctx">📍 지금 <em>오후 7시 12분</em> · 문 연 곳 위주로 추천해요</div>
+        <div class="segs">
+          <div class="seg on">영업중</div>
+          <div class="seg">든든한 한 끼</div>
+          <div class="seg">카페</div>
+          <div class="seg">술과 함께</div>
+        </div>
+        <div class="slotrow"><div><div class="slotlabel">영업중</div><div class="slotsub">문 연 곳 중에서 골랐어요</div></div><button class="shuffle">다른 곳 ↻</button></div>
+
+        <div class="card">
+          <img class="ph" src="https://ldb-phinf.pstatic.net/20240606_112/1717634085141TJdPy_JPEG/IMG_0924.jpeg">
+          <div class="body">
+            <div class="rk"><span class="num">1</span><span class="nm">속초회관</span><span class="badge ca">💚 강추</span><span class="badge open">● 영업중</span></div>
+            <div class="ct">요리주점 · 🚗 12분 · <span class="star">★ 4.48</span> (309)</div>
+            <div class="info">🍽 수제 오뎅나베 27,000원 · 오징어통찜 25,000원<br>🕐 오늘 18:00~24:00<br>💬 레트로 음악과 어우러진 술 한잔의 여유</div>
+            <div class="links"><a>네이버 지도에서 보기 →</a></div>
+          </div>
+        </div>
+        <div class="card">
+          <img class="ph" src="https://ldb-phinf.pstatic.net/20260415_69/1776234398830q9nuv_JPEG/%B8%DE%B4%BA%C6%C7%BB%E7%C1%F8.jpg">
+          <div class="body">
+            <div class="rk"><span class="num">2</span><span class="nm">돼지신랑소주각시</span><span class="badge open">● 영업중</span></div>
+            <div class="ct">고기요리 · 🚗 14분 · <span class="star">★ 4.67</span> (226)</div>
+            <div class="info">🍽 돼지왕갈비(300g) 17,000원 · 모듬한판(600g) 48,000원<br>🕐 오늘 14:00~23:00<br>💬 모듬한판으로 즐기는 특수부위 천국</div>
+            <div class="links"><a>네이버 지도에서 보기 →</a></div>
+          </div>
+        </div>
+
+        <div class="nav">
+          <div class="navbtn"><span class="ic">🍱</span>포장·배달<span class="sub">객실에서</span></div>
+          <div class="navbtn"><span class="ic">🏄</span>액티비티<span class="sub">준비중</span></div>
+          <div class="navbtn"><span class="ic">🏖</span>해수욕장<span class="sub">준비중</span></div>
+          <div class="navbtn"><span class="ic">🎉</span>축제<span class="sub">준비중</span></div>
+          <div class="navbtn"><span class="ic">🗺</span>트립코스<span class="sub">추천 일정</span></div>
+        </div>
+      </div>
+    </div></div></div>
+    <div class="note">
+      <b class="n-to">달라진 점</b><br>
+      · 상단바 <b>검정</b> 유지<br>
+      · 상단 탭 이모지 빼고 <b>미니멀 라벨</b> ("영업중")<br>
+      · 큰 사진 히어로 + <b>볼드 헤드라인</b> (공식 톤)<br>
+      · 카드: 큰 상단 사진 + 번호 + 여백<br>
+      · 브랜드 그린 <b>#00b453</b>·잉크 #1f1e1d 정합<br>
+      · 하단 메뉴는 <b>이모지 형태 유지</b><br>
+      · 탭/버튼 44px↑ (모바일 터치 편함)
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -8,43 +8,56 @@
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" href="assets/favicon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
     /* 맹그로브 브랜드 토큰 */
-    --green: #05c653; --green-deep: #04a847; --green-light: #eafff3;
-    --ink: #191414; --gray: #76776c; --line: #e4ede7; --bg: #f4faf7; --soft: #edf5f0;
+    --green: #00b453; --green-deep: #0a7a3c; --green-light: #eafdf1;
+    --ink: #1f1e1d; --gray: #76776c; --line: #ececea; --bg: #f6f5f2; --soft: #edece9;
     --gold: #f0c34b; --gold-bg: #fff3cd;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+    font-family: 'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
     background: var(--bg); color: var(--ink); line-height: 1.55; -webkit-font-smoothing: antialiased;
   }
+  /* 배경: 모바일=단색(var(--bg)) / PC=고성 사진(2→3→7→4 순환, 은은한 레이어) */
+  .bg-rotator, .bg-overlay { display: none; }
+  @media (min-width: 560px) {
+    .bg-rotator { display: block; position: fixed; inset: 0; z-index: -2; }
+    .bg-slide { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 1.5s ease-in-out; transform: scale(1.05); filter: blur(2px); }
+    .bg-slide.is-active { opacity: 1; }
+    .bg-overlay { display: block; position: fixed; inset: 0; z-index: -1; background: rgba(31,30,29,0.24); }
+    /* PC: 가운데 콘텐츠 컬럼을 단색 패널로 띄워 사진 위에서 또렷하게 */
+    .topbar { max-width: 480px; margin: 0 auto; }
+    .wrap { background: var(--bg); box-shadow: 0 12px 50px rgba(0,0,0,.30); min-height: calc(100vh - 56px); }
+  }
+  @media (prefers-reduced-motion: reduce) { .bg-slide { transition: none; } }
   /* 상단 검정 브랜드 바 */
-  .topbar { position: sticky; top: 0; z-index: 20; background: var(--ink); color: #fff; display: flex; align-items: center; gap: 10px; padding: 13px 16px; }
-  .topbar .wm { font-weight: 800; font-size: 16px; letter-spacing: -0.3px; }
-  .topbar .div { width: 1px; height: 14px; background: #555; }
-  .topbar .pg { font-size: 13px; color: #cfcfca; font-weight: 600; }
+  .topbar { position: sticky; top: 0; z-index: 20; background: var(--ink); color: #fff; display: flex; align-items: center; gap: 10px; padding: 14px 16px; }
+  .topbar .logo { height: 26px; display: block; position: relative; top: 2px; }
+  .topbar .pg { font-size: 13px; color: #cfcfca; font-weight: 600; margin-left: auto; }
   /* 그린 안내 바 */
   .infobar { background: var(--green-light); color: var(--green-deep); font-size: 12.5px; font-weight: 600; text-align: center; padding: 7px 14px; }
 
   .wrap { max-width: 480px; margin: 0 auto; padding: 16px 16px 44px; }
 
   /* 히어로 (하이브리드: 사진 한 컷) */
-  .hero { border-radius: 18px; overflow: hidden; position: relative; height: 210px; background: var(--soft); }
+  .hero { border-radius: 18px; overflow: hidden; position: relative; height: 236px; background: var(--soft); }
   .hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.5), rgba(0,0,0,0) 55%); }
-  .hero .cap { position: absolute; left: 18px; bottom: 16px; color: #fff; z-index: 1; text-shadow: 0 1px 10px rgba(0,0,0,.5); }
-  .hero .cap b { font-size: 23px; font-weight: 800; letter-spacing: -0.4px; }
-  .hero .cap span { display: block; font-size: 12.5px; opacity: .95; margin-top: 2px; }
+  .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,.05) 60%); }
+  .hero .cap { position: absolute; left: 20px; right: 20px; bottom: 18px; color: #fff; z-index: 1; text-shadow: 0 1px 10px rgba(0,0,0,.4); }
+  .hero .cap b { font-size: 29px; font-weight: 800; letter-spacing: -0.7px; line-height: 1.1; }
+  .hero .cap span { display: block; font-size: 12.5px; opacity: .94; margin-top: 7px; font-weight: 500; }
 
   .pill { display: inline-block; background: var(--green); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 11px; border-radius: 99px; }
   .ctxrow { display: flex; align-items: center; gap: 8px; margin: 16px 2px 0; }
   .ctxrow .t { font-size: 12.5px; color: var(--gray); }
 
-  .segs { display: flex; gap: 7px; margin-top: 12px; }
-  .seg { flex: 1; text-align: center; padding: 9px 3px; border: 1.5px solid var(--line); background: #fff; border-radius: 11px; font-size: 12px; line-height: 1.25; font-weight: 700; cursor: pointer; user-select: none; color: var(--ink); }
-  .seg.on { border-color: var(--green); background: var(--green); color: #fff; }
+  .segs { display: flex; gap: 7px; margin-top: 14px; }
+  .seg { flex: 1; text-align: center; min-height: 44px; display: flex; align-items: center; justify-content: center; padding: 6px 4px; border: 1px solid var(--line); background: #fff; border-radius: 12px; font-size: 13px; line-height: 1.2; font-weight: 600; cursor: pointer; user-select: none; color: #4a4945; }
+  .seg.on { border-color: var(--ink); background: var(--ink); color: #fff; }
   .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
   .chip { border: 1.5px solid var(--line); background: #fff; border-radius: 99px; padding: 6px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; user-select: none; color: var(--ink); }
   .chip.on { border-color: var(--green); background: var(--green-light); color: var(--green-deep); }
@@ -55,16 +68,18 @@
   .shuffle { flex: 0 0 auto; border: 1.5px solid var(--line); background: #fff; color: var(--ink); font-weight: 700; font-size: 12.5px; border-radius: 10px; padding: 8px 12px; cursor: pointer; }
   .shuffle:active { background: var(--soft); }
 
-  .card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin-top: 11px; position: relative; overflow: hidden; }
-  .card.pic { padding-right: 106px; min-height: 110px; }
-  .card .ph { position: absolute; right: 12px; top: 13px; width: 82px; height: 82px; border-radius: 12px; object-fit: cover; }
-  .card .nm { font-weight: 800; font-size: 15.5px; letter-spacing: -0.2px; }
-  .card .ct { font-size: 12.5px; color: var(--gray); margin-top: 2px; }
-  .card .ct .rv { color: var(--gray); margin-left: 4px; font-weight: 400; font-size: 11.5px; }
-  .card .info { font-size: 12.5px; color: #50514a; margin-top: 7px; line-height: 1.7; }
-  .card .links { margin-top: 9px; }
-  .card .links a { font-size: 12px; color: var(--ink); text-decoration: none; border: 1.5px solid var(--line); border-radius: 8px; padding: 5px 10px; display: inline-block; font-weight: 600; }
-  .b { font-size: 10.5px; padding: 2px 8px; border-radius: 99px; font-weight: 700; vertical-align: 2px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 18px; margin-top: 14px; overflow: hidden; box-shadow: 0 2px 14px rgba(31,30,29,.04); }
+  .card .ph { width: 100%; height: 150px; object-fit: cover; display: block; }
+  .card .body { padding: 15px 16px 16px; }
+  .card .rk { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .card .num { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 800; color: #fff; background: var(--green); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+  .card .nm { font-weight: 800; font-size: 17px; letter-spacing: -0.3px; }
+  .card .ct { font-size: 12.5px; color: var(--gray); margin-top: 7px; }
+  .card .ct .rv { color: var(--ink); margin-left: 4px; font-weight: 700; }
+  .card .info { font-size: 13px; color: #3a3937; margin-top: 11px; line-height: 1.85; }
+  .card .links { margin-top: 13px; }
+  .card .links a { font-size: 13px; color: var(--ink); text-decoration: none; border: 1px solid var(--line); border-radius: 10px; padding: 9px 14px; display: inline-block; font-weight: 600; }
+  .b { font-size: 11px; padding: 3px 8px; border-radius: 99px; font-weight: 700; }
   .b.ca { background: var(--green); color: #fff; }
   .b.rsv { background: var(--gold-bg); color: #8a6a14; border: 1px solid var(--gold); }
   .b.open { background: var(--green-light); color: var(--green-deep); }
@@ -105,14 +120,20 @@
 </style>
 </head>
 <body>
+<div class="bg-rotator" aria-hidden="true">
+  <div class="bg-slide" style="background-image:url('assets/goseong-sea.webp')"></div>
+  <div class="bg-slide" style="background-image:url('assets/goseong-rooftop.webp')"></div>
+</div>
+<div class="bg-overlay" aria-hidden="true"></div>
 <div class="topbar">
-  <span class="wm">mangrove</span><span class="div"></span><span class="pg">고성 · 지금 갈만한 곳</span>
+  <img class="logo" src="assets/mangrove-goseong-logo.svg" alt="맹그로브 고성">
+  <span class="pg">지금 갈만한 곳</span>
 </div>
 
 <div class="wrap">
   <div class="hero">
     <img src="assets/goseong-hero-2.webp" alt="맹그로브 고성">
-    <div class="cap"><b>지금 갈만한 곳</b><span>CA가 직접 가본 속초·고성</span></div>
+    <div class="cap"><b>지금 갈만한 곳</b><span>커뮤니티 매니저가 추천해요</span></div>
   </div>
 
   <div class="ctxrow">
@@ -121,10 +142,10 @@
   </div>
 
   <div class="segs">
-    <div class="seg on" data-slot="auto">✨ 지금추천</div>
-    <div class="seg" data-slot="meal">🍚 든든한 한 끼</div>
-    <div class="seg" data-slot="cafe">☕ 카페&디저트</div>
-    <div class="seg" data-slot="bar">🍻 술과 함께</div>
+    <div class="seg on" data-slot="auto">영업중</div>
+    <div class="seg" data-slot="meal">든든한 한 끼</div>
+    <div class="seg" data-slot="cafe">카페</div>
+    <div class="seg" data-slot="bar">술과 함께</div>
   </div>
 
   <div class="chips" id="optChips"></div>
@@ -181,6 +202,18 @@
 
 <script src="places.js?v=5"></script>
 <script src="tour.js?v=1"></script>
-<script src="home.js?v=6"></script>
+<script src="home.js?v=7"></script>
+<!-- PC 배경 사진: 새로고침마다 다음 장(2→3→7→4 순환). 모바일에선 CSS로 숨겨져 단색만 보임 -->
+<script>
+  (function () {
+    var slides = document.querySelectorAll('.bg-slide');
+    if (!slides.length) return;
+    var n = slides.length;
+    var prev = parseInt(localStorage.getItem('gsBgIndex'), 10);
+    var i = isNaN(prev) ? 0 : (prev + 1) % n;
+    slides[i].classList.add('is-active');
+    try { localStorage.setItem('gsBgIndex', String(i)); } catch (e) {}
+  })();
+</script>
 </body>
 </html>

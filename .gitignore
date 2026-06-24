@@ -17,3 +17,4 @@ data/*
 test/shot_*.png
 test/live*.png
 .auth-profile/
+.firecrawl/
