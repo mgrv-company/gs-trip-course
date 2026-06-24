@@ -314,11 +314,10 @@ function renderCollection(key, sub) {
 // ── 고성·속초 대표 축제 (큐레이션, 매년 시기 약간 변동 → 검색 링크로) ──
 const FESTIVALS = [
   { n: '화진포 해맞이축제', when: '1월 1일', m: [1], where: '화진포해변', region: '고성' },
-  { n: '고성명태축제', when: '4~5월', m: [4, 5], where: '거진읍', region: '고성' },
   { n: '저도 대문어축제', when: '6월', m: [6], where: '대진항', region: '고성' },
-  { n: '고성 여름해변 축제', when: '7~8월', m: [7, 8], where: '고성 해변 일대', region: '고성' },
-  { n: '해안선 레저스포츠 페스티벌', when: '여름(7~8월)', m: [7, 8], where: '죽왕면', region: '고성' },
+  { n: '속초 칠링비치 페스티벌', when: '8월', m: [8], where: '속초해변', region: '속초' },
   { n: '고성 수성문화제', when: '9월', m: [9], where: '간성 고성종합운동장', region: '고성' },
+  { n: '고성명태축제', when: '10월', m: [10], where: '거진 해변', region: '고성' },
   { n: '설악문화제', when: '10월', m: [10], where: '속초 일원', region: '속초' },
   { n: '속초 양미리·도루묵 축제', when: '11월', m: [11], where: '속초항', region: '속초' },
 ];
