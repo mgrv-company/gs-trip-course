@@ -296,6 +296,10 @@ const COLL = {
     subs: [['early', '🌅 아침 되는 곳'], ['late', '🌙 심야 영업']],
     list: sub => PLACES.filter(p => !p.to && REAL.includes(p.t) && (sub === 'late' ? opensLate(p) : opensEarly(p))),
   },
+  makguksu: {
+    title: '🍜 고성 막국수 모음', note: '고성·속초의 막국수집을 모았어요. (거리순)', subs: null,
+    list: () => PLACES.filter(p => !p.to && ((p.n || '').includes('막국수') || (p.m || []).some(m => m.includes('막국수')))),
+  },
 };
 function renderCollection(key, sub) {
   const c = COLL[key];
@@ -310,7 +314,7 @@ function renderCollection(key, sub) {
 // ── 섹션 오버레이 ──────────────────────────────────
 function openSection(key) {
   const titleMap = { takeout: '🍱 포장·배달 (객실에서)', activity: '🏄 액티비티', beach: '🏖 해수욕장', festival: '🎉 고성 축제', walk: '🚶 걸어서 갈 곳', capick: '💚 CA 강추', time: '🎯 아침·심야' };
-  $('#secTitle').textContent = titleMap[key] || '';
+  $('#secTitle').textContent = (COLL[key] && COLL[key].title) || titleMap[key] || '';
   if (COLL[key]) { renderCollection(key); $('#section').classList.add('show'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
   let html = '';
   const tourNote = '<div class="notice" style="margin-top:0;margin-bottom:6px">📍 한국관광공사 정보 기반이에요. 방문 전 운영 여부를 확인해보세요.</div>';
