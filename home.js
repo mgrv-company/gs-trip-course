@@ -311,9 +311,35 @@ function renderCollection(key, sub) {
   $('#secBody').innerHTML = chips + noteHtml + (list.length ? list.map(p => cardHTML(p)).join('') : '<p class="empty">해당하는 곳이 없어요.</p>');
 }
 
+// ── 고성·속초 대표 축제 (큐레이션, 매년 시기 약간 변동 → 검색 링크로) ──
+const FESTIVALS = [
+  { n: '화진포 해맞이축제', when: '1월 1일', m: [1], where: '화진포해변', region: '고성' },
+  { n: '고성명태축제', when: '4~5월', m: [4, 5], where: '거진읍', region: '고성' },
+  { n: '저도 대문어축제', when: '6월', m: [6], where: '대진항', region: '고성' },
+  { n: '고성 여름해변 축제', when: '7~8월', m: [7, 8], where: '고성 해변 일대', region: '고성' },
+  { n: '해안선 레저스포츠 페스티벌', when: '여름(7~8월)', m: [7, 8], where: '죽왕면', region: '고성' },
+  { n: '고성 수성문화제', when: '9월', m: [9], where: '간성 고성종합운동장', region: '고성' },
+  { n: '설악문화제', when: '10월', m: [10], where: '속초 일원', region: '속초' },
+  { n: '속초 양미리·도루묵 축제', when: '11월', m: [11], where: '속초항', region: '속초' },
+];
+function renderFestivalsHTML() {
+  const mo = new Date().getMonth() + 1;
+  const sorted = FESTIVALS.slice().sort((a, b) => (b.m.includes(mo) ? 1 : 0) - (a.m.includes(mo) ? 1 : 0));
+  const note = '<div class="notice" style="margin:0 0 8px">🎉 고성·속초 대표 축제예요. 매년 시기가 조금씩 달라지니 정확한 일정은 링크에서 확인하세요.</div>';
+  return note + sorted.map(f => {
+    const now = f.m.includes(mo);
+    const url = 'https://search.naver.com/search.naver?query=' + encodeURIComponent(f.n + ' 일정');
+    return `<div class="card"><div class="body">
+      <div class="rk"><span class="nm">${f.n}</span> <span class="b ${now ? 'open' : 'chk'}">${now ? '🔴 이번 달' : f.when}</span></div>
+      <div class="ct">${f.region} · ${f.where}${now ? ' · ' + f.when : ''}</div>
+      <div class="links"><a href="${url}" target="_blank" rel="noopener">일정·정보 검색 →</a></div>
+    </div></div>`;
+  }).join('');
+}
+
 // ── 섹션 오버레이 ──────────────────────────────────
 function openSection(key) {
-  const titleMap = { takeout: '🍱 포장·배달 (객실에서)', activity: '🏄 액티비티', beach: '🏖 해수욕장', festival: '🎉 고성 축제', walk: '🚶 걸어서 갈 곳', capick: '💚 CA 강추', time: '🎯 아침·심야' };
+  const titleMap = { takeout: '🍱 포장·배달 (객실에서)', activity: '🏄 액티비티', beach: '🏖 해수욕장', festival: '🎉 고성·속초 축제', walk: '🚶 걸어서 갈 곳', capick: '💚 CA 강추', time: '🎯 아침·심야' };
   $('#secTitle').textContent = (COLL[key] && COLL[key].title) || titleMap[key] || '';
   if (COLL[key]) { renderCollection(key); $('#section').classList.add('show'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
   let html = '';
@@ -325,6 +351,8 @@ function openSection(key) {
     html = tourNote + TOUR.activities.map(tourCardHTML).join('');
   } else if (key === 'beach' && typeof TOUR !== 'undefined') {
     html = tourNote + TOUR.beaches.map(tourCardHTML).join('');
+  } else if (key === 'festival') {
+    html = renderFestivalsHTML();
   } else {
     html = '<p class="empty">🔧 준비 중이에요. 곧 채워집니다.</p>';
   }
