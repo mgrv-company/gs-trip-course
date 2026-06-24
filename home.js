@@ -105,6 +105,20 @@ function cardHTML(p) {
   </div>`;
 }
 
+// 관광정보(TourAPI) 카드 — 영업시간/메뉴 없이 이름·거리·주소·전화·지도
+function tourCardHTML(p) {
+  const lines = [];
+  if (p.addr) lines.push('📍 ' + p.addr);
+  if (p.tel) lines.push('☎ ' + p.tel);
+  return `<div class="card${p.img ? ' pic' : ''}">
+    ${p.img ? `<img class="ph" src="${p.img}" loading="lazy" alt="">` : ''}
+    <div class="nm">${p.n}</div>
+    <div class="ct">${p.d != null ? moveText({ d: p.d }) : ''}</div>
+    <div class="info">${lines.join('<br>')}</div>
+    <div class="links"><a href="${p.u}" target="_blank" rel="noopener">네이버지도 ↗</a></div>
+  </div>`;
+}
+
 let curSlot = 'auto';
 let curFilter = null;   // 선택된 옵션 태그 (식성/분위기), null=전체
 let recent = [];        // 최근 보여준 가게 이름 — 중복 방지(돌아가며 노출)
@@ -219,9 +233,14 @@ function openSection(key) {
   const titleMap = { takeout: '🍱 포장·배달 (객실에서)', activity: '🏄 액티비티', beach: '🏖 해수욕장', festival: '🎉 고성 축제' };
   $('#secTitle').textContent = titleMap[key] || '';
   let html = '';
+  const tourNote = '<div class="notice" style="margin-top:0;margin-bottom:6px">📍 한국관광공사 정보 기반이에요. 방문 전 운영 여부를 확인해보세요.</div>';
   if (key === 'takeout') {
     const list = PLACES.filter(p => p.to);
     html = list.length ? list.map(cardHTML).join('') : '<p class="empty">등록된 포장·배달 가게가 없어요.</p>';
+  } else if (key === 'activity' && typeof TOUR !== 'undefined') {
+    html = tourNote + TOUR.activities.map(tourCardHTML).join('');
+  } else if (key === 'beach' && typeof TOUR !== 'undefined') {
+    html = tourNote + TOUR.beaches.map(tourCardHTML).join('');
   } else {
     html = '<p class="empty">🔧 준비 중이에요. 곧 채워집니다.</p>';
   }

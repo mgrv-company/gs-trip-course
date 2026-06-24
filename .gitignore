@@ -13,6 +13,7 @@ data/*
 !data/build_places.py
 !data/hours.json
 !data/places_tagged.json
+!data/fetch_tour.py
 test/shot_*.png
 test/live*.png
 .auth-profile/
