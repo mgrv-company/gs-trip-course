@@ -191,6 +191,9 @@ for x in places:
         if ov.get('takeout'):
             item['to'] = 1  # 포장·배달 전용 → "지금 갈만한 곳"에서 빼고 포장·배달 섹션으로
             stat['포장·배달'] += 1
+        if ov.get('notion'):
+            item['nt'] = 1  # 노션 가이드 수록 → 강추 코스 조합 풀
+            stat['노션 수록'] += 1
     slim.append(item)
 
 # 오타 방지: 매칭 안 된 피드백 이름 경고
