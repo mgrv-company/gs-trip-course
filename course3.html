@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>맹그로브 고성 · 첫 방문 3일 코스</title>
+<meta name="description" content="맹그로브 고성 CA가 직접 쓴 고성 첫 방문 3일 코스 가이드">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/favicon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --green: #00b453; --green-deep: #0a7a3c; --green-light: #eafdf1; --ink: #1f1e1d; --gray: #76776c; --line: #ececea; --bg: #f6f5f2; --soft: #edece9; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; background: var(--bg); color: var(--ink); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  .topbar { position: sticky; top: 0; z-index: 20; background: var(--ink); color: #fff; display: flex; align-items: center; gap: 10px; padding: 14px 16px; }
+  .topbar .wm { font-weight: 800; font-size: 16px; letter-spacing: -0.3px; }
+  .topbar .pg { font-size: 12.5px; color: #cfcfca; font-weight: 600; margin-left: auto; }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 18px 16px 50px; }
+
+  .hero { border-radius: 18px; overflow: hidden; position: relative; height: 190px; background: var(--soft); }
+  .hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.6), rgba(0,0,0,.05) 60%); }
+  .hero .cap { position: absolute; left: 18px; right: 18px; bottom: 15px; color: #fff; z-index: 1; text-shadow: 0 1px 10px rgba(0,0,0,.45); }
+  .hero .cap .pill { display: inline-block; background: var(--green); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 99px; margin-bottom: 8px; }
+  .hero .cap b { display: block; font-size: 25px; font-weight: 800; letter-spacing: -0.5px; }
+  .hero .cap span { display: block; font-size: 12.5px; opacity: .95; margin-top: 3px; }
+  .intro { font-size: 12.5px; color: #2f6b50; background: var(--green-light); border-radius: 12px; padding: 12px 14px; margin-top: 14px; line-height: 1.65; }
+
+  .daytabs { display: flex; gap: 7px; margin-top: 16px; position: sticky; top: 50px; background: var(--bg); padding: 6px 0; z-index: 10; }
+  .daytab { flex: 1; text-align: center; padding: 10px; border: 1.5px solid var(--line); background: #fff; border-radius: 11px; font-weight: 700; font-size: 13.5px; cursor: pointer; color: var(--ink); }
+  .daytab.on { border-color: var(--ink); background: var(--ink); color: #fff; }
+  .daysub { font-size: 13px; color: var(--gray); margin: 14px 2px 0; font-weight: 600; }
+
+  .sec { margin-top: 18px; }
+  .sec h3 { font-size: 14.5px; font-weight: 800; margin-bottom: 2px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 15px; box-shadow: 0 2px 12px rgba(31,30,29,.04); display: flex; gap: 12px; padding: 12px; align-items: flex-start; margin-top: 9px; }
+  .card.land { background: var(--green-light); border-color: #cfeeda; }
+  .card .ph { width: 78px; height: 78px; border-radius: 10px; object-fit: cover; flex: 0 0 auto; }
+  .card .body { flex: 1; min-width: 0; }
+  .card .nm { font-weight: 800; font-size: 15px; }
+  .card .ct { font-size: 11.5px; color: var(--gray); margin-top: 2px; }
+  .card .note { font-size: 12.5px; color: #3a3937; margin-top: 6px; line-height: 1.6; }
+  .card .links { margin-top: 8px; }
+  .card .links a { font-size: 12px; color: var(--ink); text-decoration: none; border: 1px solid var(--line); border-radius: 9px; padding: 6px 10px; display: inline-block; font-weight: 600; }
+  footer { text-align: center; margin-top: 34px; font-size: 12px; color: var(--gray); }
+  footer a { color: var(--green-deep); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="topbar"><span class="wm">mangrove</span><span class="pg">고성 · 트립 코스</span></div>
+<div class="wrap">
+  <div class="hero">
+    <img src="assets/goseong-hero-2.webp" alt="고성">
+    <div class="cap"><span class="pill">CA 추천 코스</span><b>🗺 고성 첫 방문 3일</b><span>CA가 직접 가본 곳으로 남긴 작은 발자국</span></div>
+  </div>
+  <div class="intro">조용하지만 울림이 있는 도시, 고성에 오신 걸 환영해요. 무리하지 말고 마음에 드는 곳만 골라 다녀도 충분해요. (다음에 또 오실 거니까요!)</div>
+
+  <div class="daytabs">
+    <div class="daytab on" data-d="0">DAY 1</div>
+    <div class="daytab" data-d="1">DAY 2</div>
+    <div class="daytab" data-d="2">DAY 3</div>
+  </div>
+  <div class="daysub" id="daysub"></div>
+  <div id="daybody"></div>
+
+  <footer>맹그로브 고성 · <a href="index.html">← 지금 갈만한 곳으로</a></footer>
+</div>
+
+<script src="places.js?v=13"></script>
+<script>
+  const DAY_NAMES = ['일','월','화','수','목','금','토'];
+  const P = typeof PLACES !== 'undefined' ? PLACES : [];
+  const byName = n => P.find(p => p.n === n) || P.find(p => p.n.replace(/ /g,'') === n.replace(/ /g,''));
+  const walk = d => d == null ? '' : (d <= 1.2 ? '🚶 ' + Math.max(3, Math.round(d*15)) + '분' : '🚗 ' + (Math.round(d/50*60)+3) + '분');
+  function naver(q) { return 'https://search.naver.com/search.naver?query=' + encodeURIComponent(q + ' 고성'); }
+  function placeCard(name) {
+    const p = byName(name);
+    if (!p) return landCard(name, '', '');
+    const rv = p.rv ? ' · ★ ' + p.rv[0] : '';
+    return `<div class="card">${p.img ? `<img class="ph" src="${p.img}" loading="lazy" alt="">` : ''}
+      <div class="body"><div class="nm">${p.n}</div>
+        <div class="ct">${p.c} · ${walk(p.d)}${rv}</div>
+        ${p.note ? `<div class="note">💬 ${p.note}</div>` : (p.m && p.m.length ? `<div class="note">🍽 ${p.m.slice(0,2).join(' · ')}</div>` : '')}
+        <div class="links"><a href="${p.u || naver(p.n)}" target="_blank" rel="noopener">네이버 지도 →</a></div></div></div>`;
+  }
+  function landCard(name, desc, sub) {
+    return `<div class="card land"><div class="body"><div class="nm">${name}</div>
+      ${sub ? `<div class="ct">${sub}</div>` : ''}
+      ${desc ? `<div class="note">${desc}</div>` : ''}
+      <div class="links"><a href="${naver(name)}" target="_blank" rel="noopener">네이버 지도 →</a></div></div></div>`;
+  }
+
+  const DAYS = [
+    { sub: 'DAY 1 — 바다와 맹그로브에 푹 빠지는 첫 날', secs: [
+      { h: '🍽 첫 끼 (도보)', places: ['수제비집','녹원식당 고성본점','카레노카레'] },
+      { h: '🏨 맹그로브 체크인 (3시)', lands: [['맹그로브 고성','1층 워크앤라운지(바다 포커스존·안마의자)·4층 루프탑·정문 오른쪽 샛길 앞바다를 즐겨보세요. 자전거·해변용품 대여도 가능해요.','']] },
+      { h: '☕ 오후 카페', places: ['오엔씨','테일','태시트 TACIT'] },
+      { h: '🍶 저녁 술은 미리 사두기', lands: [['하나로마트 토성농협 백촌지점','고성은 7~8시면 닫는 곳이 많아요. 지역 술은 미리 사두길 추천! 깜빡했다면 도보권 GS25로.','차 2분·도보 13분']] },
+      { h: '🌙 첫 날 저녁 (도보)', places: ['고식당','노다지식당'] },
+    ]},
+    { sub: 'DAY 2 — 고성 필수 코스, 부지런히!', secs: [
+      { h: '🌅 일출 항해', lands: [['교암항 일출항해','낭만어부 광수 선장님과 떠나는 일출 항해 (주말 오전 5~6시·15,000원). 워크앤스테이 채널톡 → 로컬 프로그램에서 신청. 도보 5분.','']] },
+      { h: '🍚 아침 (교암리)', places: ['백촌막국수','소담식당','교암소머리국밥'] },
+      { h: '🚗 천진리 나들이', places: ['보배진','카페 파우제','글라스하우스','썬크림 SUNCREAM','구뜨아구뜨','번투드웍스'] },
+      { h: '🗺 가볼 만한 곳', lands: [
+        ['응봉 트래킹','매니저님 일몰 강추! 금강삼사 주차장에서 20분 트래킹. 차 25분.',''],
+        ['왕곡마을','영화 동주에 나온 그 한옥마을, 옛 모습 그대로. 차 10분.',''],
+        ['능파대','파도가 바위에 부딪히는 돌섬. 추우니 겉옷 필수! 차 3분·도보 20분.',''],
+        ['북끝서점','큐레이션 좋은 교암리 독립서점(11~4시, 일요일 휴무). 도보 10분.',''],
+      ]},
+      { h: '🍸 저녁 술집', places: ['글라스하우스','슬로우댄스','무사','삼포마당넓은집'] },
+    ]},
+    { sub: 'DAY 3 — 다음을 기약하며, 아쉬움 남겨두기', secs: [
+      { h: '♨️ 아침 사우나', lands: [['켄싱턴리조트 설악비치 해수사우나','해수사우나 6시~21시(8시 입장 마감·둘째 수요일 휴무·12,900원). 끝나면 켄싱턴해변도 스윽 구경하세요. 차 10분.','']] },
+      { h: '🍜 고성 더 즐기기', places: ['백도수산','새참칼국수','노라킴'] },
+      { h: '🚙 마지막은 속초에서', places: ['하마식당','속초갓포','칠성조선소','소설'] },
+    ]},
+  ];
+
+  function render(di) {
+    const day = DAYS[di];
+    document.getElementById('daysub').textContent = day.sub;
+    document.getElementById('daybody').innerHTML = day.secs.map(s => {
+      const cards = (s.places || []).map(placeCard).join('') + (s.lands || []).map(l => landCard(l[0], l[1], l[2])).join('');
+      return `<div class="sec"><h3>${s.h}</h3>${cards}</div>`;
+    }).join('');
+  }
+  document.querySelectorAll('.daytab').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('.daytab').forEach(x => x.classList.remove('on'));
+    t.classList.add('on'); render(+t.dataset.d);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }));
+  render(0);
+</script>
+</body>
+</html>

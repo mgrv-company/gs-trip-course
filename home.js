@@ -361,6 +361,7 @@ function openSection(key) {
 }
 $$('.navbtn').forEach(b => b.addEventListener('click', () => {
   if (b.dataset.sec === 'course') { location.href = 'course.html'; return; }
+  if (b.dataset.sec === 'course3') { location.href = 'course3.html'; return; }
   openSection(b.dataset.sec);
 }));
 $('#secClose').addEventListener('click', () => $('#section').classList.remove('show'));
