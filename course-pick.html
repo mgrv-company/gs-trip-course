@@ -55,7 +55,7 @@
     <img src="assets/goseong-hero-7.webp" alt="고성">
     <div class="cap"><span class="pill">CA 강력추천만</span><b>✨ 강추 코스 조합</b><span>CA가 진짜 추천하는 곳들로 만든 반나절 코스</span></div>
   </div>
-  <div class="intro">💚 CA가 직접 가보고 강력 추천한 곳들만 모아, 동선 맞춰 반나절 코스로 조합했어요. 마음에 안 들면 <b>다른 조합</b>을 눌러보세요!</div>
+  <div class="intro">💚 CA 강추 맛집·카페에 고성 술집 한 곳을 더해, 동선 맞춰 반나절 코스로 조합했어요. 마음에 안 들면 <b>다른 조합</b>을 눌러보세요!</div>
 
   <div class="toprow"><span class="t">오늘의 추천 코스</span><button class="reroll" id="reroll">🔄 다른 조합</button></div>
   <div id="courses"></div>
@@ -69,9 +69,9 @@
   const walk = d => d == null ? '' : (d <= 1.2 ? '🚶 ' + Math.max(3, Math.round(d*15)) + '분' : '🚗 ' + (Math.round(d/50*60)+3) + '분');
   function naver(q) { return 'https://search.naver.com/search.naver?query=' + encodeURIComponent(q + ' 고성'); }
   const PICK = P.filter(p => p.nt && !p.to);   // 노션 가이드 수록 가게만
-  const meals = PICK.filter(p => p.t === '식사');
+  const meals = PICK.filter(p => p.t === '식사');   // 밥·카페는 노션 강추만
   const cafes = PICK.filter(p => p.t === '카페');
-  const bars  = PICK.filter(p => p.t === '술집');
+  const bars  = P.filter(p => p.t === '술집' && !p.to);   // '한잔' 칸은 고성 전체 술집에서
   // 명소(코스 마무리용) — 강추 술집이 없을 때/낮 코스
   const LANDS = [
     { n: '교암해변', d: '맹그로브 앞바다 산책', z: '도보' },
