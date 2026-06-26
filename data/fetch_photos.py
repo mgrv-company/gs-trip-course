@@ -6,10 +6,9 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15'
 
-# 현재 places.js 기준으로 사진 없는 가게만 대상
-js = open('places.js', encoding='utf-8').read()
-data = json.loads(js[js.index('['):js.rindex(']')+1])
-targets = [p['u'].split('/')[-1] for p in data if not p.get('img')]
+# places_tagged 기준(항상 최신·신규 포함)으로 썸네일 없는 가게만 대상
+places = json.load(open('data/places_tagged.json', encoding='utf-8'))
+targets = [str(p['sid']) for p in places if not p.get('thumb')]
 
 try:
     photos = json.load(open('data/photos.json', encoding='utf-8'))
