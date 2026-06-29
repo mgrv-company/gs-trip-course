@@ -376,4 +376,4 @@ $('#secBody').addEventListener('click', e => {
 renderContext();
 renderChips();
 renderNow();
-setInterval(() => { renderContext(); if (curSlot === 'auto') { renderChips(); renderNow(); } }, 60000);
+// (2026-06-29 제거) 60초마다 추천을 다시 뽑아 화면이 저절로 바뀌던 자동 갱신 — 사용자 요청으로 끔
