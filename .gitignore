@@ -14,7 +14,6 @@ data/*
 !data/hours.json
 !data/places_tagged.json
 !data/fetch_tour.py
-test/shot_*.png
-test/live*.png
+test/
 .auth-profile/
 .firecrawl/
