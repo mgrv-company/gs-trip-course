@@ -353,7 +353,7 @@ $('#goBtn').addEventListener('click', () => {
 // ── 현장 피드백 (CA용 🚩) ──────────────────────────
 // 카드에서 🚩 → 유형 선택 → 폰에 쌓임 → "보내기"로 GitHub에 일괄 등록
 const FB_KEY = 'gsTripFeedback';
-const FB_REPO = 'https://github.com/yjan-max/gs-trip-course/issues/new';
+const FB_REPO = 'https://github.com/mgrv-company/gs-trip-course/issues/new';
 let fbPlace = null;
 
 function fbList() {
