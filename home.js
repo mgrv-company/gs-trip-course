@@ -378,4 +378,11 @@ $('#secBody').addEventListener('click', e => {
 renderContext();
 renderChips();
 renderNow();
-// (2026-06-29 제거) 60초마다 추천을 다시 뽑아 화면이 저절로 바뀌던 자동 갱신 — 사용자 요청으로 끔
+// (2026-06-30) 60초 주기 갱신은 제거(보는 중에 추천이 저절로 바뀌어 거슬림).
+// 대신 탭/앱으로 '다시 돌아왔을 때'에만 최신화 → 보고 있는 동안엔 안 바뀌고, 닫힌 가게가 영업중으로 남는 문제는 해결.
+// (원래 60초 로직과 동일: context는 항상, auto 슬롯일 때만 chips·now 재계산)
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) return;
+  renderContext();
+  if (curSlot === 'auto') { renderChips(); renderNow(); }
+});
