@@ -15,5 +15,6 @@ data/*
 !data/places_tagged.json
 !data/fetch_tour.py
 test/
+_private/
 .auth-profile/
 .firecrawl/

@@ -20,6 +20,8 @@ const BAR_GROUPS = [
   { label: '요리주점·안주', cats: ['요리주점', '퓨전', '육류', '고기', '해물', '생선', '술집'] },
 ];
 const FEEDBACK_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyWVX0t2ciXvhz0l6eesmMYTxpgsfHlWotcmzxH5t8JhAEizxfnBEWDPrUFgr5ImXXj/exec';   // Apps Script → 슬랙 #gs-routine (브라우저 no-cors POST)
+// 공개 사이트라 이 값도 공개됨 — '완전 차단'이 아니라 장난성 방지용 speed-bump. 진짜 보호는 Apps Script의 토큰검증+입력검증+횟수제한이 담당.
+const FB_TOKEN = 'gst-2026a';
 
 function toMin(hhmm) { const [h, m] = hhmm.split(':').map(Number); return h * 60 + m; }
 
@@ -245,9 +247,9 @@ const fbModal = $('#fbModal');
 if (fbModal) fbModal.addEventListener('click', e => { if (e.target.id === 'fbModal') closeFb(); });
 const fbSend = $('#fbSend');
 if (fbSend) fbSend.addEventListener('click', async () => {
-  const memo = $('#fbMemo').value.trim();
+  const memo = $('#fbMemo').value.trim().slice(0, 500);
   if (!memo) { alert('내용을 입력해주세요.'); return; }
-  const payload = { place: $('#fbPlace').value.trim(), memo, at: new Date().toISOString().slice(0, 16).replace('T', ' ') };
+  const payload = { place: $('#fbPlace').value.trim().slice(0, 100), memo, at: new Date().toISOString().slice(0, 16).replace('T', ' '), t: FB_TOKEN };
   fbSend.disabled = true;
   try {
     if (FEEDBACK_ENDPOINT) {
