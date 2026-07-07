@@ -137,12 +137,33 @@ export default {
         let data;
         try { data = await req.json(); } catch { return ok; }
         if (data.t !== env.FB_TOKEN) return ok;                       // (1) 토큰 검증
+        // 슬랙 특수문법 무력화 — <!channel> 전체알림 장난·가짜 링크 방지
+        const slackEsc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+        // 서비스 별점 평가 (kind: 'rating') — DB 보관(집계용) + 슬랙 알림
+        if (data.kind === 'rating') {
+          const score = Math.round(Number(data.score));
+          if (!(score >= 1 && score <= 5)) return ok;
+          const rMemo = String(data.memo || '').slice(0, 300).trim();
+          if (await overLimit(db, 'fb', FB_LIMIT)) return ok;
+          await db.prepare('INSERT INTO ratings (score, memo, at) VALUES (?, ?, ?)')
+            .bind(score, rMemo, new Date().toISOString()).run();
+          const rText = '⭐ 트립코스 서비스 평가: ' + '★'.repeat(score) + '☆'.repeat(5 - score) + ` (${score}/5)`
+            + (rMemo ? '\n• 한줄: ' + slackEsc(rMemo) : '');
+          try {
+            await fetch(env.SLACK_WEBHOOK, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text: rText }),
+            });
+          } catch (e) { console.error('슬랙 전송 실패:', e.message); }
+          return ok;
+        }
+
         const place = String(data.place || '').slice(0, 100);
         const memo = String(data.memo || '').slice(0, 500).trim();
         if (!memo) return ok;                                          // (2) 입력 검증
         if (await overLimit(db, 'fb', FB_LIMIT)) return ok;            // (3) 횟수 제한
-        // 슬랙 특수문법 무력화 — <!channel> 전체알림 장난·가짜 링크 방지
-        const slackEsc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         const text = '📝 트립코스 피드백\n'
           + '• 가게: ' + (slackEsc(place) || '(미지정)') + '\n'
           + '• 내용: ' + slackEsc(memo) + '\n'

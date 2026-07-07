@@ -21,6 +21,14 @@ CREATE TABLE IF NOT EXISTS manual_places (
   updated_at TEXT NOT NULL DEFAULT ''
 );
 
+-- 서비스 별점 평가 (투숙객이 "이 추천 어때요?"에 남긴 것 — 집계용 보관 + 슬랙 알림)
+CREATE TABLE IF NOT EXISTS ratings (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  score      INTEGER NOT NULL,               -- 1~5
+  memo       TEXT NOT NULL DEFAULT '',
+  at         TEXT NOT NULL DEFAULT ''
+);
+
 -- 어드민 로그인 세션 (비밀번호 확인 후 발급되는 임시 열쇠)
 CREATE TABLE IF NOT EXISTS sessions (
   token      TEXT PRIMARY KEY,

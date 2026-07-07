@@ -271,6 +271,36 @@ if (fbSend) fbSend.addEventListener('click', async () => {
   }
 });
 
+// ── 서비스 별점 평가 (별 클릭 → 선택 한줄 → 전송) ─────
+let rateScore = 0;
+const starsEl = $('#stars');
+if (starsEl) {
+  starsEl.addEventListener('click', e => {
+    const b = e.target.closest('.star');
+    if (!b) return;
+    rateScore = Number(b.dataset.v);
+    $$('.star').forEach(s => s.classList.toggle('on', Number(s.dataset.v) <= rateScore));
+    $('#rateForm').style.display = '';
+  });
+  $('#rateSend').addEventListener('click', async () => {
+    if (!rateScore) return;
+    const btn = $('#rateSend');
+    btn.disabled = true;
+    try {
+      const payload = { kind: 'rating', score: rateScore, memo: $('#rateMemo').value.trim().slice(0, 300),
+                        at: new Date().toISOString().slice(0, 16).replace('T', ' '), t: FB_TOKEN };
+      const r = await fetch(FEEDBACK_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+      if (!r.ok) throw new Error('전송 실패 ' + r.status);
+      $('#stars').style.display = 'none';
+      $('#rateForm').style.display = 'none';
+      $('#rateDone').style.display = '';
+    } catch (e) {
+      alert('전송에 실패했어요. 잠시 후 다시 시도해주세요.');
+      btn.disabled = false;
+    }
+  });
+}
+
 // ── 기준별 모음 (거리 / CA강추 / 시간대) ──────────────
 function opensEarly(p) {
   if (!p.h) return false;

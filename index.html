@@ -93,6 +93,11 @@
   .feedback { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 17px 16px; margin-top: 24px; text-align: center; }
   .feedback p { font-size: 12.5px; color: #50514a; line-height: 1.7; margin-bottom: 13px; }
   .fbbtn { width: 100%; background: var(--ink); color: #fff; border: 0; border-radius: 12px; padding: 13px; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .stars { display: flex; gap: 4px; justify-content: center; }
+  .star { font-size: 31px; line-height: 1; background: none; border: 0; color: #d8d7d2; cursor: pointer; padding: 4px 5px; }
+  .star.on { color: var(--gold); }
+  #rateForm textarea { width: 100%; border: 1.5px solid var(--line); border-radius: 10px; padding: 11px 12px; font-size: 14px; font-family: inherit; margin: 11px 0 10px; min-height: 60px; resize: vertical; color: var(--ink); }
+  .done-line { font-size: 14px; font-weight: 700; color: var(--green-deep); padding: 6px 0 2px; }
 
   #fbModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.42); z-index: 40; align-items: center; justify-content: center; padding: 20px; }
   #fbModal.show { display: flex; }
@@ -194,8 +199,20 @@
   </div><!-- /hiddenSections -->
 
   <div class="feedback">
-    <p>혹시 가보고 경험이 좋지 않았다면 리스트에서 제외할게요.<br>아래 버튼으로 의견을 남겨주세요 — 여러분의 의견이 쌓일수록 더 좋은 추천 리스트가 됩니다! 🙌</p>
+    <p><b>다녀온 가게, 어떠셨어요?</b><br>좋았던 곳도, 아쉬웠던 곳도 모두 환영이에요.<br>의견은 추천 리스트에 바로 반영됩니다 🙌</p>
     <button class="fbbtn" id="fbBtn">✍️ 가게 피드백 남기기</button>
+  </div>
+
+  <div class="feedback" id="rateCard">
+    <p><b>이 추천 서비스는 어떠셨어요?</b><br>별점 하나로도 큰 도움이 됩니다.</p>
+    <div class="stars" id="stars">
+      <button class="star" data-v="1">★</button><button class="star" data-v="2">★</button><button class="star" data-v="3">★</button><button class="star" data-v="4">★</button><button class="star" data-v="5">★</button>
+    </div>
+    <div id="rateForm" style="display:none">
+      <textarea id="rateMemo" placeholder="한 줄 의견 (선택) — 예: 덕분에 저녁 맛집 찾았어요 / 이런 정보도 있으면 좋겠어요"></textarea>
+      <button class="fbbtn" id="rateSend">별점 보내기</button>
+    </div>
+    <div class="done-line" id="rateDone" style="display:none">🙌 감사합니다! 더 좋은 추천으로 보답할게요.</div>
   </div>
 
   <footer>맹그로브 고성 · 속초·고성 로컬 정보</footer>
@@ -212,10 +229,10 @@
 <div id="fbModal">
   <div class="box">
     <h3>가게 피드백</h3>
-    <div class="desc">가보고 어떠셨나요? 의견은 CA에게 바로 전달돼요. (이 페이지 안에서 전송 — 다른 곳으로 이동하지 않아요)</div>
+    <div class="desc">좋았어요·아쉬웠어요·문 닫았더라고요 — 뭐든 좋아요. 남겨주신 의견은 커뮤니티 매니저에게 바로 전달됩니다. 30초면 충분해요!</div>
     <div id="fbForm">
-      <input id="fbPlace" type="text" placeholder="가게 이름 (선택)">
-      <textarea id="fbMemo" placeholder="예: 문 닫았어요 / 너무 붐벼요 / 여긴 강력 추천! 등"></textarea>
+      <input id="fbPlace" type="text" placeholder="가게 이름 (기억나는 만큼만)">
+      <textarea id="fbMemo" placeholder="예: 여기 진짜 좋았어요! / 웨이팅 1시간이었어요 / 문 닫았던데요"></textarea>
       <div class="row">
         <button class="cancel" id="fbCancel">취소</button>
         <button class="send" id="fbSend">보내기</button>
@@ -227,7 +244,7 @@
 
 <script src="places.js?v=7"></script>
 <script src="tour.js?v=1"></script>
-<script src="home.js?v=20"></script>
+<script src="home.js?v=21"></script>
 <!-- PC 배경 순환 스크립트는 home.js 끝으로 이동 (CSP 강화: 인라인 스크립트 금지) -->
 </body>
 </html>
