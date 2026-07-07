@@ -4,8 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- CSP: 우리 파일·허용한 곳 외의 스크립트/연결 차단 (XSS 방어층). 연결 허용: 어드민 백엔드(편집+피드백) -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https://gs-trip-admin.mangrove-goseong.workers.dev; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https://gs-trip-admin.mangrove-goseong.workers.dev; manifest-src 'self'; base-uri 'none'; form-action 'none'">
 <title>맹그로브 고성 · 지금 갈만한 곳</title>
+<meta name="theme-color" content="#1f1e1d">
+<link rel="manifest" href="manifest.json">
 <meta name="description" content="맹그로브 고성 CA 추천 — 지금 문 연, 가까운, 안 붐비는 속초·고성 맛집과 카페">
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
