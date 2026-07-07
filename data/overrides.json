@@ -1,284 +1,352 @@
 {
-  "_설명": "CA 현장 피드백 파일. 가게 이름(places_tagged.json의 name과 동일)을 키로 사용. reserve=예약 필수(첫날 낮 코스 제외 + ☎ 배지), exclude=코스에서 완전 제외(폐업·비추천), note=카드에 표시할 한 줄 안내, pick=CA 강력 추천(💚 배지 + 코스 우선 선정), takeout=포장·배달 전용(지금 갈만한 곳에서 빼고 포장·배달 섹션으로)",
   "배달회만족": {
-    "takeout": true
+    "takeout": true,
+    "sid": "1040391235"
   },
   "신유네 회포장": {
-    "takeout": true
+    "takeout": true,
+    "sid": "217654348"
   },
   "아쿠아딜리버리 회포장": {
-    "takeout": true
+    "takeout": true,
+    "sid": "1073518303"
   },
   "예스닭강정 직영점": {
-    "takeout": true
+    "takeout": true,
+    "sid": "1027339689"
   },
   "호인스시": {
+    "exclude": true,
     "reserve": true,
     "note": "예약제 운영 — 방문 전 전화 필수",
-    "exclude": true
+    "sid": "1122173067"
   },
   "무사": {
-    "pick": true,
-    "note": "자리가 많지 않아요. 출발 전 꼭 유선으로 문의해주세요! (6시 타임은 예약 가능)",
     "reserve": true,
-    "notion": true
+    "pick": true,
+    "notion": true,
+    "note": "자리가 많지 않아요. 출발 전 꼭 유선으로 문의해주세요! (6시 타임은 예약 가능)",
+    "sid": "1091625757"
   },
   "삼포마당넓은집": {
     "pick": true,
+    "notion": true,
     "note": "오겹살 맛집. 광저우 닭껍질튀김은 꼭 시켜보세요. (무사 가기 전 식사로 좋아요)",
-    "notion": true
+    "sid": "15067705"
   },
   "고식당": {
-    "note": "철판해물볶음·한치튀김에 생맥주. 교암리 식당은 일찍 닫으니 서둘러요.",
     "pick": true,
-    "notion": true
+    "notion": true,
+    "note": "철판해물볶음·한치튀김에 생맥주. 교암리 식당은 일찍 닫으니 서둘러요.",
+    "sid": "1942643290"
   },
   "하마식당": {
     "pick": true,
+    "notion": true,
     "note": "속초 들렀다면 식사로 추천 (차 13분).",
-    "notion": true
+    "sid": "1864138243"
   },
   "소담식당": {
-    "note": "섭(홍합)국. 맹그로브 매니저님 추천! 아침 8시에 열어요.",
     "pick": true,
-    "notion": true
+    "notion": true,
+    "note": "섭(홍합)국. 맹그로브 매니저님 추천! 아침 8시에 열어요.",
+    "sid": "1673884455"
   },
   "슬로우댄스": {
     "pick": true,
+    "notion": true,
     "note": "내추럴 와인 라인업이 대단한 와인바. 하이볼·위스키·생맥주에 들기름막국수파스타·피자까지.",
-    "notion": true
+    "sid": "1270418639"
   },
   "구뜨아구뜨": {
     "pick": true,
+    "notion": true,
     "note": "융드립커피 추천. 다양한 원두를 골라 마실 수 있어요.",
-    "notion": true
+    "sid": "1978986656"
   },
   "고기오징어순대엔연어장": {
-    "pick": true
+    "pick": true,
+    "sid": "1125967586"
   },
   "잿놀이": {
-    "pick": true
+    "pick": true,
+    "sid": "1061016058"
   },
   "카페 파우제": {
     "pick": true,
+    "notion": true,
     "note": "브런치 카페, 아침 8:30에도 열어요. 동명 스테이 사장님이 운영.",
-    "notion": true
+    "sid": "1879032456"
   },
   "속초카츠": {
-    "pick": true
+    "pick": true,
+    "sid": "1065577425"
   },
   "경상도횟집": {
-    "pick": true
+    "pick": true,
+    "sid": "1431412626"
   },
   "속초동경": {
-    "pick": true
+    "pick": true,
+    "sid": "1160602798"
   },
   "해원 홍게 무한리필 속초본점": {
-    "pick": true
+    "pick": true,
+    "sid": "1723795459"
   },
   "장도호 물회가리비구이": {
-    "pick": true
+    "pick": true,
+    "sid": "2044236873"
   },
   "브리사마리나": {
-    "pick": true
+    "pick": true,
+    "sid": "2043864619"
   },
   "어부산장 고성본점": {
-    "pick": true
+    "pick": true,
+    "sid": "1272347916"
   },
   "통일가든": {
-    "pick": true
+    "pick": true,
+    "sid": "1617952472"
   },
   "번투드웍스": {
     "pick": true,
+    "notion": true,
     "note": "천진리 감각적인 편집샵.",
-    "notion": true
+    "sid": "1427493384"
   },
   "보배진": {
-    "pick": true,
     "reserve": true,
+    "pick": true,
+    "notion": true,
     "note": "돈카츠 코스요리. 예약 필수예요! 메뉴가 종종 바뀌니 인스타 확인하고 가세요.",
-    "notion": true
+    "sid": "1060028571"
   },
   "속초갓포": {
     "pick": true,
+    "notion": true,
     "note": "속초 식사 추천 (차 15분).",
-    "notion": true
+    "sid": "1359132482"
   },
   "비키베이크샵": {
-    "pick": true
+    "pick": true,
+    "sid": "1200296551"
   },
   "새참칼국수": {
     "pick": true,
+    "notion": true,
     "note": "맹그로브 매니저님 원픽! 들깨칼국수·비빔밥, 동네 사람들이 찾는 진짜 동네 맛집.",
-    "notion": true
+    "sid": "30869595"
   },
   "백도수산": {
     "pick": true,
+    "notion": true,
     "note": "숯불에 구워먹는 싱싱한 가리비. 가리비·음료만 팔아서 라면·밥은 근처서 사가요. 2인이 배부르게 먹으면 3인분!",
-    "notion": true
+    "sid": "1506231167"
   },
   "속초별미순대국 본점": {
-    "pick": true
+    "pick": true,
+    "sid": "13539571"
   },
   "교암소머리국밥": {
     "pick": true,
+    "notion": true,
     "note": "CA가 좋아하는 국밥집! 한우소머리국밥·수육, 9시 오픈.",
-    "notion": true
+    "sid": "1362495773"
   },
   "완도회식당": {
-    "pick": true
+    "pick": true,
+    "sid": "15093015"
   },
   "빵드림": {
-    "pick": true
+    "pick": true,
+    "sid": "1046820439"
   },
   "손즈": {
-    "pick": true
+    "pick": true,
+    "sid": "2028139897"
   },
   "원강희과자점": {
     "pick": true,
-    "note": "새벽 5시 오픈, 웨이팅도 있어요."
+    "note": "새벽 5시 오픈, 웨이팅도 있어요.",
+    "sid": "2036338026"
   },
   "카페 우디": {
-    "note": "속초 등대해변 바로 앞이에요."
+    "note": "속초 등대해변 바로 앞이에요.",
+    "sid": "1294772828"
   },
   "밀키블루스": {
-    "note": "밀크티가 맛있어요."
+    "note": "밀크티가 맛있어요.",
+    "sid": "1263939135"
   },
   "사잇": {
-    "pick": true,
     "reserve": true,
-    "note": "예약하고 픽업가면 수월해요."
+    "pick": true,
+    "note": "예약하고 픽업가면 수월해요.",
+    "sid": "1494803712"
   },
   "오씨브루잉커피": {
+    "reserve": true,
     "pick": true,
-    "reserve": true
+    "sid": "1245751227"
   },
   "숲휴게소": {
-    "pick": true
+    "pick": true,
+    "sid": "1267944287"
   },
   "코에오": {
-    "pick": true
+    "pick": true,
+    "sid": "1074798383"
   },
   "테일 포터리 스튜디오": {
     "pick": true,
-    "note": "고성 테일이 멀다면, 속초시외버스터미널 근처 테일 2호점으로 가시면 좋아요."
+    "note": "고성 테일이 멀다면, 속초시외버스터미널 근처 테일 2호점으로 가시면 좋아요.",
+    "sid": "1286121230"
   },
   "허니네": {
-    "pick": true
+    "pick": true,
+    "sid": "1458233490"
   },
   "코끼리분식": {
     "pick": true,
-    "note": "생도너츠와 분식을 먹을 수 있는 곳이에요."
+    "note": "생도너츠와 분식을 먹을 수 있는 곳이에요.",
+    "sid": "13179648"
   },
   "셜터": {
-    "pick": true
+    "pick": true,
+    "sid": "1741934809"
   },
   "토스티데이즈": {
-    "pick": true
+    "pick": true,
+    "sid": "96842022"
   },
   "햅칠탐": {
-    "pick": true
+    "pick": true,
+    "sid": "1170324860"
   },
   "크로프트커피 속초점": {
     "pick": true,
+    "notion": true,
     "note": "콘파냐·에스프레소가 맛있는 속초 카페.",
-    "notion": true
+    "sid": "1570457653"
   },
   "kyowa": {
     "pick": true,
+    "notion": true,
     "note": "디저트 빵 종류가 좋은 카페.",
-    "notion": true
+    "sid": "2051137396"
   },
   "롤리": {
-    "pick": true
+    "pick": true,
+    "sid": "1867074934"
   },
   "리토": {
-    "pick": true
+    "pick": true,
+    "sid": "1674081416"
   },
   "주변인 김파랑": {
     "pick": true,
+    "notion": true,
     "note": "디저트 빵이 맛있는 천진리 카페.",
-    "notion": true
+    "sid": "1055673292"
   },
   "노라킴": {
     "pick": true,
+    "notion": true,
     "note": "앞은 바다 뒤는 산, 평지의 감각적인 카페. 무사와 가까워요.",
-    "notion": true
+    "sid": "1482818703"
   },
   "세컨드바이트": {
     "pick": true,
+    "notion": true,
     "note": "작은 카페의 파니니·스프. 가볍게 먹고 싶을 때 딱.",
-    "notion": true
+    "sid": "1621171959"
   },
   "썬크림 SUNCREAM": {
     "pick": true,
+    "notion": true,
     "note": "특별한 들깨젤라또가 있어요. 꼭 맛보세요.",
-    "notion": true
+    "sid": "1477690882"
   },
   "패들": {
     "pick": true,
-    "note": "맹그로브 제휴 할인(커피 10% 할인) 챙기세요"
+    "note": "맹그로브 제휴 할인(커피 10% 할인) 챙기세요",
+    "sid": "1410160465"
   },
   "태시트 TACIT": {
     "pick": true,
+    "notion": true,
     "note": "휘낭시에 먹으며 바닷가 산책. 바로 옆 청간정까지 다녀오기 좋아요(자전거도 OK).",
-    "notion": true
+    "sid": "1041477976"
   },
   "소설": {
     "pick": true,
+    "notion": true,
     "note": "LP를 틀어주는 속초 LP바.",
-    "notion": true
+    "sid": "15012303"
   },
   "테일": {
     "pick": true,
+    "notion": true,
     "note": "도자기와 개를 좋아한다면 여기. 바다 피크닉도 가능하니 문의해보세요.",
-    "notion": true
+    "sid": "1351634164"
   },
   "글라스하우스": {
     "pick": true,
+    "notion": true,
     "note": "낮엔 카페, 주말 저녁엔 칵테일바(뒷마당으로 들어가세요!). 9시 이후 추천. 바닷가 비린내가 있어요.",
-    "notion": true
+    "sid": "37903540"
   },
   "진공관 카페 아나로그": {
-    "pick": true
+    "pick": true,
+    "sid": "37844346"
   },
   "수제비집": {
-    "note": "수제비·칼국수·파전. 3인 이상이면 파전은 선택 아닌 필수예요!",
     "pick": true,
-    "notion": true
+    "notion": true,
+    "note": "수제비·칼국수·파전. 3인 이상이면 파전은 선택 아닌 필수예요!",
+    "sid": "1549456600"
   },
   "녹원식당 고성본점": {
-    "note": "가오리찜·오징어볶음 추천. 허영만 백반기행에 나온 유명 맛집이라 웨이팅 있어요(테이블링).",
     "pick": true,
-    "notion": true
+    "notion": true,
+    "note": "가오리찜·오징어볶음 추천. 허영만 백반기행에 나온 유명 맛집이라 웨이팅 있어요(테이블링).",
+    "sid": "1120492213"
   },
   "카레노카레": {
-    "note": "카레·감자사라다에 맥주 한잔. 재료 소진되면 인스타 스토리에 공지돼요(1~2시). 옆 북끝서점도 꼭!",
     "pick": true,
-    "notion": true
+    "notion": true,
+    "note": "카레·감자사라다에 맥주 한잔. 재료 소진되면 인스타 스토리에 공지돼요(1~2시). 옆 북끝서점도 꼭!",
+    "sid": "2020007910"
   },
   "노다지식당": {
-    "note": "묵은지삼겹살, 그리고 메뉴에 없는 된장술밥! 도보 10분.",
     "pick": true,
-    "notion": true
+    "notion": true,
+    "note": "묵은지삼겹살, 그리고 메뉴에 없는 된장술밥! 도보 10분.",
+    "sid": "1723357243"
   },
   "오엔씨": {
-    "note": "숙소 도보 5분 루프탑 카페. 바다 보며 커피 한잔하기 좋아요.",
     "pick": true,
-    "notion": true
+    "notion": true,
+    "note": "숙소 도보 5분 루프탑 카페. 바다 보며 커피 한잔하기 좋아요.",
+    "sid": "1499023045"
   },
   "백촌막국수": {
-    "note": "동치미막국수·편육. 10시 오픈이지만 9시 현장 웨이팅 추천 — 상상 이상으로 사람 많아요.",
     "pick": true,
-    "notion": true
+    "notion": true,
+    "note": "동치미막국수·편육. 10시 오픈이지만 9시 현장 웨이팅 추천 — 상상 이상으로 사람 많아요.",
+    "sid": "11860442"
   },
   "봉포머구리집 고성점": {
+    "notion": true,
     "note": "모듬물회·오징어순대. 속초서 유명한 집이라, 물회 땡기는 날 추천.",
-    "notion": true
+    "sid": "1675527598"
   },
   "칠성조선소": {
-    "note": "조선소를 개조한 속초 명물 카페.",
     "pick": true,
-    "notion": true
+    "notion": true,
+    "note": "조선소를 개조한 속초 명물 카페.",
+    "sid": "15010079"
   }
 }

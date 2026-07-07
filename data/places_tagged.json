@@ -4967,5 +4967,157 @@
   "thumb": "",
   "naver": "https://map.naver.com/p/entry/place/1650944455",
   "guessed": false
+ },
+ {
+  "name": "고성부부횟집",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.88,
+  "address": "강원 고성군 죽왕면 가진해변길 88",
+  "lat": 38.37046,
+  "lng": 128.50819,
+  "sid": "15067174",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15067174",
+  "guessed": false
+ },
+ {
+  "name": "금강산도식후경",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 8.36,
+  "address": "강원 고성군 죽왕면 공현진해변길 95",
+  "lat": 38.35622,
+  "lng": 128.50996,
+  "sid": "15067438",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15067438",
+  "guessed": false
+ },
+ {
+  "name": "송심식당",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 5.11,
+  "address": "강원 고성군 죽왕면 오호2길 8",
+  "lat": 38.32952,
+  "lng": 128.52512,
+  "sid": "32070757",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/32070757",
+  "guessed": false
+ },
+ {
+  "name": "백촌양식당 by Panplay",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "도보권",
+  "dist_km": 0.79,
+  "address": "강원 고성군 토성면 백촌길 30-14",
+  "lat": 38.29368,
+  "lng": 128.5441,
+  "sid": "1614848935",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1614848935",
+  "guessed": false
+ },
+ {
+  "name": "아경중화요리",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "도보권",
+  "dist_km": 0.3,
+  "address": "강원 고성군 토성면 교암길 50",
+  "lat": 38.2897,
+  "lng": 128.54668,
+  "sid": "36114930",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/36114930",
+  "guessed": false
+ },
+ {
+  "name": "아야진칼국수",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 1.53,
+  "address": "강원 고성군 토성면 아야진북1길 1",
+  "lat": 38.27422,
+  "lng": 128.55352,
+  "sid": "1794371284",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1794371284",
+  "guessed": false
+ },
+ {
+  "name": "뉴욕제과",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 5.01,
+  "address": "강원 고성군 죽왕면 동해대로 5892",
+  "lat": 38.32846,
+  "lng": 128.52472,
+  "sid": "15066573",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15066573",
+  "guessed": false
+ },
+ {
+  "name": "네르하카페",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 1.61,
+  "address": "강원 고성군 토성면 아야진해변길 109",
+  "lat": 38.27439,
+  "lng": 128.55637,
+  "sid": "2019806679",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2019806679",
+  "guessed": false
  }
 ]
