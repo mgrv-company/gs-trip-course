@@ -130,7 +130,7 @@ async function loadAll() {
 
 // ── 목록 렌더 ────────────────────────────────────────
 const FILTERS = [
-  ['all', '전체'], ['pick', '💚 강추'], ['reserve', '☎ 예약'], ['takeout', '🍱 포장'],
+  ['all', '전체'], ['pick', '강추'], ['reserve', '☎ 예약'], ['takeout', '🍱 포장'],
   ['exclude', '✕ 제외'], ['note', '📝 메모'], ['man', '➕ 직접추가'],
 ];
 const TYPES = ['식사', '카페', '술집', '기타'];
@@ -185,7 +185,7 @@ function itemHTML(it) {
     </div>
     ${o.note && !noteOpen ? `<div class="notepreview">📝 ${esc(o.note)}</div>` : ''}
     <div class="togs">
-      <span class="tog${o.pick ? ' on-pick' : ''}" data-act="pick">💚 강추</span>
+      <span class="tog${o.pick ? ' on-pick' : ''}" data-act="pick">강추</span>
       <span class="tog${o.reserve ? ' on-rsv' : ''}" data-act="reserve">☎ 예약필수</span>
       <span class="tog${o.takeout ? ' on-to' : ''}" data-act="takeout">🍱 포장·배달</span>
       <span class="tog${o.exclude ? ' on-exc' : ''}" data-act="exclude">${o.exclude ? '↩ 복구' : '✕ 제외'}</span>
@@ -349,7 +349,7 @@ const COPY_GROUPS = [
     ['feedback.title', '제목', 'input', '다녀온 가게, 어떠셨어요?'],
     ['feedback.body', '설명 (줄바꿈 가능)', 'textarea', '소중한 의견을 모아 더욱 유용한 서비스로 만들게요.\n솔직하게 기재해주시면 큰 도움이 됩니다.'],
     ['feedback.btnFb', '피드백 버튼', 'input', '✍️ 추천받은 가게 피드백 남기기'],
-    ['feedback.btnSuggest', '추천 버튼', 'input', '💚 리스트에 없었던 가게 추천하기'],
+    ['feedback.btnSuggest', '추천 버튼', 'input', '리스트에 없었던 가게 추천하기'],
   ]],
   ['별점 영역', [
     ['rating.title', '제목', 'input', '이 추천 서비스는 어떠셨어요?'],
@@ -367,13 +367,16 @@ const COPY_GROUPS = [
   ]],
   ['팝업 · 좋았던 곳 추천', [
     ['sg.title', '제목', 'input', '좋았던 곳 추천'],
-    ['sg.desc', '설명', 'textarea', '추천 리스트에 없는데 좋았던 가게가 있나요? 알려주시면 커뮤니티 매니저가 다녀와 보고 리스트에 올릴게요 💚'],
+    ['sg.desc', '설명', 'textarea', '추천 리스트에 없는데 좋았던 가게가 있나요? 알려주시면 커뮤니티 매니저가 다녀와 보고 리스트에 올릴게요.'],
     ['sg.place', '가게 이름칸 안내', 'input', '가게 이름 (필수)'],
     ['sg.memo', '내용칸 안내', 'input', '어떤 점이 좋았나요? 위치·메뉴 등 아는 만큼만 적어주세요 (선택)'],
-    ['sg.done', '완료 문구', 'input', '💚 고맙습니다! 다녀와 보고 리스트에 올려볼게요.'],
+    ['sg.done', '완료 문구', 'input', '고맙습니다! 다녀와 보고 리스트에 올려볼게요.'],
   ]],
 ];
 let settingsLoaded = false;
+// key → 기본 문구 (home.js COPY 기본값과 일치). 입력칸 채우기·저장 판단에 사용.
+const COPY_DEF = {};
+COPY_GROUPS.forEach(([, fields]) => fields.forEach(([key, , , def]) => { COPY_DEF[key] = def; }));
 
 function renderCopyFields() {
   $('#copyFields').innerHTML = COPY_GROUPS.map(([group, fields]) => {
@@ -391,7 +394,11 @@ function renderCopyFields() {
 async function loadSettings() {
   const s = await api('/admin/settings');
   const copy = (s && s.copy) || {};
-  $$('#copyFields [data-key]').forEach(el => { el.value = copy[el.dataset.key] || ''; });
+  // 현재 문구를 칸에 채움: 저장된 편집분 있으면 그것, 없으면 기본 문구 → 그 위에서 바로 수정
+  $$('#copyFields [data-key]').forEach(el => {
+    const k = el.dataset.key;
+    el.value = copy[k] != null ? copy[k] : (COPY_DEF[k] || '');
+  });
   const theme = (s && s.theme) || {};
   const acc = /^#[0-9a-fA-F]{6}$/.test(theme.accent || '') ? theme.accent : '#00b453';
   $('#th_accent').value = acc;
@@ -402,9 +409,11 @@ async function loadSettings() {
 
 async function saveSettings() {
   const copy = {};
+  // 기본값과 다른 것만 저장 → 안 건드린 문구는 기본값 유지(추후 기본 문구 바뀌면 자동 반영)
   $$('#copyFields [data-key]').forEach(el => {
+    const k = el.dataset.key;
     const v = el.value.trim();
-    if (v) copy[el.dataset.key] = v.slice(0, 400);
+    if (v && v !== (COPY_DEF[k] || '')) copy[k] = v.slice(0, 400);
   });
   const theme = { accent: $('#th_accent').value, scale: $('#th_scale').value };
   $('#copySaveBtn').disabled = true;
