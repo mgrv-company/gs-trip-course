@@ -85,10 +85,10 @@
   <footer>맹그로브 고성 · <a href="index.html">← 지금 갈만한 곳으로</a></footer>
 </div>
 
-<script src="places.js?v=11"></script>
+<script src="places.js?v=12"></script>
 <script>
   const DAY_NAMES = ['일','월','화','수','목','금','토'];
-  const P = typeof PLACES !== 'undefined' ? PLACES : [];
+  const P = (typeof PLACES !== 'undefined' ? PLACES : []).filter(p => !p.x);   // 제외(x) 가게 차단
   const toMin = s => { const [h,m] = s.split(':').map(Number); return h*60+m; };
   const walk = d => d == null ? '' : '🚶 ' + Math.max(3, Math.round(d*15)) + '분';
   function openState(p) { // true 영업중 / false 휴무·영업외 / null 미상

@@ -15,7 +15,9 @@ on:
       - 'data/reviews_stats.json'
       - 'data/photos.json'
       - 'data/build_places.py'
-  workflow_dispatch: {}
+  workflow_dispatch: {}          # 어드민 "재빌드" 버튼 (Worker가 GH_TOKEN으로 호출)
+  schedule:
+    - cron: '0 22 * * *'         # 매일 07:00 KST — 어드민 편집(D1)을 스냅샷에 자동 반영 (PC 불필요)
 
 permissions:
   contents: write
@@ -34,6 +36,15 @@ jobs:
         with:
           python-version: '3.x'
 
+      # 어드민 편집(D1)을 먼저 받아와 스냅샷 기준을 최신으로 (실패해도 기존 파일로 빌드 진행)
+      - name: Sync admin edits from D1
+        continue-on-error: true
+        run: |
+          curl -sf --max-time 20 https://gs-trip-admin.mangrove-goseong.workers.dev/public/export -o /tmp/export.json
+          jq '.overrides' /tmp/export.json > data/overrides.json
+          jq '.manual_places' /tmp/export.json > data/manual_places.json
+          echo "동기화: overrides $(jq '.overrides | length' /tmp/export.json)건 · 직접추가 $(jq '.manual_places | length' /tmp/export.json)건"
+
       - name: Rebuild places.js
         run: python data/build_places.py
 
@@ -41,10 +52,10 @@ jobs:
         run: |
           git config user.name "gs-trip-bot"
           git config user.email "actions@github.com"
-          if git diff --quiet -- places.js; then
+          if git diff --quiet -- places.js data/overrides.json data/manual_places.json; then
             echo "변경 없음 — 커밋 생략"
           else
-            git add places.js
+            git add places.js data/overrides.json data/manual_places.json
             git commit -m "chore: rebuild places.js (auto)"
             git push
           fi

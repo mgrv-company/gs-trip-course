@@ -15,10 +15,22 @@ const $$ = s => Array.from(document.querySelectorAll(s));
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 let token = localStorage.getItem(SESSION_KEY) || '';
-let items = [];        // 통합 목록 [{sid, name, type, cat, zone, man, ghost}]
+let items = [];        // 통합 목록 [{sid, name, type, cat, zone, man, ghost, img, rv, h, d}]
 let ov = {};           // sid → {exclude,reserve,pick,takeout,notion,note}
+let updAt = {};        // sid → 마지막 수정 시각 (최근 수정 순 정렬용)
 let curFilter = 'all';
+let curType = null;    // 종류 필터 (식사/카페/술집/기타)
+let curZone = null;    // 구역 필터 (도보/고성/속초)
+let curSort = '기본';
 let openNote = null;   // 메모 편집창 열린 sid
+const DAYS = ['일', '월', '화', '수', '목', '금', '토'];
+function todayHours(it) {
+  if (!it.h) return '';
+  const r = it.h[DAYS[new Date().getDay()]];
+  if (r === null) return '오늘 휴무';
+  if (r === undefined) return '';
+  return '오늘 ' + r.replace('-', '~');
+}
 
 // ── 공통 ────────────────────────────────────────────
 function toast(text, isErr) {
@@ -85,22 +97,26 @@ $('#logoutBtn').addEventListener('click', async () => {
 // ── 데이터 로드·병합 ─────────────────────────────────
 async function loadAll() {
   const data = await api('/admin/data');
-  ov = {};
+  ov = {}; updAt = {};
   for (const r of data.overrides) {
     ov[r.sid] = { exclude: !!r.exclude, reserve: !!r.reserve, pick: !!r.pick,
                   takeout: !!r.takeout, notion: !!r.notion, note: r.note || '', name: r.name };
+    updAt[r.sid] = r.updated_at || '';
   }
   const seen = new Set();
   items = [];
   // 1) 직접추가 (맨 위 — 눈에 잘 띄게)
   for (const m of data.manual) {
-    items.push({ sid: String(m.sid), name: m.name, type: m.type || '', cat: m.category || m.type || '', zone: (m.zone || '').slice(0, 2), man: true });
+    items.push({ sid: String(m.sid), name: m.name, type: m.type || '', cat: m.category || m.type || '', zone: (m.zone || '').slice(0, 2), man: true,
+                 img: m.thumb || '', rv: null, h: null, d: m.dist_km != null ? m.dist_km : null });
+    if (m._updated && !updAt[String(m.sid)]) updAt[String(m.sid)] = m._updated;
     seen.add(String(m.sid));
   }
-  // 2) 스냅샷 전체 가게
+  // 2) 스냅샷 전체 가게 (사진·평점·영업시간·거리 포함)
   for (const p of (typeof PLACES !== 'undefined' ? PLACES : [])) {
     if (!p.s || seen.has(p.s)) continue;
-    items.push({ sid: p.s, name: p.n, type: p.t, cat: p.c || '', zone: p.z || '', man: p.s.charAt(0) === 'm' });
+    items.push({ sid: p.s, name: p.n, type: p.t, cat: p.c || '', zone: p.z || '', man: p.s.charAt(0) === 'm',
+                 img: p.img || '', rv: p.rv || null, h: p.h || null, d: p.d != null ? p.d : null });
     seen.add(p.s);
   }
   // 3) 스냅샷에 없는 편집 행(=제외돼서 스냅샷에서 빠진 가게) — 이름 살려 표시, 복구 가능
@@ -117,18 +133,34 @@ const FILTERS = [
   ['all', '전체'], ['pick', '💚 강추'], ['reserve', '☎ 예약'], ['takeout', '🍱 포장'],
   ['exclude', '✕ 제외'], ['note', '📝 메모'], ['man', '➕ 직접추가'],
 ];
+const TYPES = ['식사', '카페', '술집', '기타'];
+const ZONES = ['도보', '고성', '속초'];
 function renderFilterChips() {
   $('#filterChips').innerHTML = FILTERS.map(([k, l]) =>
     `<span class="chip${curFilter === k ? ' on' : ''}" data-f="${k}">${l}</span>`).join('');
+  $('#typeChips').innerHTML =
+    TYPES.map(t => `<span class="chip${curType === t ? ' on' : ''}" data-t="${t}">${t}</span>`).join('') +
+    '<span style="width:6px"></span>' +
+    ZONES.map(z => `<span class="chip${curZone === z ? ' on' : ''}" data-z="${z}">${z}</span>`).join('');
 }
 function matches(it) {
   const o = ov[it.sid] || {};
   const q = ($('#search').value || '').trim().toLowerCase();
   if (q && !((it.name || '').toLowerCase().includes(q) || (it.cat || '').toLowerCase().includes(q))) return false;
+  if (curType) {
+    if (curType === '기타' ? ['식사', '카페', '술집'].includes(it.type) : it.type !== curType) return false;
+  }
+  if (curZone && it.zone !== curZone) return false;
   if (curFilter === 'all') return true;
   if (curFilter === 'man') return it.man;
   if (curFilter === 'note') return !!o.note;
   return !!o[curFilter];
+}
+function sortItems(arr) {
+  if (curSort === '이름') return arr.slice().sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+  if (curSort === '거리') return arr.slice().sort((a, b) => (a.d == null ? 9e9 : a.d) - (b.d == null ? 9e9 : b.d));
+  if (curSort === '수정') return arr.slice().sort((a, b) => (updAt[b.sid] || '').localeCompare(updAt[a.sid] || ''));
+  return arr;   // 기본: 직접추가 → 스냅샷 순
 }
 function itemHTML(it) {
   const o = ov[it.sid] || {};
@@ -138,9 +170,19 @@ function itemHTML(it) {
   const sub = [it.type, it.cat !== it.type ? it.cat : '', it.zone, it.ghost ? '(현재 사이트에서 제외됨)' : '']
     .filter(Boolean).join(' · ');
   const noteOpen = openNote === it.sid;
+  const meta = [];
+  if (it.rv) meta.push(`<b>★ ${esc(it.rv[0])}</b> (${esc(it.rv[1])})`);
+  const th = todayHours(it);
+  if (th) meta.push(esc(th));
   return `<div class="listitem${o.exclude ? ' excluded' : ''}" data-sid="${esc(it.sid)}">
-    <div class="nm">${esc(it.name)}${pills.join('')}</div>
-    <div class="ct">${esc(sub)}</div>
+    <div class="li-top">
+      ${it.img ? `<img class="li-th" src="${esc(it.img)}" loading="lazy" alt="">` : '<div class="li-th"></div>'}
+      <div class="li-body">
+        <div class="nm">${esc(it.name)}${pills.join('')}</div>
+        <div class="ct">${esc(sub)}</div>
+        ${meta.length ? `<div class="meta">${meta.join(' · ')}</div>` : ''}
+      </div>
+    </div>
     ${o.note && !noteOpen ? `<div class="notepreview">📝 ${esc(o.note)}</div>` : ''}
     <div class="togs">
       <span class="tog${o.pick ? ' on-pick' : ''}" data-act="pick">💚 강추</span>
@@ -161,7 +203,7 @@ function itemHTML(it) {
 }
 function render() {
   renderFilterChips();
-  const shown = items.filter(matches);
+  const shown = sortItems(items.filter(matches));
   const total = items.length;
   const excl = Object.values(ov).filter(o => o.exclude).length;
   const manN = items.filter(i => i.man).length;
@@ -175,6 +217,28 @@ $('#filterChips').addEventListener('click', e => {
   if (!c) return;
   curFilter = c.dataset.f;
   render();
+});
+$('#typeChips').addEventListener('click', e => {
+  const t = e.target.closest('[data-t]'), z = e.target.closest('[data-z]');
+  if (t) curType = curType === t.dataset.t ? null : t.dataset.t;      // 다시 누르면 해제
+  else if (z) curZone = curZone === z.dataset.z ? null : z.dataset.z;
+  else return;
+  render();
+});
+$('#sortSel').addEventListener('change', () => { curSort = $('#sortSel').value; render(); });
+
+// 사이트 스냅샷 재빌드 (평소 불필요 — 매일 아침 자동. 급할 때 수동 트리거)
+$('#rebuildBtn').addEventListener('click', async () => {
+  if (!confirm('사이트 스냅샷을 지금 다시 만들까요?\n(편집은 이미 즉시 반영되고 있어요. 1~2분 걸립니다.)')) return;
+  $('#rebuildBtn').disabled = true;
+  try {
+    await api('/admin/rebuild', { method: 'POST' });
+    toast('🔄 재빌드 시작 — 1~2분 후 스냅샷 갱신');
+  } catch (e) {
+    toast('재빌드 실패: ' + e.message, true);
+  } finally {
+    $('#rebuildBtn').disabled = false;
+  }
 });
 
 // ── 편집 저장 (누르는 순간 반영) ─────────────────────

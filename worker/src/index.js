@@ -197,6 +197,24 @@ export default {
         return json(req, { ok: true });
       }
 
+      // 어드민: 사이트 스냅샷 재빌드 트리거 (GitHub Actions workflow_dispatch)
+      // GH_TOKEN(fine-grained, 이 저장소 Actions write 전용)은 서버 비밀값 — 브라우저에 노출 안 됨
+      if (path === '/admin/rebuild' && req.method === 'POST') {
+        if (!env.GH_TOKEN) return json(req, { error: 'GH_TOKEN 미설정 — Cloudflare 대시보드에서 추가 필요' }, 501);
+        const r = await fetch('https://api.github.com/repos/mgrv-company/gs-trip-course/actions/workflows/build.yml/dispatches', {
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer ' + env.GH_TOKEN,
+            Accept: 'application/vnd.github+json',
+            'User-Agent': 'gs-trip-admin-worker',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ ref: 'main' }),
+        });
+        if (r.status === 204) return json(req, { ok: true });
+        return json(req, { error: 'GitHub 응답 ' + r.status }, 502);
+      }
+
       // 어드민: 전체 편집 데이터 (원본 그대로)
       if (path === '/admin/data' && req.method === 'GET') {
         const ov = await db.prepare('SELECT * FROM overrides ORDER BY updated_at DESC').all();

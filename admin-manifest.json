@@ -1,0 +1,13 @@
+{
+  "name": "고성 트립 · 가게 관리",
+  "short_name": "트립 어드민",
+  "description": "맹그로브 고성 트립코스 가게 관리",
+  "start_url": "./admin.html",
+  "display": "standalone",
+  "background_color": "#f6f5f2",
+  "theme_color": "#1f1e1d",
+  "icons": [
+    { "src": "assets/favicon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "assets/favicon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

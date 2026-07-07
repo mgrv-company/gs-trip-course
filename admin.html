@@ -5,8 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <!-- CSP: 우리 파일 + 어드민 백엔드 연결만 허용. 인라인 스크립트 금지(스크립트는 admin.js) -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https://gs-trip-admin.mangrove-goseong.workers.dev; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https://gs-trip-admin.mangrove-goseong.workers.dev; manifest-src 'self'; base-uri 'none'; form-action 'none'">
 <title>트립 코스 · 가게 관리</title>
+<meta name="theme-color" content="#1f1e1d">
+<link rel="manifest" href="admin-manifest.json">
+<link rel="apple-touch-icon" href="assets/favicon-180.png">
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -57,8 +60,13 @@
   /* 가게 목록 */
   .listitem { background: #fff; border: 1px solid var(--line); border-radius: 13px; padding: 12px 13px; margin-top: 9px; }
   .listitem.excluded { opacity: .5; }
+  .listitem .li-top { display: flex; gap: 11px; align-items: flex-start; }
+  .li-th { width: 54px; height: 54px; border-radius: 10px; object-fit: cover; flex: 0 0 auto; background: var(--soft); }
+  .li-body { flex: 1; min-width: 0; }
   .listitem .nm { font-weight: 800; font-size: 15px; }
   .listitem .ct { font-size: 12px; color: var(--gray); margin-top: 2px; }
+  .listitem .meta { font-size: 12px; color: #4a4945; margin-top: 3px; }
+  .listitem .meta b { color: var(--ink); }
   .listitem .notepreview { font-size: 12.5px; color: #9a6b2f; background: var(--gold-bg); border-radius: 8px; padding: 7px 10px; margin-top: 8px; line-height: 1.55; }
   .pill { display: inline-block; font-size: 10.5px; padding: 2px 8px; border-radius: 99px; font-weight: 700; margin-left: 5px; vertical-align: 2px; }
   .pill.man { background: #eef1ff; color: #4a5bd0; }
@@ -122,9 +130,22 @@
       <div class="sticky-search">
         <input type="text" id="search" placeholder="🔍 가게 이름·카테고리 검색 (즉시 필터)">
         <div class="chips" id="filterChips" style="margin-top:8px"></div>
-        <div class="small" id="countLine"></div>
+        <div class="chips" id="typeChips" style="margin-top:6px"></div>
+        <div class="row" style="margin-top:6px; justify-content:space-between; align-items:center">
+          <div class="small" id="countLine" style="margin:0"></div>
+          <select id="sortSel" style="width:auto; padding:5px 8px; font-size:12px; border-radius:8px">
+            <option value="기본">기본 순</option>
+            <option value="이름">이름 순</option>
+            <option value="거리">가까운 순</option>
+            <option value="수정">최근 수정 순</option>
+          </select>
+        </div>
       </div>
       <div id="list"></div>
+      <div class="row" style="margin-top:20px; justify-content:center">
+        <button class="btn ghost sm" id="rebuildBtn">🔄 사이트 스냅샷 재빌드</button>
+      </div>
+      <p class="small" style="text-align:center; margin-top:6px">평소엔 필요 없어요 — 편집은 즉시 반영되고, 매일 아침 7시에 자동으로도 돌아갑니다.</p>
     </div>
 
     <!-- 추가 탭 -->
@@ -175,7 +196,7 @@
 </div>
 
 <div id="toast"></div>
-<script src="places.js?v=6"></script>
-<script src="admin.js?v=1"></script>
+<script src="places.js?v=7"></script>
+<script src="admin.js?v=2"></script>
 </body>
 </html>

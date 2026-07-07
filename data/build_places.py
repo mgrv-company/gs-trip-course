@@ -184,8 +184,9 @@ for x in places:
     ov = ov_by_sid.get(str(x['sid'])) or overrides.get(x['name'])
     if ov:
         if ov.get('exclude'):
+            # 버리지 않고 x=1로 표시만 차단 — 어드민에서 복구하면 (재빌드 없이) 즉시 다시 보이게
+            item['x'] = 1
             stat['제외(피드백)'] += 1
-            continue
         if ov.get('reserve'):
             item['r'] = 1
         if ov.get('note'):

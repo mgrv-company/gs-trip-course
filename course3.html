@@ -68,10 +68,10 @@
   <footer>맹그로브 고성 · <a href="index.html">← 지금 갈만한 곳으로</a></footer>
 </div>
 
-<script src="places.js?v=13"></script>
+<script src="places.js?v=14"></script>
 <script>
   const DAY_NAMES = ['일','월','화','수','목','금','토'];
-  const P = typeof PLACES !== 'undefined' ? PLACES : [];
+  const P = (typeof PLACES !== 'undefined' ? PLACES : []).filter(p => !p.x);   // 제외(x) 가게 차단
   const byName = n => P.find(p => p.n === n) || P.find(p => p.n.replace(/ /g,'') === n.replace(/ /g,''));
   const walk = d => d == null ? '' : (d <= 1.2 ? '🚶 ' + Math.max(3, Math.round(d*15)) + '분' : '🚗 ' + (Math.round(d/50*60)+3) + '분');
   function naver(q) { return 'https://search.naver.com/search.naver?query=' + encodeURIComponent(q + ' 고성'); }
