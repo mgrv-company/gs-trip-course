@@ -93,6 +93,7 @@
   .feedback { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 17px 16px; margin-top: 24px; text-align: center; }
   .feedback p { font-size: 12.5px; color: #50514a; line-height: 1.7; margin-bottom: 13px; }
   .fbbtn { width: 100%; background: var(--ink); color: #fff; border: 0; border-radius: 12px; padding: 13px; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .fbbtn.ghost2 { background: #fff; border: 1.5px solid var(--green); color: var(--green-deep); margin-top: 8px; }
   .stars { display: flex; gap: 4px; justify-content: center; }
   .star { font-size: 31px; line-height: 1; background: none; border: 0; color: #d8d7d2; cursor: pointer; padding: 4px 5px; }
   .star.on { color: var(--gold); }
@@ -201,6 +202,7 @@
   <div class="feedback">
     <p><b>다녀온 가게, 어떠셨어요?</b><br>좋았던 곳도, 아쉬웠던 곳도 모두 환영이에요.<br>의견은 추천 리스트에 바로 반영됩니다 🙌</p>
     <button class="fbbtn" id="fbBtn">✍️ 가게 피드백 남기기</button>
+    <button class="fbbtn ghost2" id="sgBtn">💚 리스트에 없는 좋았던 곳 추천하기</button>
   </div>
 
   <div class="feedback" id="rateCard">
@@ -228,8 +230,8 @@
 
 <div id="fbModal">
   <div class="box">
-    <h3>가게 피드백</h3>
-    <div class="desc">좋았어요·아쉬웠어요·문 닫았더라고요 — 뭐든 좋아요. 남겨주신 의견은 커뮤니티 매니저에게 바로 전달됩니다. 30초면 충분해요!</div>
+    <h3 id="fbTitle">가게 피드백</h3>
+    <div class="desc" id="fbDesc">좋았어요·아쉬웠어요·문 닫았더라고요 — 뭐든 좋아요. 남겨주신 의견은 커뮤니티 매니저에게 바로 전달됩니다. 30초면 충분해요!</div>
     <div id="fbForm">
       <input id="fbPlace" type="text" placeholder="가게 이름 (기억나는 만큼만)">
       <textarea id="fbMemo" placeholder="예: 여기 진짜 좋았어요! / 웨이팅 1시간이었어요 / 문 닫았던데요"></textarea>
@@ -244,7 +246,7 @@
 
 <script src="places.js?v=7"></script>
 <script src="tour.js?v=1"></script>
-<script src="home.js?v=21"></script>
+<script src="home.js?v=22"></script>
 <!-- PC 배경 순환 스크립트는 home.js 끝으로 이동 (CSP 강화: 인라인 스크립트 금지) -->
 </body>
 </html>

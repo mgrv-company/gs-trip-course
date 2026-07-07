@@ -236,8 +236,31 @@ $('#optChips').addEventListener('click', e => {
 // 다른 곳 보기 (재추첨)
 $('#shuffleBtn').addEventListener('click', renderNow);
 
-// 피드백 — 페이지 안에서 메모 작성 → 백그라운드 전송(이동 없음)
-function openFb() {
+// 피드백/추천 — 같은 팝업을 모드에 따라 문구만 바꿔 사용 (페이지 안에서 전송, 이동 없음)
+let fbMode = 'fb';   // 'fb' 가게 피드백 / 'suggest' 좋았던 곳 추천
+const FB_TEXTS = {
+  fb: {
+    title: '가게 피드백',
+    desc: '좋았어요·아쉬웠어요·문 닫았더라고요 — 뭐든 좋아요. 남겨주신 의견은 커뮤니티 매니저에게 바로 전달됩니다. 30초면 충분해요!',
+    place: '가게 이름 (기억나는 만큼만)',
+    memo: '예: 여기 진짜 좋았어요! / 웨이팅 1시간이었어요 / 문 닫았던데요',
+    done: '🙌 고맙습니다! 의견이 전달됐어요.',
+  },
+  suggest: {
+    title: '좋았던 곳 추천',
+    desc: '추천 리스트에 없는데 좋았던 가게가 있나요? 알려주시면 커뮤니티 매니저가 다녀와 보고 리스트에 올릴게요 💚',
+    place: '가게 이름 (필수)',
+    memo: '어떤 점이 좋았나요? 위치·메뉴 등 아는 만큼만 적어주세요 (선택)',
+    done: '💚 고맙습니다! 다녀와 보고 리스트에 올려볼게요.',
+  },
+};
+function openFb(mode) {
+  fbMode = mode === 'suggest' ? 'suggest' : 'fb';
+  const t = FB_TEXTS[fbMode];
+  $('#fbTitle').textContent = t.title;
+  $('#fbDesc').textContent = t.desc;
+  $('#fbPlace').placeholder = t.place;
+  $('#fbMemo').placeholder = t.memo;
   $('#fbForm').style.display = '';
   $('#fbDone').style.display = 'none';
   $('#fbPlace').value = ''; $('#fbMemo').value = '';
@@ -245,7 +268,9 @@ function openFb() {
 }
 function closeFb() { $('#fbModal').classList.remove('show'); }
 const fbBtn = $('#fbBtn');
-if (fbBtn) fbBtn.addEventListener('click', openFb);
+if (fbBtn) fbBtn.addEventListener('click', () => openFb('fb'));
+const sgBtn = $('#sgBtn');
+if (sgBtn) sgBtn.addEventListener('click', () => openFb('suggest'));
 const fbCancel = $('#fbCancel');
 if (fbCancel) fbCancel.addEventListener('click', closeFb);
 const fbModal = $('#fbModal');
@@ -253,14 +278,18 @@ if (fbModal) fbModal.addEventListener('click', e => { if (e.target.id === 'fbMod
 const fbSend = $('#fbSend');
 if (fbSend) fbSend.addEventListener('click', async () => {
   const memo = $('#fbMemo').value.trim().slice(0, 500);
-  if (!memo) { alert('내용을 입력해주세요.'); return; }
-  const payload = { place: $('#fbPlace').value.trim().slice(0, 100), memo, at: new Date().toISOString().slice(0, 16).replace('T', ' '), t: FB_TOKEN };
+  const place = $('#fbPlace').value.trim().slice(0, 100);
+  if (fbMode === 'suggest') {
+    if (!place) { alert('가게 이름을 입력해주세요.'); return; }
+  } else if (!memo) { alert('내용을 입력해주세요.'); return; }
+  const payload = { place, memo, at: new Date().toISOString().slice(0, 16).replace('T', ' '), t: FB_TOKEN };
+  if (fbMode === 'suggest') payload.kind = 'suggest';
   fbSend.disabled = true;
   try {
     // Worker는 CORS를 제대로 지원 → 응답 확인까지 가능 (옛 Apps Script no-cors 꼼수 불필요)
     const r = await fetch(FEEDBACK_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
     if (!r.ok) throw new Error('전송 실패 ' + r.status);
-    $('#fbDone').textContent = '🙌 고맙습니다! 의견이 전달됐어요.';
+    $('#fbDone').textContent = FB_TEXTS[fbMode].done;
     $('#fbForm').style.display = 'none';
     $('#fbDone').style.display = '';
     setTimeout(closeFb, 1600);

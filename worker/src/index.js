@@ -160,6 +160,26 @@ export default {
           return ok;
         }
 
+        // 좋았던 곳 직접 추천 (kind: 'suggest') — 리스트에 없는 가게 제보
+        if (data.kind === 'suggest') {
+          const sPlace = String(data.place || '').slice(0, 100).trim();
+          if (!sPlace) return ok;
+          const sMemo = String(data.memo || '').slice(0, 500).trim();
+          if (await overLimit(db, 'fb', FB_LIMIT)) return ok;
+          const sText = '💚 투숙객 가게 추천\n'
+            + '• 가게: ' + slackEsc(sPlace) + '\n'
+            + (sMemo ? '• 좋았던 점: ' + slackEsc(sMemo) + '\n' : '')
+            + '• 시각: ' + slackEsc(String(data.at || '').slice(0, 30));
+          try {
+            await fetch(env.SLACK_WEBHOOK, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text: sText }),
+            });
+          } catch (e) { console.error('슬랙 전송 실패:', e.message); }
+          return ok;
+        }
+
         const place = String(data.place || '').slice(0, 100);
         const memo = String(data.memo || '').slice(0, 500).trim();
         if (!memo) return ok;                                          // (2) 입력 검증
