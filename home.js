@@ -204,8 +204,13 @@ function renderNow() {
     .sort((a, b) => (openNow(b, now) === true ? 1 : 0) - (openNow(a, now) === true ? 1 : 0));
   recent = recent.concat(picks.map(p => p.n));   // 누적: 한 바퀴 다 돌 때까지 계속 제외
 
-  $('#slotLabel').textContent = isAuto ? '영업중' : ({ meal: '든든한 한 끼', cafe: '카페', bar: '술과 함께' })[slot];
-  $('#slotSub').textContent = isAuto ? '한 끼·카페·술 섞어서 골라봤어요' : (curFilter ? `'${curFilter}' 중에서 골라봤어요` : '지금 문 연 곳 중에서 골라봤어요');
+  $('#slotLabel').textContent = isAuto ? '영업중' : ({ meal: '든든한 한 끼', cafe: '느낌 좋은 카페', bar: '술과 함께' })[slot];
+  const SLOT_SUB = {
+    meal: '식사가 될 수 있을만한 가게들로 추천해요.',
+    cafe: '카페부터 베이커리, 젤라또까지 다양하게 추천해요.',
+    bar: '노포부터 이자카야까지, 술 한 잔 하기 좋은 곳을 추천해요.',
+  };
+  $('#slotSub').textContent = isAuto ? '메뉴에 상관없이 지금 영업 중인 가게를 추천해요.' : SLOT_SUB[slot];
   $('#nowList').innerHTML = picks.length
     ? picks.map((p, i) => cardHTML(p, i + 1)).join('')
     : `<p class="empty">지금 문 연 곳을 찾지 못했어요. 종류 탭이나 옵션을 바꿔보세요.</p>`;

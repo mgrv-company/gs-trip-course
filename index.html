@@ -139,13 +139,12 @@
 <div class="bg-overlay" aria-hidden="true"></div>
 <div class="topbar">
   <img class="logo" src="assets/mangrove-goseong-logo.svg" alt="맹그로브 고성">
-  <span class="pg">지금 갈만한 곳</span>
 </div>
 
 <div class="wrap">
   <div class="hero">
     <img src="assets/goseong-hero-2.webp" alt="맹그로브 고성">
-    <div class="cap"><b>지금 갈만한 곳</b><span>커뮤니티 매니저가 추천해요</span></div>
+    <div class="cap"><b>지금 어디로 갈까요?</b><span>커뮤니티 매니저가 추천하는 가게들</span></div>
   </div>
 
   <div class="ctxrow">
@@ -156,7 +155,7 @@
   <div class="segs">
     <div class="seg on" data-slot="auto">영업중</div>
     <div class="seg" data-slot="meal">든든한 한 끼</div>
-    <div class="seg" data-slot="cafe">카페</div>
+    <div class="seg" data-slot="cafe">느낌 좋은 카페</div>
     <div class="seg" data-slot="bar">술과 함께</div>
   </div>
 
@@ -165,7 +164,7 @@
   <div class="slotrow">
     <div>
       <div class="slotlabel" id="slotLabel"></div>
-      <div class="slotsub" id="slotSub">지금 문 연 곳 중에서</div>
+      <div class="slotsub" id="slotSub">메뉴에 상관없이 지금 영업 중인 가게를 추천해요.</div>
     </div>
     <button class="shuffle" id="shuffleBtn">🔄 다른 곳</button>
   </div>
@@ -200,19 +199,19 @@
   </div><!-- /hiddenSections -->
 
   <div class="feedback">
-    <p><b>다녀온 가게, 어떠셨어요?</b><br>좋았던 곳도, 아쉬웠던 곳도 모두 환영이에요.<br>의견은 추천 리스트에 바로 반영됩니다 🙌</p>
-    <button class="fbbtn" id="fbBtn">✍️ 가게 피드백 남기기</button>
-    <button class="fbbtn ghost2" id="sgBtn">💚 리스트에 없는 좋았던 곳 추천하기</button>
+    <p><b>다녀온 가게, 어떠셨어요?</b><br>소중한 의견을 모아 더욱 유용한 서비스로 만들게요.<br>솔직하게 기재해주시면 큰 도움이 됩니다.</p>
+    <button class="fbbtn" id="fbBtn">✍️ 추천받은 가게 피드백 남기기</button>
+    <button class="fbbtn ghost2" id="sgBtn">💚 리스트에 없었던 가게 추천하기</button>
   </div>
 
   <div class="feedback" id="rateCard">
-    <p><b>이 추천 서비스는 어떠셨어요?</b><br>별점 하나로도 큰 도움이 됩니다.</p>
+    <p><b>이 추천 서비스는 어떠셨어요?</b><br>원하는 별점을 누르고, 아래 '별점 추가하기' 버튼을 눌러주세요.</p>
     <div class="stars" id="stars">
       <button class="star" data-v="1">★</button><button class="star" data-v="2">★</button><button class="star" data-v="3">★</button><button class="star" data-v="4">★</button><button class="star" data-v="5">★</button>
     </div>
     <div id="rateForm" style="display:none">
-      <textarea id="rateMemo" placeholder="한 줄 의견 (선택) — 예: 덕분에 저녁 맛집 찾았어요 / 이런 정보도 있으면 좋겠어요"></textarea>
-      <button class="fbbtn" id="rateSend">별점 보내기</button>
+      <textarea id="rateMemo" placeholder="어떤 부분이 도움이 되었는지 적어주세요. 혹은 필요한 정보가 있다면 기재해주셔도 좋습니다."></textarea>
+      <button class="fbbtn" id="rateSend">별점 추가하기</button>
     </div>
     <div class="done-line" id="rateDone" style="display:none">🙌 감사합니다! 더 좋은 추천으로 보답할게요.</div>
   </div>
@@ -246,7 +245,7 @@
 
 <script src="places.js?v=7"></script>
 <script src="tour.js?v=1"></script>
-<script src="home.js?v=23"></script>
+<script src="home.js?v=24"></script>
 <!-- PC 배경 순환 스크립트는 home.js 끝으로 이동 (CSP 강화: 인라인 스크립트 금지) -->
 </body>
 </html>
