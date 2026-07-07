@@ -18,3 +18,8 @@ test/
 _private/
 .auth-profile/
 .firecrawl/
+# worker: 로컬 시험용 비밀값·생성물 (커밋 금지)
+worker/.dev.vars*
+worker/seed.sql
+worker/.wrangler/
+worker/node_modules/

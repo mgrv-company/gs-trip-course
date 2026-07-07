@@ -117,6 +117,9 @@ def norm_hours(raw):
         # start/end 없고 휴무 표기도 없으면 미기재 → 키 자체를 생략 (앱에서 '확인 필요')
     return out or None
 
+# 어드민 백엔드(D1) export 형식은 각 항목에 sid가 실려 있음 → sid 우선 대조 (가게 이름이 바뀌어도 편집 유지)
+ov_by_sid = {str(v['sid']): v for v in overrides.values() if isinstance(v, dict) and v.get('sid')}
+
 slim = []
 stat = Counter()
 for x in places:
@@ -126,6 +129,7 @@ for x in places:
         'n': x['name'], 't': x['type'], 'c': x['category'],
         'f': x['food'], 'v': x['vibe'], 'z': x['zone'][:2],
         'd': x['dist_km'], 'a': x['address'], 'u': x['naver'], 'img': x['thumb'],
+        's': str(x['sid']),   # 홈이 백엔드 최신 편집을 얹을 때 대조용
     }
     if h:
         item['h'] = h
@@ -139,6 +143,7 @@ for x in places:
     ex = extras.get(str(x['sid'])) or {}
     if ex.get('reserve_auto'):
         item['r'] = 1
+        item['ra'] = 1   # 자동감지 표시 — 홈 오버레이가 수동 예약 해제와 구분하기 위함
         stat['예약제(자동감지)'] += 1
     if ex.get('score') and ex.get('reviews'):
         item['rv'] = [ex['score'], ex['reviews']]
@@ -175,8 +180,8 @@ for x in places:
         item['w'] = 0  # 워크인 무난 (리뷰 충분 + 최근 대기 언급 없음)
         stat['워크인 무난'] += 1
 
-    # 수동 피드백(overrides)은 자동 신호보다 우선
-    ov = overrides.get(x['name'])
+    # 수동 피드백(overrides)은 자동 신호보다 우선 — sid 우선, 없으면 이름(구형식 호환)
+    ov = ov_by_sid.get(str(x['sid'])) or overrides.get(x['name'])
     if ov:
         if ov.get('exclude'):
             stat['제외(피드백)'] += 1

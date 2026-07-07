@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- CSP: 우리 파일·허용한 곳 외의 스크립트/연결 차단 (XSS 방어층). 연결 허용: 어드민 백엔드 + 피드백(Apps Script, 전환 전까지) -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https://gs-trip-admin.mangrove-goseong.workers.dev https://script.google.com; base-uri 'none'; form-action 'none'">
 <title>맹그로브 고성 · 지금 갈만한 곳</title>
 <meta name="description" content="맹그로브 고성 CA 추천 — 지금 문 연, 가까운, 안 붐비는 속초·고성 맛집과 카페">
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
@@ -221,20 +223,9 @@
   </div>
 </div>
 
-<script src="places.js?v=5"></script>
+<script src="places.js?v=6"></script>
 <script src="tour.js?v=1"></script>
-<script src="home.js?v=18"></script>
-<!-- PC 배경 사진: 새로고침마다 다음 장(2→3→7→4 순환). 모바일에선 CSS로 숨겨져 단색만 보임 -->
-<script>
-  (function () {
-    var slides = document.querySelectorAll('.bg-slide');
-    if (!slides.length) return;
-    var n = slides.length;
-    var prev = parseInt(localStorage.getItem('gsBgIndex'), 10);
-    var i = isNaN(prev) ? 0 : (prev + 1) % n;
-    slides[i].classList.add('is-active');
-    try { localStorage.setItem('gsBgIndex', String(i)); } catch (e) {}
-  })();
-</script>
+<script src="home.js?v=19"></script>
+<!-- PC 배경 순환 스크립트는 home.js 끝으로 이동 (CSP 강화: 인라인 스크립트 금지) -->
 </body>
 </html>

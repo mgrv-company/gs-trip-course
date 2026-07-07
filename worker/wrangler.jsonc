@@ -1,0 +1,21 @@
+// gs-trip-course 어드민 백엔드 (Cloudflare Worker + D1)
+// 배포: cd worker && npx wrangler deploy
+{
+  "name": "gs-trip-admin",
+  "main": "src/index.js",
+  "compatibility_date": "2026-07-01",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "gs_trip",
+      "database_id": "d1ea807b-5461-4d9c-a839-4cf1cd66d63e"
+    }
+  ],
+  "vars": {
+    // 피드백 장난 방지용 공개 토큰 (home.js FB_TOKEN과 동일해야 함 — 비밀값 아님)
+    "FB_TOKEN": "gst-2026a"
+  }
+  // 비밀값(코드에 안 들어감, 배포 후 1회 설정):
+  //   npx wrangler secret put ADMIN_PASSWORD   ← 어드민 로그인 비밀번호
+  //   npx wrangler secret put SLACK_WEBHOOK    ← #gs-routine 웹훅 주소
+}

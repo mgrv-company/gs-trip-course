@@ -3,6 +3,8 @@
 
 const $ = (s, el) => (el || document).querySelector(s);
 const $$ = (s, el) => Array.from((el || document).querySelectorAll(s));
+// HTML 이스케이프 — 데이터(가게명·메모 등)를 화면에 꽂기 전 특수문자 무력화 (저장형 XSS 방지)
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 const LIMIT = 3;                 // 추천 개수
 // 든든한 한 끼 옵션 — 통합 카테고리 (라벨 → 포함 식성 태그)
@@ -22,6 +24,8 @@ const BAR_GROUPS = [
 const FEEDBACK_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyWVX0t2ciXvhz0l6eesmMYTxpgsfHlWotcmzxH5t8JhAEizxfnBEWDPrUFgr5ImXXj/exec';   // Apps Script → 슬랙 #gs-routine (브라우저 no-cors POST)
 // 공개 사이트라 이 값도 공개됨 — '완전 차단'이 아니라 장난성 방지용 speed-bump. 진짜 보호는 Apps Script의 토큰검증+입력검증+횟수제한이 담당.
 const FB_TOKEN = 'gst-2026a';
+// 어드민 백엔드 — places.js(주간 스냅샷) 위에 최신 편집을 얹는다. 장애 시엔 스냅샷만으로 정상 동작.
+const ADMIN_API = 'https://gs-trip-admin.mangrove-goseong.workers.dev';
 
 function toMin(hhmm) { const [h, m] = hhmm.split(':').map(Number); return h * 60 + m; }
 
@@ -104,20 +108,20 @@ function cardHTML(p, idx) {
   if (open === true) badges.push('<span class="b open">● 영업중</span>');
   else if (open === null) badges.push('<span class="b chk">확인필요</span>');
   const lines = [];
-  if (p.m && p.m.length) lines.push('🍽 ' + p.m.join(' · '));
+  if (p.m && p.m.length) lines.push('🍽 ' + p.m.map(esc).join(' · '));
   lines.push('🕐 ' + hoursNowText(p));
   if (waitText(p)) lines.push(waitText(p));
   const memo = p.note || p.mr;
-  if (memo) lines.push('💬 ' + memo);
-  const rv = p.rv ? `<span class="rv">★ ${p.rv[0]} (${p.rv[1]})</span>` : '';
+  if (memo) lines.push('💬 ' + esc(memo));
+  const rv = p.rv ? `<span class="rv">★ ${esc(p.rv[0])} (${esc(p.rv[1])})</span>` : '';
   const num = idx ? `<span class="num">${idx}</span>` : '';
   return `<div class="card">
-    ${p.img ? `<img class="ph" src="${p.img}" loading="lazy" alt="">` : ''}
+    ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="">` : ''}
     <div class="body">
-      <div class="rk">${num}<span class="nm">${p.n}</span> ${badges.join(' ')}</div>
-      <div class="ct">${p.c} · ${moveText(p)} ${rv}</div>
+      <div class="rk">${num}<span class="nm">${esc(p.n)}</span> ${badges.join(' ')}</div>
+      <div class="ct">${esc(p.c)} · ${moveText(p)} ${rv}</div>
       <div class="info">${lines.join('<br>')}</div>
-      <div class="links">${p.u ? `<a href="${p.u}" target="_blank" rel="noopener">네이버 지도에서 보기 →</a>` : ''}</div>
+      <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener">네이버 지도에서 보기 →</a>` : ''}</div>
     </div>
   </div>`;
 }
@@ -125,15 +129,15 @@ function cardHTML(p, idx) {
 // 관광정보(TourAPI) 카드 — 영업시간/메뉴 없이 이름·거리·주소·전화·지도
 function tourCardHTML(p) {
   const lines = [];
-  if (p.addr) lines.push('📍 ' + p.addr);
-  if (p.tel) lines.push('☎ ' + p.tel);
+  if (p.addr) lines.push('📍 ' + esc(p.addr));
+  if (p.tel) lines.push('☎ ' + esc(p.tel));
   return `<div class="card">
-    ${p.img ? `<img class="ph" src="${p.img}" loading="lazy" alt="">` : ''}
+    ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="">` : ''}
     <div class="body">
-      <div class="rk"><span class="nm">${p.n}</span></div>
+      <div class="rk"><span class="nm">${esc(p.n)}</span></div>
       <div class="ct">${p.d != null ? moveText({ d: p.d }) : ''}</div>
       <div class="info">${lines.join('<br>')}</div>
-      <div class="links"><a href="${p.u}" target="_blank" rel="noopener">네이버 지도에서 보기 →</a></div>
+      <div class="links"><a href="${esc(p.u)}" target="_blank" rel="noopener">네이버 지도에서 보기 →</a></div>
     </div>
   </div>`;
 }
@@ -165,11 +169,11 @@ function renderNow() {
   const TYPES = ['식사', '카페', '술집'];
   let pool;
   if (isAuto) {
-    // '영업중': 한 끼·카페·술 섞어서 (포장·배달 제외, 지금 문 연 곳)
-    pool = PLACES.filter(p => TYPES.includes(p.t) && !p.to && openNow(p, now) !== false);
+    // '영업중': 한 끼·카페·술 섞어서 (제외·포장·배달 빼고, 지금 문 연 곳)
+    pool = PLACES.filter(p => TYPES.includes(p.t) && !p.x && !p.to && openNow(p, now) !== false);
   } else {
     const type = TYPE_OF[slot];
-    pool = PLACES.filter(p => p.t === type && !p.to && openNow(p, now) !== false);
+    pool = PLACES.filter(p => p.t === type && !p.x && !p.to && openNow(p, now) !== false);
     if (curFilter) {
       if (slot === 'meal') {
         const grp = FOOD_GROUPS.find(g => g.label === curFilter);
@@ -287,20 +291,20 @@ const COLL = {
   walk: {
     title: '🚶 걸어서 갈 곳', note: '맹그로브 고성 기준 거리예요.',
     subs: [['도보', '도보권'], ['고성', '차로 금방(고성)'], ['속초', '멀어도 OK(속초)']],
-    list: sub => PLACES.filter(p => !p.to && REAL.includes(p.t) && p.z === sub),
+    list: sub => PLACES.filter(p => !p.x && !p.to && REAL.includes(p.t) && p.z === sub),
   },
   capick: {
     title: '💚 CA 강추', note: 'CA가 직접 가본 찐 추천만 모았어요.', subs: null,
-    list: () => PLACES.filter(p => p.ca && !p.to),
+    list: () => PLACES.filter(p => p.ca && !p.x && !p.to),
   },
   time: {
     title: '🎯 아침·심야', note: '',
     subs: [['early', '🌅 아침 되는 곳'], ['late', '🌙 심야 영업']],
-    list: sub => PLACES.filter(p => !p.to && REAL.includes(p.t) && (sub === 'late' ? opensLate(p) : opensEarly(p))),
+    list: sub => PLACES.filter(p => !p.x && !p.to && REAL.includes(p.t) && (sub === 'late' ? opensLate(p) : opensEarly(p))),
   },
   makguksu: {
     title: '🍜 고성 막국수 모음', note: '고성·속초의 막국수집을 모았어요. (거리순)', subs: null,
-    list: () => PLACES.filter(p => !p.to && ((p.n || '').includes('막국수') || (p.m || []).some(m => m.includes('막국수')))),
+    list: () => PLACES.filter(p => !p.x && !p.to && ((p.n || '').includes('막국수') || (p.m || []).some(m => m.includes('막국수')))),
   },
 };
 function renderCollection(key, sub) {
@@ -346,7 +350,7 @@ function openSection(key) {
   let html = '';
   const tourNote = '<div class="notice" style="margin-top:0;margin-bottom:6px">📍 한국관광공사 정보 기반이에요. 방문 전 운영 여부를 확인해보세요.</div>';
   if (key === 'takeout') {
-    const list = PLACES.filter(p => p.to);
+    const list = PLACES.filter(p => p.to && !p.x);
     html = list.length ? list.map(p => cardHTML(p)).join('') : '<p class="empty">등록된 포장·배달 가게가 없어요.</p>';
   } else if (key === 'activity' && typeof TOUR !== 'undefined') {
     html = tourNote + TOUR.activities.map(tourCardHTML).join('');
@@ -374,15 +378,72 @@ $('#secBody').addEventListener('click', e => {
   if (c) renderCollection(c.dataset.coll, c.dataset.sub);
 });
 
-// 시작
+// ── 백엔드 편집 오버레이 ─────────────────────────────
+// places.js(주간 스냅샷)로 먼저 그린 뒤, 어드민 최신 편집(제외·강추·예약·메모·직접추가)을 얹는다.
+// 백엔드 응답이 없으면 조용히 스냅샷 그대로 → 사이트는 항상 뜬다.
+const ZONE_DIST = { '도보권': 0.8, '고성권(차 10~15분)': 10, '속초권(차 20~35분)': 25 };
+function manualToCard(m) {
+  return { n: m.name, t: m.type, c: m.category || m.type, f: m.food || [], v: m.vibe || [],
+           z: (m.zone || '').slice(0, 2), d: m.dist_km != null ? m.dist_km : (ZONE_DIST[m.zone] || 10),
+           a: m.address || '', u: m.naver || '', img: m.thumb || '', s: String(m.sid) };
+}
+function applyOverrideTo(pl, o) {
+  pl.x = o.x ? 1 : 0;
+  pl.ca = o.p ? 1 : 0;
+  pl.nt = o.nt ? 1 : 0;
+  pl.to = o.to ? 1 : 0;
+  pl.r = (o.r || pl.ra) ? 1 : 0;   // 자동감지(ra) 예약은 유지, 수동 예약만 편집을 따름
+  pl.note = o.note || '';
+}
+async function applyLiveEdits() {
+  try {
+    const r = await fetch(ADMIN_API + '/public/data');
+    if (!r.ok) return false;
+    const live = await r.json();
+    const bySid = {};
+    PLACES.forEach(pl => { if (pl.s) bySid[pl.s] = pl; });
+    // 1) 기존 가게: sid로 편집 반영
+    PLACES.forEach(pl => { if (pl.s) applyOverrideTo(pl, live.ov[pl.s] || {}); });
+    // 2) 직접추가: 스냅샷에 아직 없는 가게는 카드로 변환해 추가
+    const liveManSids = new Set(live.manual.map(m => String(m.sid)));
+    live.manual.forEach(m => {
+      const sid = String(m.sid);
+      if (bySid[sid]) return;
+      const card = manualToCard(m);
+      applyOverrideTo(card, live.ov[sid] || {});
+      PLACES.push(card); bySid[sid] = card;
+    });
+    // 3) 어드민에서 삭제된 직접추가 가게는 숨김 (직접추가 sid는 'm'으로 시작)
+    PLACES.forEach(pl => { if (pl.s && pl.s.charAt(0) === 'm' && !liveManSids.has(pl.s)) pl.x = 1; });
+    return true;
+  } catch (e) {
+    return false;   // 오프라인/장애 — 스냅샷 그대로
+  }
+}
+
+// 시작: 스냅샷으로 즉시 그리고, 최신 편집이 도착하면 한 번 갱신
 renderContext();
 renderChips();
 renderNow();
+applyLiveEdits().then(ok => { if (ok) { recent = []; renderChips(); renderNow(); } });
 // (2026-06-30) 60초 주기 갱신은 제거(보는 중에 추천이 저절로 바뀌어 거슬림).
 // 대신 탭/앱으로 '다시 돌아왔을 때'에만 최신화 → 보고 있는 동안엔 안 바뀌고, 닫힌 가게가 영업중으로 남는 문제는 해결.
-// (원래 60초 로직과 동일: context는 항상, auto 슬롯일 때만 chips·now 재계산)
+// (원래 60초 로직과 동일: context는 항상, auto 슬롯일 때만 chips·now 재계산 + 편집 최신화)
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) return;
   renderContext();
-  if (curSlot === 'auto') { renderChips(); renderNow(); }
+  applyLiveEdits().finally(() => {
+    if (curSlot === 'auto') { renderChips(); renderNow(); }
+  });
 });
+
+// PC 배경 사진 순환 (index.html 인라인에서 이동 — CSP 강화를 위해 외부 파일로)
+(function () {
+  var slides = document.querySelectorAll('.bg-slide');
+  if (!slides.length) return;
+  var n = slides.length;
+  var prev = parseInt(localStorage.getItem('gsBgIndex'), 10);
+  var i = isNaN(prev) ? 0 : (prev + 1) % n;
+  slides[i].classList.add('is-active');
+  try { localStorage.setItem('gsBgIndex', String(i)); } catch (e) {}
+})();
