@@ -21,11 +21,12 @@ const BAR_GROUPS = [
   { label: '바·맥주', cats: ['BAR', '바(BAR)', '맥주', '호프'] },
   { label: '요리주점·안주', cats: ['요리주점', '퓨전', '육류', '고기', '해물', '생선', '술집'] },
 ];
-const FEEDBACK_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyWVX0t2ciXvhz0l6eesmMYTxpgsfHlWotcmzxH5t8JhAEizxfnBEWDPrUFgr5ImXXj/exec';   // Apps Script → 슬랙 #gs-routine (브라우저 no-cors POST)
-// 공개 사이트라 이 값도 공개됨 — '완전 차단'이 아니라 장난성 방지용 speed-bump. 진짜 보호는 Apps Script의 토큰검증+입력검증+횟수제한이 담당.
-const FB_TOKEN = 'gst-2026a';
-// 어드민 백엔드 — places.js(주간 스냅샷) 위에 최신 편집을 얹는다. 장애 시엔 스냅샷만으로 정상 동작.
+// 어드민 백엔드 — 편집 오버레이 + 피드백 수신(→슬랙 #gs-routine). 장애 시엔 스냅샷만으로 정상 동작.
+// (2026-07-07 피드백을 Apps Script → Worker로 전환. 토큰검증·입력검증·횟수제한은 Worker가 담당)
 const ADMIN_API = 'https://gs-trip-admin.mangrove-goseong.workers.dev';
+const FEEDBACK_ENDPOINT = ADMIN_API + '/feedback';
+// 공개 사이트라 이 값도 공개됨 — '완전 차단'이 아니라 장난성 방지용 speed-bump.
+const FB_TOKEN = 'gst-2026a';
 
 function toMin(hhmm) { const [h, m] = hhmm.split(':').map(Number); return h * 60 + m; }
 
@@ -256,13 +257,10 @@ if (fbSend) fbSend.addEventListener('click', async () => {
   const payload = { place: $('#fbPlace').value.trim().slice(0, 100), memo, at: new Date().toISOString().slice(0, 16).replace('T', ' '), t: FB_TOKEN };
   fbSend.disabled = true;
   try {
-    if (FEEDBACK_ENDPOINT) {
-      // Apps Script는 text/plain + no-cors로 보내야 프리플라이트 없이 통과
-      await fetch(FEEDBACK_ENDPOINT, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
-    } else {
-      console.log('피드백(전송처 미설정):', payload);
-    }
-    $('#fbDone').textContent = FEEDBACK_ENDPOINT ? '🙌 고맙습니다! 의견이 전달됐어요.' : '🙌 고맙습니다! 의견 수집을 곧 열게요.';
+    // Worker는 CORS를 제대로 지원 → 응답 확인까지 가능 (옛 Apps Script no-cors 꼼수 불필요)
+    const r = await fetch(FEEDBACK_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+    if (!r.ok) throw new Error('전송 실패 ' + r.status);
+    $('#fbDone').textContent = '🙌 고맙습니다! 의견이 전달됐어요.';
     $('#fbForm').style.display = 'none';
     $('#fbDone').style.display = '';
     setTimeout(closeFb, 1600);
