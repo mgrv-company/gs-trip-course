@@ -37,13 +37,18 @@ jobs:
           python-version: '3.x'
 
       # 어드민 편집(D1)을 먼저 받아와 스냅샷 기준을 최신으로 (실패해도 기존 파일로 빌드 진행)
+      # ※ 로컬 refresh_all.py와 '동일한 파이썬 json.dump 형식'으로 써야 커밋이 왔다갔다 안 함
       - name: Sync admin edits from D1
         continue-on-error: true
         run: |
           curl -sf --max-time 20 https://gs-trip-admin.mangrove-goseong.workers.dev/public/export -o /tmp/export.json
-          jq '.overrides' /tmp/export.json > data/overrides.json
-          jq '.manual_places' /tmp/export.json > data/manual_places.json
-          echo "동기화: overrides $(jq '.overrides | length' /tmp/export.json)건 · 직접추가 $(jq '.manual_places | length' /tmp/export.json)건"
+          python - <<'PY'
+          import json
+          exp = json.load(open('/tmp/export.json', encoding='utf-8'))
+          json.dump(exp['overrides'], open('data/overrides.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
+          json.dump(exp['manual_places'], open('data/manual_places.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+          print('동기화:', len(exp['overrides']), '건 /', len(exp['manual_places']), '건')
+          PY
 
       - name: Rebuild places.js
         run: python data/build_places.py
