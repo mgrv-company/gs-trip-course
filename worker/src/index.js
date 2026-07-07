@@ -12,6 +12,7 @@ const SESSION_DAYS = 60;            // 어드민 로그인 유지 기간
 const FB_LIMIT = 15;                // 피드백: 10분당 최대 건수
 const LOGIN_LIMIT = 10;             // 로그인 시도: IP당 10분에 최대 횟수 (무차별 대입 방지)
 const PUB_CACHE_MS = 15000;         // 공개 읽기 메모리 캐시 (남용시 무료한도 소진 방지 — 어드민 저장하면 즉시 비움)
+const SLACK_BOT_NAME = '고성 트립 코스 봇';  // 이 서비스가 #gs-routine 에 보내는 슬랙 알림 표시 이름 (공용 웹훅이라 이름만 덮어씀)
 
 let pubCache = {};                  // { 경로: { data, at } } — 인스턴스 메모리 캐시
 
@@ -154,7 +155,7 @@ export default {
             await fetch(env.SLACK_WEBHOOK, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ text: rText }),
+              body: JSON.stringify({ text: rText, username: SLACK_BOT_NAME }),
             });
           } catch (e) { console.error('슬랙 전송 실패:', e.message); }
           return ok;
@@ -174,7 +175,7 @@ export default {
             await fetch(env.SLACK_WEBHOOK, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ text: sText }),
+              body: JSON.stringify({ text: sText, username: SLACK_BOT_NAME }),
             });
           } catch (e) { console.error('슬랙 전송 실패:', e.message); }
           return ok;
@@ -192,7 +193,7 @@ export default {
           await fetch(env.SLACK_WEBHOOK, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text }),
+            body: JSON.stringify({ text, username: SLACK_BOT_NAME }),
           });
         } catch (e) {
           console.error('슬랙 전송 실패:', e.message);   // 실패해도 응답은 동일 (내부 상태 노출 안 함)
