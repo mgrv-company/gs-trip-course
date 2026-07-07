@@ -319,7 +319,110 @@ $$('.tab').forEach(t => t.addEventListener('click', () => {
   t.classList.add('on');
   $('#tabManage').classList.toggle('hidden', t.dataset.tab !== 'manage');
   $('#tabAdd').classList.toggle('hidden', t.dataset.tab !== 'add');
+  $('#tabCopy').classList.toggle('hidden', t.dataset.tab !== 'copy');
+  if (t.dataset.tab === 'copy' && !settingsLoaded) {
+    loadSettings().catch(e => toast('문구 불러오기 실패: ' + e.message, true));
+  }
 }));
+
+// ── 문구·디자인 ──────────────────────────────────────
+// [key, 라벨, 입력형태, 기본값] — home.js COPY 기본값과 key·문구가 일치해야 함.
+// 비워두면 저장 안 함 → 프론트가 기본값으로 표시(= "초기화"는 비우기).
+const COPY_GROUPS = [
+  ['상단 (히어로)', [
+    ['hero.title', '제목', 'input', '지금 어디로 갈까요?'],
+    ['hero.sub', '부제', 'input', '커뮤니티 매니저가 추천하는 가게들'],
+  ]],
+  ['추천 탭 이름', [
+    ['seg.auto', '영업중 탭', 'input', '영업중'],
+    ['seg.meal', '식사 탭', 'input', '든든한 한 끼'],
+    ['seg.cafe', '카페 탭', 'input', '느낌 좋은 카페'],
+    ['seg.bar', '술 탭', 'input', '술과 함께'],
+  ]],
+  ['추천 설명문 (탭별 안내)', [
+    ['slotsub.auto', '영업중 설명', 'textarea', '메뉴에 상관없이 지금 영업 중인 가게를 추천해요.'],
+    ['slotsub.meal', '식사 설명', 'textarea', '식사가 될 수 있을만한 가게들로 추천해요.'],
+    ['slotsub.cafe', '카페 설명', 'textarea', '카페부터 베이커리, 젤라또까지 다양하게 추천해요.'],
+    ['slotsub.bar', '술 설명', 'textarea', '노포부터 이자카야까지, 술 한 잔 하기 좋은 곳을 추천해요.'],
+  ]],
+  ['피드백 영역', [
+    ['feedback.title', '제목', 'input', '다녀온 가게, 어떠셨어요?'],
+    ['feedback.body', '설명 (줄바꿈 가능)', 'textarea', '소중한 의견을 모아 더욱 유용한 서비스로 만들게요.\n솔직하게 기재해주시면 큰 도움이 됩니다.'],
+    ['feedback.btnFb', '피드백 버튼', 'input', '✍️ 추천받은 가게 피드백 남기기'],
+    ['feedback.btnSuggest', '추천 버튼', 'input', '💚 리스트에 없었던 가게 추천하기'],
+  ]],
+  ['별점 영역', [
+    ['rating.title', '제목', 'input', '이 추천 서비스는 어떠셨어요?'],
+    ['rating.body', '안내', 'textarea', "원하는 별점을 누르고, 아래 '별점 추가하기' 버튼을 눌러주세요."],
+    ['rating.placeholder', '입력칸 안내문', 'textarea', '어떤 부분이 도움이 되었는지 적어주세요. 혹은 필요한 정보가 있다면 기재해주셔도 좋습니다.'],
+    ['rating.btn', '버튼', 'input', '별점 추가하기'],
+    ['rating.done', '완료 문구', 'input', '🙌 감사합니다! 더 좋은 추천으로 보답할게요.'],
+  ]],
+  ['팝업 · 가게 피드백', [
+    ['fb.title', '제목', 'input', '가게 피드백'],
+    ['fb.desc', '설명', 'textarea', '좋았어요·아쉬웠어요·문 닫았더라고요 — 뭐든 좋아요. 남겨주신 의견은 커뮤니티 매니저에게 바로 전달됩니다. 30초면 충분해요!'],
+    ['fb.place', '가게 이름칸 안내', 'input', '가게 이름 (기억나는 만큼만)'],
+    ['fb.memo', '내용칸 안내', 'input', '예: 여기 진짜 좋았어요! / 웨이팅 1시간이었어요 / 문 닫았던데요'],
+    ['fb.done', '완료 문구', 'input', '🙌 고맙습니다! 의견이 전달됐어요.'],
+  ]],
+  ['팝업 · 좋았던 곳 추천', [
+    ['sg.title', '제목', 'input', '좋았던 곳 추천'],
+    ['sg.desc', '설명', 'textarea', '추천 리스트에 없는데 좋았던 가게가 있나요? 알려주시면 커뮤니티 매니저가 다녀와 보고 리스트에 올릴게요 💚'],
+    ['sg.place', '가게 이름칸 안내', 'input', '가게 이름 (필수)'],
+    ['sg.memo', '내용칸 안내', 'input', '어떤 점이 좋았나요? 위치·메뉴 등 아는 만큼만 적어주세요 (선택)'],
+    ['sg.done', '완료 문구', 'input', '💚 고맙습니다! 다녀와 보고 리스트에 올려볼게요.'],
+  ]],
+];
+let settingsLoaded = false;
+
+function renderCopyFields() {
+  $('#copyFields').innerHTML = COPY_GROUPS.map(([group, fields]) => {
+    const rows = fields.map(([key, label, type, def]) => {
+      const ph = esc(def).replace(/\n/g, '&#10;');   // placeholder 안 줄바꿈 보존
+      const el = type === 'textarea'
+        ? `<textarea data-key="${key}" rows="2" placeholder="${ph}"></textarea>`
+        : `<input type="text" data-key="${key}" placeholder="${ph}">`;
+      return `<label>${esc(label)}</label>${el}`;
+    }).join('');
+    return `<div class="cg"><div class="cg-t">${esc(group)}</div>${rows}</div>`;
+  }).join('');
+}
+
+async function loadSettings() {
+  const s = await api('/admin/settings');
+  const copy = (s && s.copy) || {};
+  $$('#copyFields [data-key]').forEach(el => { el.value = copy[el.dataset.key] || ''; });
+  const theme = (s && s.theme) || {};
+  const acc = /^#[0-9a-fA-F]{6}$/.test(theme.accent || '') ? theme.accent : '#00b453';
+  $('#th_accent').value = acc;
+  $('#th_accent_hex').textContent = acc;
+  $('#th_scale').value = ['small', 'normal', 'large'].includes(theme.scale) ? theme.scale : 'normal';
+  settingsLoaded = true;
+}
+
+async function saveSettings() {
+  const copy = {};
+  $$('#copyFields [data-key]').forEach(el => {
+    const v = el.value.trim();
+    if (v) copy[el.dataset.key] = v.slice(0, 400);
+  });
+  const theme = { accent: $('#th_accent').value, scale: $('#th_scale').value };
+  $('#copySaveBtn').disabled = true;
+  try {
+    await api('/admin/settings', { method: 'PUT', body: JSON.stringify({ copy, theme }) });
+    showMsg('copyMsg', 'ok', '저장됐어요 — 메인 페이지에 바로 반영됩니다 (최대 15초).');
+    toast('✓ 문구·디자인 저장됨');
+  } catch (e) {
+    showMsg('copyMsg', 'err', '저장 실패: ' + e.message);
+  } finally {
+    $('#copySaveBtn').disabled = false;
+  }
+}
+
+renderCopyFields();
+$('#th_accent').addEventListener('input', () => { $('#th_accent_hex').textContent = $('#th_accent').value; });
+$('#th_accent_reset').addEventListener('click', () => { $('#th_accent').value = '#00b453'; $('#th_accent_hex').textContent = '#00b453'; });
+$('#copySaveBtn').addEventListener('click', saveSettings);
 
 // ── 새 가게 추가 ─────────────────────────────────────
 function buildChips(sel, tags) {

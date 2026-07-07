@@ -27,6 +27,41 @@ const ADMIN_API = 'https://gs-trip-admin.mangrove-goseong.workers.dev';
 const FEEDBACK_ENDPOINT = ADMIN_API + '/feedback';
 // 공개 사이트라 이 값도 공개됨 — '완전 차단'이 아니라 장난성 방지용 speed-bump.
 const FB_TOKEN = 'gst-2026a';
+const SETTINGS_API = ADMIN_API + '/public/settings';
+
+// 어드민 "문구·디자인" 탭에서 편집 가능한 메인 문구 — 기본값.
+// /public/settings 응답이 오면 같은 key 를 덮어씀. 응답이 없거나 비면 이 기본값 그대로.
+const COPY = {
+  'hero.title': '지금 어디로 갈까요?',
+  'hero.sub': '커뮤니티 매니저가 추천하는 가게들',
+  'seg.auto': '영업중',
+  'seg.meal': '든든한 한 끼',
+  'seg.cafe': '느낌 좋은 카페',
+  'seg.bar': '술과 함께',
+  'slotsub.auto': '메뉴에 상관없이 지금 영업 중인 가게를 추천해요.',
+  'slotsub.meal': '식사가 될 수 있을만한 가게들로 추천해요.',
+  'slotsub.cafe': '카페부터 베이커리, 젤라또까지 다양하게 추천해요.',
+  'slotsub.bar': '노포부터 이자카야까지, 술 한 잔 하기 좋은 곳을 추천해요.',
+  'feedback.title': '다녀온 가게, 어떠셨어요?',
+  'feedback.body': '소중한 의견을 모아 더욱 유용한 서비스로 만들게요.\n솔직하게 기재해주시면 큰 도움이 됩니다.',
+  'feedback.btnFb': '✍️ 추천받은 가게 피드백 남기기',
+  'feedback.btnSuggest': '💚 리스트에 없었던 가게 추천하기',
+  'rating.title': '이 추천 서비스는 어떠셨어요?',
+  'rating.body': "원하는 별점을 누르고, 아래 '별점 추가하기' 버튼을 눌러주세요.",
+  'rating.placeholder': '어떤 부분이 도움이 되었는지 적어주세요. 혹은 필요한 정보가 있다면 기재해주셔도 좋습니다.',
+  'rating.btn': '별점 추가하기',
+  'rating.done': '🙌 감사합니다! 더 좋은 추천으로 보답할게요.',
+  'fb.title': '가게 피드백',
+  'fb.desc': '좋았어요·아쉬웠어요·문 닫았더라고요 — 뭐든 좋아요. 남겨주신 의견은 커뮤니티 매니저에게 바로 전달됩니다. 30초면 충분해요!',
+  'fb.place': '가게 이름 (기억나는 만큼만)',
+  'fb.memo': '예: 여기 진짜 좋았어요! / 웨이팅 1시간이었어요 / 문 닫았던데요',
+  'fb.done': '🙌 고맙습니다! 의견이 전달됐어요.',
+  'sg.title': '좋았던 곳 추천',
+  'sg.desc': '추천 리스트에 없는데 좋았던 가게가 있나요? 알려주시면 커뮤니티 매니저가 다녀와 보고 리스트에 올릴게요 💚',
+  'sg.place': '가게 이름 (필수)',
+  'sg.memo': '어떤 점이 좋았나요? 위치·메뉴 등 아는 만큼만 적어주세요 (선택)',
+  'sg.done': '💚 고맙습니다! 다녀와 보고 리스트에 올려볼게요.',
+};
 
 function toMin(hhmm) { const [h, m] = hhmm.split(':').map(Number); return h * 60 + m; }
 // 전송 시각 — 손님 기기의 현지 시각(KST) 기준. toISOString()은 UTC라 9시간 어긋나서 쓰면 안 됨
@@ -204,13 +239,8 @@ function renderNow() {
     .sort((a, b) => (openNow(b, now) === true ? 1 : 0) - (openNow(a, now) === true ? 1 : 0));
   recent = recent.concat(picks.map(p => p.n));   // 누적: 한 바퀴 다 돌 때까지 계속 제외
 
-  $('#slotLabel').textContent = isAuto ? '영업중' : ({ meal: '든든한 한 끼', cafe: '느낌 좋은 카페', bar: '술과 함께' })[slot];
-  const SLOT_SUB = {
-    meal: '식사가 될 수 있을만한 가게들로 추천해요.',
-    cafe: '카페부터 베이커리, 젤라또까지 다양하게 추천해요.',
-    bar: '노포부터 이자카야까지, 술 한 잔 하기 좋은 곳을 추천해요.',
-  };
-  $('#slotSub').textContent = isAuto ? '메뉴에 상관없이 지금 영업 중인 가게를 추천해요.' : SLOT_SUB[slot];
+  $('#slotLabel').textContent = isAuto ? COPY['seg.auto'] : COPY['seg.' + slot];
+  $('#slotSub').textContent = isAuto ? COPY['slotsub.auto'] : COPY['slotsub.' + slot];
   $('#nowList').innerHTML = picks.length
     ? picks.map((p, i) => cardHTML(p, i + 1)).join('')
     : `<p class="empty">지금 문 연 곳을 찾지 못했어요. 종류 탭이나 옵션을 바꿔보세요.</p>`;
@@ -248,25 +278,17 @@ $('#shuffleBtn').addEventListener('click', renderNow);
 
 // 피드백/추천 — 같은 팝업을 모드에 따라 문구만 바꿔 사용 (페이지 안에서 전송, 이동 없음)
 let fbMode = 'fb';   // 'fb' 가게 피드백 / 'suggest' 좋았던 곳 추천
-const FB_TEXTS = {
-  fb: {
-    title: '가게 피드백',
-    desc: '좋았어요·아쉬웠어요·문 닫았더라고요 — 뭐든 좋아요. 남겨주신 의견은 커뮤니티 매니저에게 바로 전달됩니다. 30초면 충분해요!',
-    place: '가게 이름 (기억나는 만큼만)',
-    memo: '예: 여기 진짜 좋았어요! / 웨이팅 1시간이었어요 / 문 닫았던데요',
-    done: '🙌 고맙습니다! 의견이 전달됐어요.',
-  },
-  suggest: {
-    title: '좋았던 곳 추천',
-    desc: '추천 리스트에 없는데 좋았던 가게가 있나요? 알려주시면 커뮤니티 매니저가 다녀와 보고 리스트에 올릴게요 💚',
-    place: '가게 이름 (필수)',
-    memo: '어떤 점이 좋았나요? 위치·메뉴 등 아는 만큼만 적어주세요 (선택)',
-    done: '💚 고맙습니다! 다녀와 보고 리스트에 올려볼게요.',
-  },
-};
+// COPY(어드민 편집 반영)에서 현재 문구를 뽑아 씀 — 클릭 시점 값이라 편집이 바로 반영됨
+function fbTexts(mode) {
+  const pre = mode === 'suggest' ? 'sg' : 'fb';
+  return {
+    title: COPY[pre + '.title'], desc: COPY[pre + '.desc'],
+    place: COPY[pre + '.place'], memo: COPY[pre + '.memo'], done: COPY[pre + '.done'],
+  };
+}
 function openFb(mode) {
   fbMode = mode === 'suggest' ? 'suggest' : 'fb';
-  const t = FB_TEXTS[fbMode];
+  const t = fbTexts(fbMode);
   $('#fbTitle').textContent = t.title;
   $('#fbDesc').textContent = t.desc;
   $('#fbPlace').placeholder = t.place;
@@ -299,7 +321,7 @@ if (fbSend) fbSend.addEventListener('click', async () => {
     // Worker는 CORS를 제대로 지원 → 응답 확인까지 가능 (옛 Apps Script no-cors 꼼수 불필요)
     const r = await fetch(FEEDBACK_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
     if (!r.ok) throw new Error('전송 실패 ' + r.status);
-    $('#fbDone').textContent = FB_TEXTS[fbMode].done;
+    $('#fbDone').textContent = fbTexts(fbMode).done;
     $('#fbForm').style.display = 'none';
     $('#fbDone').style.display = '';
     setTimeout(closeFb, 1600);
@@ -488,10 +510,43 @@ async function applyLiveEdits() {
   }
 }
 
+// ── 사이트 문구·테마 오버레이 (어드민 "문구·디자인" 탭 편집분) ──
+// data-copy 요소는 textContent 로만 주입(저장형 XSS 차단). 응답 없으면 기본 문구 그대로.
+function applyCopyToDom() {
+  $$('[data-copy]').forEach(el => { const k = el.dataset.copy; if (COPY[k] != null) el.textContent = COPY[k]; });
+  $$('[data-copy-ph]').forEach(el => { const k = el.dataset.copyPh; if (COPY[k] != null) el.placeholder = COPY[k]; });
+}
+function applyTheme(theme) {
+  if (!theme || typeof theme !== 'object') return;
+  const root = document.documentElement;
+  if (/^#[0-9a-fA-F]{6}$/.test(theme.accent || '')) root.style.setProperty('--green', theme.accent);
+  const zoom = { small: 0.92, normal: 1, large: 1.1 }[theme.scale];
+  const w = $('.wrap');
+  if (zoom && w) w.style.zoom = zoom;
+}
+async function applySettings() {
+  try {
+    const r = await fetch(SETTINGS_API);
+    if (!r.ok) return false;
+    const s = await r.json();
+    if (s && s.copy) {
+      for (const [k, v] of Object.entries(s.copy)) {
+        if (typeof v === 'string' && v.trim() && k in COPY) COPY[k] = v;
+      }
+    }
+    applyCopyToDom();
+    applyTheme(s && s.theme);
+    return true;
+  } catch (e) {
+    return false;   // 오프라인/장애 — 기본 문구 그대로
+  }
+}
+
 // 시작: 스냅샷으로 즉시 그리고, 최신 편집이 도착하면 한 번 갱신
 renderContext();
 renderChips();
 renderNow();
+applySettings().then(ok => { if (ok) renderNow(); });   // 문구 반영 후 슬롯 라벨·설명 갱신
 applyLiveEdits().then(ok => { if (ok) { recent = []; renderChips(); renderNow(); } });
 // (2026-06-30) 60초 주기 갱신은 제거(보는 중에 추천이 저절로 바뀌어 거슬림).
 // 대신 탭/앱으로 '다시 돌아왔을 때'에만 최신화 → 보고 있는 동안엔 안 바뀌고, 닫힌 가게가 영업중으로 남는 문제는 해결.

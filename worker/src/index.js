@@ -132,6 +132,19 @@ export default {
         return json(req, data, 200, pubHdr);
       }
 
+      // ── 공개: 사이트 문구·테마 (투숙객 페이지가 기본값 위에 덮어씀) ──
+      // 캐시 정책은 /public/data 와 동일. 어드민 저장 시 pubCache 비워져 즉시 반영.
+      if (path === '/public/settings' && req.method === 'GET') {
+        const pubHdr = { 'Cache-Control': 'public, max-age=15' };
+        const hit = pubCache[path];
+        if (hit && Date.now() - hit.at < PUB_CACHE_MS) return json(req, hit.data, 200, pubHdr);
+        const row = await db.prepare("SELECT value FROM settings WHERE key = 'site'").first();
+        let data = {};
+        if (row?.value) { try { data = JSON.parse(row.value); } catch { data = {}; } }
+        pubCache[path] = { data, at: Date.now() };
+        return json(req, data, 200, pubHdr);
+      }
+
       // ── 공개: 피드백 수신 → 슬랙 (구 Apps Script 대체) ─────────
       if (path === '/feedback' && req.method === 'POST') {
         const ok = json(req, { ok: true });          // 스팸/거절도 동일 응답 (정보 노출 방지)
@@ -307,6 +320,45 @@ export default {
         const sid = url.searchParams.get('sid');
         if (!sid) return json(req, { error: 'sid 누락' }, 400);
         await db.prepare('DELETE FROM manual_places WHERE sid = ?').bind(sid).run();
+        pubCache = {};
+        return json(req, { ok: true });
+      }
+
+      // 어드민: 사이트 문구·테마 읽기
+      if (path === '/admin/settings' && req.method === 'GET') {
+        const row = await db.prepare("SELECT value FROM settings WHERE key = 'site'").first();
+        let data = {};
+        if (row?.value) { try { data = JSON.parse(row.value); } catch { data = {}; } }
+        return json(req, data);
+      }
+
+      // 어드민: 사이트 문구·테마 저장 (검증 후 통째로 덮어씀)
+      if (path === '/admin/settings' && req.method === 'PUT') {
+        let b;
+        try { b = await req.json(); } catch { return json(req, { error: '형식 오류' }, 400); }
+        // 문구: 문자열만, 각 400자 제한, 빈 값은 저장 안 함(→ 프론트 기본값 fallback)
+        const copy = {};
+        if (b.copy && typeof b.copy === 'object') {
+          for (const [k, v] of Object.entries(b.copy)) {
+            if (typeof k !== 'string' || typeof v !== 'string') continue;
+            const val = v.slice(0, 400);
+            if (val.trim()) copy[k.slice(0, 40)] = val;
+          }
+        }
+        // 테마: 강조색은 #rrggbb 형식만(CSS 주입 차단), 크기는 정해진 값만
+        const theme = {};
+        if (b.theme && typeof b.theme === 'object') {
+          const acc = String(b.theme.accent || '');
+          if (/^#[0-9a-fA-F]{6}$/.test(acc)) theme.accent = acc;
+          const scale = String(b.theme.scale || '');
+          if (['small', 'normal', 'large'].includes(scale)) theme.scale = scale;
+        }
+        const value = JSON.stringify({ copy, theme });
+        if (value.length > 20000) return json(req, { error: '내용이 너무 커요.' }, 400);
+        await db.prepare(`
+          INSERT INTO settings (key, value, updated_at) VALUES ('site', ?, ?)
+          ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+        `).bind(value, new Date().toISOString()).run();
         pubCache = {};
         return json(req, { ok: true });
       }

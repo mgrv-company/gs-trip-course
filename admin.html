@@ -53,6 +53,10 @@
   .tab { flex: 1; text-align: center; padding: 11px; border: 1.5px solid var(--line); border-radius: 11px; background: #fff; cursor: pointer; font-size: 14px; font-weight: 700; color: #4a4945; }
   .tab.on { border-color: var(--ink); background: var(--ink); color: #fff; }
 
+  /* 문구·디자인 탭 — 그룹 구분 */
+  .cg-t { font-size: 12px; font-weight: 800; color: var(--green-deep); margin: 18px 0 2px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .cg:first-child .cg-t { border-top: 0; padding-top: 0; margin-top: 2px; }
+
   /* 필터 칩 */
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip { border: 1.5px solid var(--line); background: #fff; border-radius: 99px; padding: 6px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; user-select: none; }
@@ -125,6 +129,7 @@
     <div class="tabs">
       <div class="tab on" data-tab="manage">가게 관리</div>
       <div class="tab" data-tab="add">➕ 새 가게 추가</div>
+      <div class="tab" data-tab="copy">✏️ 문구·디자인</div>
     </div>
 
     <!-- 관리 탭 -->
@@ -194,11 +199,41 @@
         <div class="msg" id="addMsg"></div>
       </div>
     </div>
+
+    <!-- 문구·디자인 탭 -->
+    <div id="tabCopy" class="hidden">
+      <div class="card">
+        <h2>문구 편집</h2>
+        <p class="small">메인 페이지에 보이는 문구를 바꿀 수 있어요. 비워두면 기본 문구로 표시됩니다. 저장하면 사이트에 바로 반영돼요(최대 15초).</p>
+        <div id="copyFields"></div>
+      </div>
+      <div class="card">
+        <h2>디자인 (전체 적용)</h2>
+        <label>강조색 — 버튼·강조 표시에 쓰이는 색</label>
+        <div class="row" style="align-items:center">
+          <input type="color" id="th_accent" value="#00b453" style="width:52px; height:40px; padding:2px; flex:0 0 auto">
+          <span class="small" id="th_accent_hex" style="margin:0"></span>
+          <button class="btn ghost sm" id="th_accent_reset" type="button">기본색으로</button>
+        </div>
+        <label style="margin-top:14px">글자 크기</label>
+        <select id="th_scale">
+          <option value="small">작게</option>
+          <option value="normal">보통 (기본)</option>
+          <option value="large">크게</option>
+        </select>
+        <p class="small">글자 크기는 메인 화면 전체에 적용돼요.</p>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn" id="copySaveBtn">저장 — 사이트 즉시 반영</button>
+        <a class="btn ghost" href="index.html" target="_blank" rel="noopener">메인 미리보기 ↗</a>
+      </div>
+      <div class="msg" id="copyMsg"></div>
+    </div>
   </div>
 </div>
 
 <div id="toast"></div>
 <script src="places.js?v=7"></script>
-<script src="admin.js?v=2"></script>
+<script src="admin.js?v=3"></script>
 </body>
 </html>

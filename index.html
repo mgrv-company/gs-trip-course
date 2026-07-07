@@ -144,7 +144,7 @@
 <div class="wrap">
   <div class="hero">
     <img src="assets/goseong-hero-2.webp" alt="맹그로브 고성">
-    <div class="cap"><b>지금 어디로 갈까요?</b><span>커뮤니티 매니저가 추천하는 가게들</span></div>
+    <div class="cap"><b data-copy="hero.title">지금 어디로 갈까요?</b><span data-copy="hero.sub">커뮤니티 매니저가 추천하는 가게들</span></div>
   </div>
 
   <div class="ctxrow">
@@ -153,10 +153,10 @@
   </div>
 
   <div class="segs">
-    <div class="seg on" data-slot="auto">영업중</div>
-    <div class="seg" data-slot="meal">든든한 한 끼</div>
-    <div class="seg" data-slot="cafe">느낌 좋은 카페</div>
-    <div class="seg" data-slot="bar">술과 함께</div>
+    <div class="seg on" data-slot="auto" data-copy="seg.auto">영업중</div>
+    <div class="seg" data-slot="meal" data-copy="seg.meal">든든한 한 끼</div>
+    <div class="seg" data-slot="cafe" data-copy="seg.cafe">느낌 좋은 카페</div>
+    <div class="seg" data-slot="bar" data-copy="seg.bar">술과 함께</div>
   </div>
 
   <div class="chips" id="optChips"></div>
@@ -199,21 +199,22 @@
   </div><!-- /hiddenSections -->
 
   <div class="feedback">
-    <p><b>다녀온 가게, 어떠셨어요?</b><br>소중한 의견을 모아 더욱 유용한 서비스로 만들게요.<br>솔직하게 기재해주시면 큰 도움이 됩니다.</p>
-    <button class="fbbtn" id="fbBtn">✍️ 추천받은 가게 피드백 남기기</button>
-    <button class="fbbtn ghost2" id="sgBtn">💚 리스트에 없었던 가게 추천하기</button>
+    <p><b data-copy="feedback.title">다녀온 가게, 어떠셨어요?</b><br><span data-copy="feedback.body" style="white-space:pre-line">소중한 의견을 모아 더욱 유용한 서비스로 만들게요.
+솔직하게 기재해주시면 큰 도움이 됩니다.</span></p>
+    <button class="fbbtn" id="fbBtn" data-copy="feedback.btnFb">✍️ 추천받은 가게 피드백 남기기</button>
+    <button class="fbbtn ghost2" id="sgBtn" data-copy="feedback.btnSuggest">💚 리스트에 없었던 가게 추천하기</button>
   </div>
 
   <div class="feedback" id="rateCard">
-    <p><b>이 추천 서비스는 어떠셨어요?</b><br>원하는 별점을 누르고, 아래 '별점 추가하기' 버튼을 눌러주세요.</p>
+    <p><b data-copy="rating.title">이 추천 서비스는 어떠셨어요?</b><br><span data-copy="rating.body" style="white-space:pre-line">원하는 별점을 누르고, 아래 '별점 추가하기' 버튼을 눌러주세요.</span></p>
     <div class="stars" id="stars">
       <button class="star" data-v="1">★</button><button class="star" data-v="2">★</button><button class="star" data-v="3">★</button><button class="star" data-v="4">★</button><button class="star" data-v="5">★</button>
     </div>
     <div id="rateForm" style="display:none">
-      <textarea id="rateMemo" placeholder="어떤 부분이 도움이 되었는지 적어주세요. 혹은 필요한 정보가 있다면 기재해주셔도 좋습니다."></textarea>
-      <button class="fbbtn" id="rateSend">별점 추가하기</button>
+      <textarea id="rateMemo" data-copy-ph="rating.placeholder" placeholder="어떤 부분이 도움이 되었는지 적어주세요. 혹은 필요한 정보가 있다면 기재해주셔도 좋습니다."></textarea>
+      <button class="fbbtn" id="rateSend" data-copy="rating.btn">별점 추가하기</button>
     </div>
-    <div class="done-line" id="rateDone" style="display:none">🙌 감사합니다! 더 좋은 추천으로 보답할게요.</div>
+    <div class="done-line" id="rateDone" data-copy="rating.done" style="display:none">🙌 감사합니다! 더 좋은 추천으로 보답할게요.</div>
   </div>
 
   <footer>맹그로브 고성 · 속초·고성 로컬 정보</footer>
@@ -245,7 +246,7 @@
 
 <script src="places.js?v=7"></script>
 <script src="tour.js?v=1"></script>
-<script src="home.js?v=24"></script>
+<script src="home.js?v=25"></script>
 <!-- PC 배경 순환 스크립트는 home.js 끝으로 이동 (CSP 강화: 인라인 스크립트 금지) -->
 </body>
 </html>

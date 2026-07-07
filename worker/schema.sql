@@ -29,6 +29,14 @@ CREATE TABLE IF NOT EXISTS ratings (
   at         TEXT NOT NULL DEFAULT ''
 );
 
+-- 사이트 문구·테마 (어드민 "문구·디자인" 탭 편집분) — key='site' 한 행에 JSON 통째로 보관.
+-- 값이 없거나 죽어도 프론트는 index.html/home.js 기본 문구로 정상 동작.
+CREATE TABLE IF NOT EXISTS settings (
+  key        TEXT PRIMARY KEY,
+  value      TEXT NOT NULL DEFAULT '',
+  updated_at TEXT NOT NULL DEFAULT ''
+);
+
 -- 어드민 로그인 세션 (비밀번호 확인 후 발급되는 임시 열쇠)
 CREATE TABLE IF NOT EXISTS sessions (
   token      TEXT PRIMARY KEY,
