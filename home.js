@@ -29,6 +29,11 @@ const FEEDBACK_ENDPOINT = ADMIN_API + '/feedback';
 const FB_TOKEN = 'gst-2026a';
 
 function toMin(hhmm) { const [h, m] = hhmm.split(':').map(Number); return h * 60 + m; }
+// 전송 시각 — 손님 기기의 현지 시각(KST) 기준. toISOString()은 UTC라 9시간 어긋나서 쓰면 안 됨
+function localAt() {
+  const d = new Date(), p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
 
 function openNow(p, now) {
   if (!p.h) return null;
@@ -282,7 +287,7 @@ if (fbSend) fbSend.addEventListener('click', async () => {
   if (fbMode === 'suggest') {
     if (!place) { alert('가게 이름을 입력해주세요.'); return; }
   } else if (!memo) { alert('내용을 입력해주세요.'); return; }
-  const payload = { place, memo, at: new Date().toISOString().slice(0, 16).replace('T', ' '), t: FB_TOKEN };
+  const payload = { place, memo, at: localAt(), t: FB_TOKEN };
   if (fbMode === 'suggest') payload.kind = 'suggest';
   fbSend.disabled = true;
   try {
@@ -317,7 +322,7 @@ if (starsEl) {
     btn.disabled = true;
     try {
       const payload = { kind: 'rating', score: rateScore, memo: $('#rateMemo').value.trim().slice(0, 300),
-                        at: new Date().toISOString().slice(0, 16).replace('T', ' '), t: FB_TOKEN };
+                        at: localAt(), t: FB_TOKEN };
       const r = await fetch(FEEDBACK_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
       if (!r.ok) throw new Error('전송 실패 ' + r.status);
       $('#stars').style.display = 'none';
