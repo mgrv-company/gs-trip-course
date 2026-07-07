@@ -45,7 +45,7 @@ const COPY = {
   'feedback.title': '다녀온 가게, 어떠셨어요?',
   'feedback.body': '소중한 의견을 모아 더욱 유용한 서비스로 만들게요.\n솔직하게 기재해주시면 큰 도움이 됩니다.',
   'feedback.btnFb': '✍️ 추천받은 가게 피드백 남기기',
-  'feedback.btnSuggest': '리스트에 없었던 가게 추천하기',
+  'feedback.btnSuggest': '📌 리스트에 없었던 가게 추천하기',
   'rating.title': '이 추천 서비스는 어떠셨어요?',
   'rating.body': "원하는 별점을 누르고, 아래 '별점 추가하기' 버튼을 눌러주세요.",
   'rating.placeholder': '어떤 부분이 도움이 되었는지 적어주세요. 혹은 필요한 정보가 있다면 기재해주셔도 좋습니다.',
@@ -143,7 +143,7 @@ function waitText(p) {
 
 function cardHTML(p, idx) {
   const badges = [];
-  if (p.ca) badges.push('<span class="b ca">강추</span>');
+  if (p.ca) badges.push('<span class="b ca">📌 강추</span>');
   if (p.r) badges.push('<span class="b rsv">☎ 예약</span>');
   const open = openNow(p, new Date());
   if (open === true) badges.push('<span class="b open">● 영업중</span>');
@@ -383,7 +383,7 @@ const COLL = {
     list: sub => PLACES.filter(p => !p.x && !p.to && REAL.includes(p.t) && p.z === sub),
   },
   capick: {
-    title: 'CA 강추', note: 'CA가 직접 가본 찐 추천만 모았어요.', subs: null,
+    title: '📌 CA 강추', note: 'CA가 직접 가본 찐 추천만 모았어요.', subs: null,
     list: () => PLACES.filter(p => p.ca && !p.x && !p.to),
   },
   time: {
@@ -433,7 +433,7 @@ function renderFestivalsHTML() {
 
 // ── 섹션 오버레이 ──────────────────────────────────
 function openSection(key) {
-  const titleMap = { takeout: '🍱 포장·배달 (객실에서)', activity: '🏄 액티비티', beach: '🏖 해수욕장', festival: '🎉 고성·속초 축제', walk: '🚶 걸어서 갈 곳', capick: 'CA 강추', time: '🎯 아침·심야' };
+  const titleMap = { takeout: '🍱 포장·배달 (객실에서)', activity: '🏄 액티비티', beach: '🏖 해수욕장', festival: '🎉 고성·속초 축제', walk: '🚶 걸어서 갈 곳', capick: '📌 CA 강추', time: '🎯 아침·심야' };
   $('#secTitle').textContent = (COLL[key] && COLL[key].title) || titleMap[key] || '';
   if (COLL[key]) { renderCollection(key); $('#section').classList.add('show'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
   let html = '';

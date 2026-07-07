@@ -130,7 +130,7 @@ async function loadAll() {
 
 // ── 목록 렌더 ────────────────────────────────────────
 const FILTERS = [
-  ['all', '전체'], ['pick', '강추'], ['reserve', '☎ 예약'], ['takeout', '🍱 포장'],
+  ['all', '전체'], ['pick', '📌 강추'], ['reserve', '☎ 예약'], ['takeout', '🍱 포장'],
   ['exclude', '✕ 제외'], ['note', '📝 메모'], ['man', '➕ 직접추가'],
 ];
 const TYPES = ['식사', '카페', '술집', '기타'];
@@ -185,7 +185,7 @@ function itemHTML(it) {
     </div>
     ${o.note && !noteOpen ? `<div class="notepreview">📝 ${esc(o.note)}</div>` : ''}
     <div class="togs">
-      <span class="tog${o.pick ? ' on-pick' : ''}" data-act="pick">강추</span>
+      <span class="tog${o.pick ? ' on-pick' : ''}" data-act="pick">📌 강추</span>
       <span class="tog${o.reserve ? ' on-rsv' : ''}" data-act="reserve">☎ 예약필수</span>
       <span class="tog${o.takeout ? ' on-to' : ''}" data-act="takeout">🍱 포장·배달</span>
       <span class="tog${o.exclude ? ' on-exc' : ''}" data-act="exclude">${o.exclude ? '↩ 복구' : '✕ 제외'}</span>
@@ -349,7 +349,7 @@ const COPY_GROUPS = [
     ['feedback.title', '제목', 'input', '다녀온 가게, 어떠셨어요?'],
     ['feedback.body', '설명 (줄바꿈 가능)', 'textarea', '소중한 의견을 모아 더욱 유용한 서비스로 만들게요.\n솔직하게 기재해주시면 큰 도움이 됩니다.'],
     ['feedback.btnFb', '피드백 버튼', 'input', '✍️ 추천받은 가게 피드백 남기기'],
-    ['feedback.btnSuggest', '추천 버튼', 'input', '리스트에 없었던 가게 추천하기'],
+    ['feedback.btnSuggest', '추천 버튼', 'input', '📌 리스트에 없었던 가게 추천하기'],
   ]],
   ['별점 영역', [
     ['rating.title', '제목', 'input', '이 추천 서비스는 어떠셨어요?'],
