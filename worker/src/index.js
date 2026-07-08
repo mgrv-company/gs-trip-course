@@ -179,10 +179,12 @@ export default {
           const sPlace = String(data.place || '').slice(0, 100).trim();
           if (!sPlace) return ok;
           const sMemo = String(data.memo || '').slice(0, 500).trim();
+          const sName = String(data.name || '').slice(0, 40).trim();
           if (await overLimit(db, 'fb', FB_LIMIT)) return ok;
           const sText = '💚 투숙객 가게 추천\n'
             + '• 가게: ' + slackEsc(sPlace) + '\n'
             + (sMemo ? '• 좋았던 점: ' + slackEsc(sMemo) + '\n' : '')
+            + (sName ? '• 성함: ' + slackEsc(sName) + '\n' : '')
             + '• 시각: ' + slackEsc(String(data.at || '').slice(0, 30));
           try {
             await fetch(env.SLACK_WEBHOOK, {
