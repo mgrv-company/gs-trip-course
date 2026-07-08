@@ -384,13 +384,34 @@ export default {
         return json(req, { ok: true });
       }
 
-      // 어드민: 코멘트 목록 (기본 open만 — 핀·목록 표시용)
+      // 어드민: 코멘트 목록 (기본 미완료 전체 = 작성/반영대기 — 목록 표시용)
       if (path === '/admin/annotations' && req.method === 'GET') {
         const all = url.searchParams.get('all') === '1';
         const rows = all
           ? await db.prepare('SELECT * FROM annotations ORDER BY created_at DESC').all()
-          : await db.prepare("SELECT * FROM annotations WHERE status = 'open' ORDER BY created_at DESC").all();
+          : await db.prepare("SELECT * FROM annotations WHERE status != 'done' ORDER BY created_at DESC").all();
         return json(req, { annotations: rows.results });
+      }
+
+      // 어드민: 반영 요청(전송) — open 코멘트를 ready 로 표시하고 #gs-routine 에 알림.
+      // 실제 반영은 하루 1회 무인 실행이 ready 만 처리한다.
+      if (path === '/admin/annotations/send' && req.method === 'POST') {
+        const open = await db.prepare("SELECT label, note FROM annotations WHERE status = 'open'").all();
+        const n = open.results.length;
+        if (n === 0) return json(req, { count: 0 });
+        await db.prepare("UPDATE annotations SET status = 'ready' WHERE status = 'open'").run();
+        if (env.SLACK_WEBHOOK) {
+          const slackEsc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          const lines = open.results.slice(0, 15)
+            .map(r => '• ' + slackEsc(r.note) + (r.label ? '  _(' + slackEsc(String(r.label)).slice(0, 40) + ')_' : '')).join('\n');
+          const text = '<@U0AG0G63PTR> 📌 *트립코스 디자인 코멘트 ' + n + '건 반영 요청됨*\n\n' + lines
+            + '\n\n_다음 자동 반영 때 문구·색·크기는 자동 적용, 구조 변경은 검토 후 반영돼요._';
+          try {
+            await fetch(env.SLACK_WEBHOOK, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text, username: SLACK_BOT_NAME }) });
+          } catch (e) { console.error('슬랙 전송 실패:', e.message); }
+        }
+        return json(req, { count: n });
       }
 
       // 어드민: 코멘트 삭제

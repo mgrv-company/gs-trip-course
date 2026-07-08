@@ -601,16 +601,22 @@ document.addEventListener('visibilitychange', () => {
   function renderDock() { dock.textContent = mode ? '✏️ 코멘트 켜짐' : '✏️ 코멘트'; dock.classList.toggle('on', mode); }
 
   function renderPanel() {
-    const items = list.length ? list.map(a =>
-      '<div class="cmItem"><div class="cmNote">' + esc(a.note) + '</div>' +
-      '<div class="cmMeta">📍 ' + esc(a.label || a.target) + '</div>' +
-      '<button class="cmDel" type="button" data-id="' + a.id + '">삭제</button></div>'
-    ).join('') : '<div class="cmEmpty">코멘트가 없어요. 아래 "요소 클릭 모드"를 켜고 화면을 눌러보세요.</div>';
+    const openN = list.filter(a => a.status !== 'ready').length;   // 아직 '전송' 안 한 작성분
+    const items = list.length ? list.map(a => {
+      const st = a.status === 'ready'
+        ? '<span class="cmSt ready">반영 대기</span>'
+        : '<span class="cmSt">작성</span>';
+      return '<div class="cmItem"><div class="cmNote">' + esc(a.note) + '</div>' +
+        '<div class="cmMeta">📍 ' + esc(a.label || a.target) + '</div>' +
+        '<div class="cmRow">' + st + '<button class="cmDel" type="button" data-id="' + a.id + '">삭제</button></div></div>';
+    }).join('') : '<div class="cmEmpty">코멘트가 없어요. 아래 "요소 클릭 모드"를 켜고 화면을 눌러보세요.</div>';
     panel.innerHTML =
       '<div class="cmHead"><b>디자인 코멘트 ' + list.length + '</b>' +
       '<button id="cmMode" type="button">' + (mode ? '요소 클릭 모드 · 켜짐' : '요소 클릭 모드 켜기') + '</button>' +
       '<button id="cmClose" type="button">✕</button></div>' +
-      '<div class="cmList">' + items + '</div>';
+      '<div class="cmList">' + items + '</div>' +
+      '<div class="cmFoot"><button id="cmSend" type="button"' + (openN ? '' : ' disabled') + '>📮 반영 요청 (' + openN + '건)</button>' +
+      '<span class="cmHint">누르면 다음 자동 반영(하루 1회) 때 처리돼요</span></div>';
   }
 
   async function load() { try { list = (await apiA('/admin/annotations')).annotations || []; } catch (e) { list = []; } renderPanel(); renderDock(); }
@@ -642,6 +648,13 @@ document.addEventListener('visibilitychange', () => {
   panel.addEventListener('click', function (e) {
     if (e.target.id === 'cmMode') { mode = !mode; document.body.classList.toggle('cm-on', mode); renderPanel(); renderDock(); return; }
     if (e.target.id === 'cmClose') { panel.style.display = 'none'; return; }
+    if (e.target.id === 'cmSend') {
+      e.target.disabled = true;
+      apiA('/admin/annotations/send', { method: 'POST' })
+        .then(r => { alert((r.count || 0) + '건 반영 요청됨.\n다음 자동 반영(하루 1회) 때 처리돼요.'); return load(); })
+        .catch(err => { alert('전송 실패: ' + err.message); renderPanel(); });
+      return;
+    }
     const del = e.target.closest('.cmDel');
     if (del) { apiA('/admin/annotations?id=' + del.dataset.id, { method: 'DELETE' }).then(load).catch(function () {}); }
   });
