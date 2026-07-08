@@ -560,3 +560,91 @@ document.addEventListener('visibilitychange', () => {
   slides[i].classList.add('is-active');
   try { localStorage.setItem('gsBgIndex', String(i)); } catch (e) {}
 })();
+
+// ── 디자인 코멘트 모드 (어드민 전용) ─────────────────
+// 어드민 로그인(같은 도메인이라 토큰 공유) 상태면, 메인 페이지에서 요소를 클릭해 메모를 남길 수 있음.
+// 남긴 코멘트는 백엔드에 쌓였다가 나중에 일괄 반영. 손님(비로그인)에겐 UI 자체가 안 생김.
+(function () {
+  const TOKEN = (function () { try { return localStorage.getItem('gstAdminSession'); } catch (e) { return null; } })();
+  if (!TOKEN) return;
+
+  let mode = false;
+  let list = [];
+
+  async function apiA(path, opts) {
+    const r = await fetch(ADMIN_API + path, Object.assign({}, opts, {
+      headers: Object.assign({ 'Content-Type': 'application/json', Authorization: 'Bearer ' + TOKEN }, (opts && opts.headers) || {}),
+    }));
+    if (!r.ok) throw new Error(((await r.json().catch(() => ({}))).error) || ('오류 ' + r.status));
+    return r.json().catch(() => ({}));
+  }
+
+  // 클릭한 요소 설명: 문구는 data-copy key로 정확히, 그 외는 태그+텍스트로
+  function describe(el) {
+    const c = el.closest('[data-copy]') || el.closest('[data-copy-ph]');
+    if (c) return { target: 'copy:' + (c.dataset.copy || c.dataset.copyPh), label: (c.textContent || '').trim().slice(0, 120) };
+    const txt = (el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 80);
+    const cls = (typeof el.className === 'string' && el.className.trim()) ? '.' + el.className.trim().split(/\s+/).join('.') : '';
+    return { target: el.tagName.toLowerCase() + cls, label: txt };
+  }
+
+  const dock = document.createElement('button');
+  dock.id = 'cmDock';
+  dock.type = 'button';
+  document.body.appendChild(dock);
+
+  const panel = document.createElement('div');
+  panel.id = 'cmPanel';
+  panel.style.display = 'none';
+  document.body.appendChild(panel);
+
+  function renderDock() { dock.textContent = mode ? '✏️ 코멘트 켜짐' : '✏️ 코멘트'; dock.classList.toggle('on', mode); }
+
+  function renderPanel() {
+    const items = list.length ? list.map(a =>
+      '<div class="cmItem"><div class="cmNote">' + esc(a.note) + '</div>' +
+      '<div class="cmMeta">📍 ' + esc(a.label || a.target) + '</div>' +
+      '<button class="cmDel" type="button" data-id="' + a.id + '">삭제</button></div>'
+    ).join('') : '<div class="cmEmpty">코멘트가 없어요. 아래 "요소 클릭 모드"를 켜고 화면을 눌러보세요.</div>';
+    panel.innerHTML =
+      '<div class="cmHead"><b>디자인 코멘트 ' + list.length + '</b>' +
+      '<button id="cmMode" type="button">' + (mode ? '요소 클릭 모드 · 켜짐' : '요소 클릭 모드 켜기') + '</button>' +
+      '<button id="cmClose" type="button">✕</button></div>' +
+      '<div class="cmList">' + items + '</div>';
+  }
+
+  async function load() { try { list = (await apiA('/admin/annotations')).annotations || []; } catch (e) { list = []; } renderPanel(); renderDock(); }
+
+  function ask(el) {
+    const d = describe(el);
+    const note = window.prompt('이 부분에 남길 메모:\n[ ' + (d.label || d.target) + ' ]', '');
+    if (note == null) return;
+    const n = note.trim();
+    if (!n) return;
+    apiA('/admin/annotations', { method: 'POST', body: JSON.stringify(Object.assign(d, { note: n, page: 'index' })) })
+      .then(load).catch(e => alert('저장 실패: ' + e.message));
+  }
+
+  // 코멘트 모드일 때: 어떤 클릭이든 가로채서(내비게이션 방지) 메모 입력
+  document.addEventListener('click', function (e) {
+    if (!mode) return;
+    if (e.target.closest('#cmPanel') || e.target.closest('#cmDock')) return;
+    e.preventDefault(); e.stopPropagation();
+    ask(e.target);
+  }, true);
+
+  dock.addEventListener('click', function () {
+    const open = panel.style.display === 'none';
+    panel.style.display = open ? '' : 'none';
+    if (open) load();
+  });
+
+  panel.addEventListener('click', function (e) {
+    if (e.target.id === 'cmMode') { mode = !mode; document.body.classList.toggle('cm-on', mode); renderPanel(); renderDock(); return; }
+    if (e.target.id === 'cmClose') { panel.style.display = 'none'; return; }
+    const del = e.target.closest('.cmDel');
+    if (del) { apiA('/admin/annotations?id=' + del.dataset.id, { method: 'DELETE' }).then(load).catch(function () {}); }
+  });
+
+  load();   // 시작 시 개수 파악(백그라운드)
+})();

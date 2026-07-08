@@ -37,6 +37,19 @@ CREATE TABLE IF NOT EXISTS settings (
   updated_at TEXT NOT NULL DEFAULT ''
 );
 
+-- 디자인 코멘트 (어드민이 메인 페이지에서 요소를 클릭해 남긴 메모) — 나중에 일괄 반영용.
+-- target: 문구 key(data-copy) 또는 위치 설명 / label: 클릭 당시 요소 텍스트 / note: 사용자 메모
+CREATE TABLE IF NOT EXISTS annotations (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  target      TEXT NOT NULL DEFAULT '',
+  label       TEXT NOT NULL DEFAULT '',
+  note        TEXT NOT NULL DEFAULT '',
+  page        TEXT NOT NULL DEFAULT '',
+  status      TEXT NOT NULL DEFAULT 'open',   -- open | done
+  created_at  TEXT NOT NULL DEFAULT '',
+  resolved_at TEXT NOT NULL DEFAULT ''
+);
+
 -- 어드민 로그인 세션 (비밀번호 확인 후 발급되는 임시 열쇠)
 CREATE TABLE IF NOT EXISTS sessions (
   token      TEXT PRIMARY KEY,

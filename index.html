@@ -90,6 +90,23 @@
   .b.chk { background: var(--soft); color: var(--gray); }
   .empty { text-align: center; color: var(--gray); font-size: 14px; padding: 34px 10px; }
   .notice { background: var(--green-light); color: #2f6b50; font-size: 12px; line-height: 1.65; border-radius: 12px; padding: 12px 14px; margin-top: 16px; }
+
+  /* 디자인 코멘트 모드 (어드민 전용 — 손님에겐 안 뜸) */
+  #cmDock { position: fixed; right: 14px; bottom: 14px; z-index: 60; border: 0; border-radius: 999px; padding: 11px 15px; font-size: 13px; font-weight: 800; background: #1f1e1d; color: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.25); cursor: pointer; }
+  #cmDock.on { background: var(--green, #00b453); }
+  #cmPanel { position: fixed; right: 14px; bottom: 60px; z-index: 60; width: min(340px, 92vw); max-height: 62vh; overflow: auto; background: #fff; border: 1px solid #e5e5e2; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.2); padding: 12px; }
+  #cmPanel .cmHead { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 14px; }
+  #cmPanel .cmHead b { flex: 1; }
+  #cmPanel .cmHead button { border: 1px solid #e5e5e2; background: #fff; border-radius: 8px; padding: 5px 9px; font-size: 12px; font-weight: 700; cursor: pointer; }
+  #cmMode { color: #0a7a3c; }
+  #cmPanel .cmList { display: flex; flex-direction: column; gap: 8px; }
+  #cmPanel .cmItem { border: 1px solid #eee; border-radius: 10px; padding: 9px 10px; }
+  #cmPanel .cmNote { font-size: 13px; line-height: 1.5; }
+  #cmPanel .cmMeta { font-size: 11px; color: #888; margin-top: 4px; word-break: break-all; }
+  #cmPanel .cmDel { margin-top: 6px; border: 0; background: #fbeaea; color: #b03a3a; border-radius: 7px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; }
+  #cmPanel .cmEmpty { font-size: 12px; color: #888; padding: 8px 2px; line-height: 1.6; }
+  body.cm-on { cursor: crosshair; }
+  body.cm-on *:hover { outline: 2px dashed var(--green, #00b453); outline-offset: 1px; }
   .feedback { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 17px 16px; margin-top: 24px; text-align: center; }
   .feedback p { font-size: 12.5px; color: #50514a; line-height: 1.7; margin-bottom: 13px; }
   .fbbtn { width: 100%; background: var(--ink); color: #fff; border: 0; border-radius: 12px; padding: 13px; font-size: 14px; font-weight: 700; cursor: pointer; }
@@ -247,7 +264,7 @@
 
 <script src="places.js?v=7"></script>
 <script src="tour.js?v=1"></script>
-<script src="home.js?v=28"></script>
+<script src="home.js?v=29"></script>
 <!-- PC 배경 순환 스크립트는 home.js 끝으로 이동 (CSP 강화: 인라인 스크립트 금지) -->
 </body>
 </html>

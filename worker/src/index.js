@@ -365,6 +365,42 @@ export default {
         return json(req, { ok: true });
       }
 
+      // 어드민: 디자인 코멘트 남기기 (메인 페이지에서 요소 클릭 → 메모)
+      if (path === '/admin/annotations' && req.method === 'POST') {
+        let b;
+        try { b = await req.json(); } catch { return json(req, { error: '형식 오류' }, 400); }
+        const note = String(b.note || '').slice(0, 1000).trim();
+        if (!note) return json(req, { error: '메모가 비었어요.' }, 400);
+        await db.prepare(
+          'INSERT INTO annotations (target, label, note, page, status, created_at) VALUES (?, ?, ?, ?, ?, ?)'
+        ).bind(
+          String(b.target || '').slice(0, 300),
+          String(b.label || '').slice(0, 300),
+          note,
+          String(b.page || '').slice(0, 60),
+          'open',
+          new Date().toISOString()
+        ).run();
+        return json(req, { ok: true });
+      }
+
+      // 어드민: 코멘트 목록 (기본 open만 — 핀·목록 표시용)
+      if (path === '/admin/annotations' && req.method === 'GET') {
+        const all = url.searchParams.get('all') === '1';
+        const rows = all
+          ? await db.prepare('SELECT * FROM annotations ORDER BY created_at DESC').all()
+          : await db.prepare("SELECT * FROM annotations WHERE status = 'open' ORDER BY created_at DESC").all();
+        return json(req, { annotations: rows.results });
+      }
+
+      // 어드민: 코멘트 삭제
+      if (path === '/admin/annotations' && req.method === 'DELETE') {
+        const id = url.searchParams.get('id');
+        if (!id) return json(req, { error: 'id 누락' }, 400);
+        await db.prepare('DELETE FROM annotations WHERE id = ?').bind(id).run();
+        return json(req, { ok: true });
+      }
+
       return json(req, { error: '없는 주소예요.' }, 404);
     } catch (e) {
       // 내부 오류 상세는 숨기고 로그로만 (wrangler tail 로 확인)
