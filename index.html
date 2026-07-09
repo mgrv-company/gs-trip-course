@@ -236,15 +236,14 @@
   .mnm { font-size: 15.5px; font-weight: 700; letter-spacing: -0.3px; color: var(--ink); }
   .op.sm { font-size: 10.5px; white-space: nowrap; }
   .mmeta { font-size: 11.5px; color: var(--gray); margin-top: 4px; line-height: 1.5; }
-  .mchev { flex: 0 0 auto; color: var(--gray); font-size: 12px; align-self: center; transition: transform .2s ease; }
-  .mitem.open .mchev { transform: rotate(180deg); }
-  .mdetail { display: none; padding: 2px 2px 16px; }
+  .mchev { flex: 0 0 auto; color: var(--gray); font-size: 12px; align-self: center; }
+  /* 펼치면: 접힌 행 숨기고 1위와 동일한 카드 노출 */
+  .mdetail { display: none; }
+  .mitem.open .mrow { display: none; }
   .mitem.open .mdetail { display: block; }
-  .dpic { border-radius: 12px; overflow: hidden; margin-bottom: 10px; }
-  .dpic img { width: 100%; height: 170px; object-fit: cover; display: block; }
-  .dmenu { font-size: 12.5px; color: #55564e; line-height: 1.5; }
-  .dcmt { font-size: 13px; line-height: 1.55; color: #3a3934; margin-top: 8px; padding-left: 12px; border-left: 2px solid var(--green); }
-  .dlink { display: inline-block; margin-top: 12px; font-size: 12px; font-weight: 600; color: var(--gray); text-decoration: underline; text-underline-offset: 2px; }
+  .mdetail .hcard { margin-top: 6px; }
+  .mcollapse { display: block; width: 100%; margin: 4px 0 2px; padding: 9px; background: none; border: 0; color: var(--gray); font-size: 12px; font-weight: 600; cursor: pointer; }
+  .mcollapse:active { opacity: .6; }
 
   /* ── 도입 화면 (세션당 1회, 시간대 인사) ── */
   body.intro-lock { overflow: hidden; }
@@ -294,7 +293,7 @@
 
 <main class="wrap">
   <div class="hero">
-    <img src="assets/goseong-hero-4.webp" alt="고성 바다를 품은 맹그로브 고성">
+    <img src="assets/mangrove-home-hero.webp" alt="맹그로브 고성 워크라운지">
     <div class="cap"><b data-copy="hero.title">지금 어디로 갈까요?</b><span data-copy="hero.sub">커뮤니티 매니저가 추천하는 가게들</span></div>
   </div>
 
@@ -400,7 +399,7 @@
 
 <script src="places.js?v=7"></script>
 <script src="tour.js?v=1"></script>
-<script src="home.js?v=39"></script>
+<script src="home.js?v=40"></script>
 <!-- PC 배경 순환 스크립트는 home.js 끝으로 이동 (CSP 강화: 인라인 스크립트 금지) -->
 </body>
 </html>

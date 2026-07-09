@@ -186,8 +186,9 @@ function tourCardHTML(p) {
   </div>`;
 }
 
-// 원픽 히어로 카드 — 추천 1위(큰 사진 + CA 코멘트)
-function heroCardHTML(p) {
+// 가게 카드(큰 사진 + 정보 2줄 그룹 + CA + 지도). isPick=true 면 'PICK' 배지.
+// 추천 1위와 '이어서 추천' 펼침 카드가 동일한 렌더를 공유한다.
+function placeCardHTML(p, isPick) {
   const open = openNow(p, new Date());
   const rec = p.ca ? '<span class="rec-tag">추천</span>' : '';
   const openTxt = open === true ? '<span class="op">● 영업중</span> · ' : (open === null ? '<span class="op chk">확인필요</span> · ' : '');
@@ -201,26 +202,24 @@ function heroCardHTML(p) {
   const memo = p.note || p.mr;
   const cmt = memo ? `<p class="hcmt">${esc(memo)}</p>` : '';
   const link = p.u ? `<a class="hlink" href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">네이버 지도에서 보기 →</a>` : '';
+  const tag = isPick ? '<span class="htag">PICK</span>' : '';
   return `<article class="hcard">
-    ${p.img ? `<div class="hpic"><img src="${esc(httpsUp(p.img))}" loading="lazy" alt=""><span class="htag">PICK</span></div>` : ''}
+    ${p.img ? `<div class="hpic"><img src="${esc(httpsUp(p.img))}" loading="lazy" alt="">${tag}</div>` : ''}
     <div class="hbd">
       <div class="hnm">${esc(p.n)}${rec}</div>
       ${line1}${line2}${cmt}${link}
     </div>
   </article>`;
 }
+function heroCardHTML(p) { return placeCardHTML(p, true); }
 
-// 미니 행 — 추천 2위 이하. 접혀 있다가 클릭하면 크게 펼쳐짐(사진·메뉴·코멘트·지도).
+// 미니 행 — 추천 2위 이하. 접혀 있다가 클릭하면 1위와 '동일한 카드'로 펼쳐짐.
 function miniRowHTML(p) {
   const open = openNow(p, new Date());
   const openBadge = open === true ? '<span class="op sm">영업중</span>' : (open === null ? '<span class="op sm chk">확인필요</span>' : '');
   const rec = p.ca ? '<span class="rec-tag sm">추천</span>' : '';
   const rv = p.rv ? `<span class="num-mono">★ ${esc(p.rv[0])}</span> · ` : '';
   const wait = p.w === 2 ? ' · <span class="wt">웨이팅</span>' : '';
-  const menu = (p.m && p.m.length) ? `<div class="dmenu">🍽 ${p.m.map(esc).join(' · ')}</div>` : '';
-  const memo = p.note || p.mr;
-  const cmt = memo ? `<p class="dcmt">${esc(memo)}</p>` : '';
-  const link = p.u ? `<a class="dlink" href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">네이버 지도에서 보기 →</a>` : '';
   return `<div class="mitem">
     <div class="mrow" role="button" tabindex="0" aria-expanded="false">
       ${p.img ? `<img class="mph" src="${esc(httpsUp(p.img))}" loading="lazy" alt="">` : ''}
@@ -230,10 +229,7 @@ function miniRowHTML(p) {
       </div>
       <span class="mchev" aria-hidden="true">▾</span>
     </div>
-    <div class="mdetail">
-      ${p.img ? `<div class="dpic"><img src="${esc(httpsUp(p.img))}" loading="lazy" alt=""></div>` : ''}
-      ${menu}${cmt}${link}
-    </div>
+    <div class="mdetail">${placeCardHTML(p, false)}<button class="mcollapse" type="button">접기 ▲</button></div>
   </div>`;
 }
 
@@ -325,13 +321,15 @@ $('#shuffleBtn').addEventListener('click', renderNow);
 
 // 이어서 추천: 미니 행 클릭 → 접힘/펼침 (지도 링크 클릭은 이동 그대로). #nowList는 유지되므로 위임 1회.
 $('#nowList').addEventListener('click', function (e) {
-  if (e.target.closest('a')) return;
-  const row = e.target.closest('.mrow');
-  if (!row) return;
-  const item = row.closest('.mitem');
+  if (e.target.closest('a')) return;                      // 지도 링크는 이동
+  const trigger = e.target.closest('.mrow, .mcollapse');  // 행=펼침 / 접기버튼=닫기
+  if (!trigger) return;
+  const item = trigger.closest('.mitem');
   if (!item) return;
   const opened = item.classList.toggle('open');
-  row.setAttribute('aria-expanded', opened ? 'true' : 'false');
+  const row = item.querySelector('.mrow');
+  if (row) row.setAttribute('aria-expanded', opened ? 'true' : 'false');
+  if (!opened) row && row.focus();                        // 접으면 행으로 포커스 복귀
 });
 $('#nowList').addEventListener('keydown', function (e) {
   if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
