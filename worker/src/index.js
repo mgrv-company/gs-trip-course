@@ -145,6 +145,14 @@ export default {
         return json(req, data, 200, pubHdr);
       }
 
+      // ── 공개: 조회수 집계 (손님 페이지 로드 시 1회) ──────────
+      // 브라우저당 하루 1회는 프론트(localStorage)에서 거른다. KST 날짜별로 누적.
+      if (path === '/view' && req.method === 'POST') {
+        const day = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);   // KST
+        await db.prepare('INSERT INTO pageviews (day, n) VALUES (?, 1) ON CONFLICT(day) DO UPDATE SET n = n + 1').bind(day).run();
+        return json(req, { ok: true });
+      }
+
       // ── 공개: 피드백 수신 → 슬랙 (구 Apps Script 대체) ─────────
       if (path === '/feedback' && req.method === 'POST') {
         const ok = json(req, { ok: true });          // 스팸/거절도 동일 응답 (정보 노출 방지)
@@ -412,6 +420,15 @@ export default {
           } catch (e) { console.error('슬랙 전송 실패:', e.message); }
         }
         return json(req, { count: n });
+      }
+
+      // 어드민: 조회수 (오늘/누적/최근 일자별) — 나만 보기
+      if (path === '/admin/views' && req.method === 'GET') {
+        const day = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+        const total = await db.prepare('SELECT COALESCE(SUM(n),0) AS t FROM pageviews').first();
+        const today = await db.prepare('SELECT n FROM pageviews WHERE day = ?').bind(day).first();
+        const days = await db.prepare('SELECT day, n FROM pageviews ORDER BY day DESC LIMIT 30').all();
+        return json(req, { total: total?.t || 0, today: today?.n || 0, days: days.results });
       }
 
       // 어드민: 코멘트 삭제

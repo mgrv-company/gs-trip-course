@@ -320,10 +320,33 @@ $$('.tab').forEach(t => t.addEventListener('click', () => {
   $('#tabManage').classList.toggle('hidden', t.dataset.tab !== 'manage');
   $('#tabAdd').classList.toggle('hidden', t.dataset.tab !== 'add');
   $('#tabCopy').classList.toggle('hidden', t.dataset.tab !== 'copy');
+  $('#tabViews').classList.toggle('hidden', t.dataset.tab !== 'views');
   if (t.dataset.tab === 'copy' && !settingsLoaded) {
     loadSettings().catch(e => toast('문구 불러오기 실패: ' + e.message, true));
   }
+  if (t.dataset.tab === 'views') loadViews();
 }));
+
+// ── 조회수 (나만 보기) ───────────────────────────────
+async function loadViews() {
+  $('#vToday').textContent = '–'; $('#vTotal').textContent = '–'; $('#vDays').textContent = '불러오는 중…';
+  try {
+    const v = await api('/admin/views');
+    $('#vToday').textContent = v.today ?? 0;
+    $('#vTotal').textContent = v.total ?? 0;
+    const days = v.days || [];
+    if (!days.length) { $('#vDays').textContent = '아직 방문 기록이 없어요.'; return; }
+    const max = Math.max.apply(null, days.map(d => d.n).concat(1));
+    $('#vDays').innerHTML = days.slice(0, 14).map(d => {
+      const md = String(d.day).slice(5).replace('-', '/');
+      const w = Math.round(d.n / max * 100);
+      return '<div class="vbar"><span class="vd">' + md + '</span>' +
+             '<span class="vg" style="width:' + w + '%"></span><span class="vc">' + d.n + '</span></div>';
+    }).join('');
+  } catch (e) {
+    $('#vDays').textContent = '불러오기 실패: ' + e.message;
+  }
+}
 
 // ── 문구·디자인 ──────────────────────────────────────
 // [key, 라벨, 입력형태, 기본값] — home.js COPY 기본값과 key·문구가 일치해야 함.

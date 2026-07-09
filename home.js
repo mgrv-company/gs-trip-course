@@ -561,6 +561,18 @@ document.addEventListener('visibilitychange', () => {
   try { localStorage.setItem('gsBgIndex', String(i)); } catch (e) {}
 })();
 
+// ── 조회수 집계 (손님만, 브라우저당 하루 1회) ─────────
+(function () {
+  try {
+    if (localStorage.getItem('gstAdminSession')) return;   // 어드민 본인 방문은 카운트 안 함
+    const d = new Date();
+    const key = 'gsHit:' + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+    if (localStorage.getItem(key)) return;                 // 오늘 이미 셌으면 skip(새로고침 부풀리기 방지)
+    localStorage.setItem(key, '1');
+    fetch(ADMIN_API + '/view', { method: 'POST', keepalive: true }).catch(function () {});
+  } catch (e) {}
+})();
+
 // ── 디자인 코멘트 모드 (어드민 전용) ─────────────────
 // 어드민 로그인(같은 도메인이라 토큰 공유) 상태면, 메인 페이지에서 요소를 클릭해 메모를 남길 수 있음.
 // 남긴 코멘트는 백엔드에 쌓였다가 나중에 일괄 반영. 손님(비로그인)에겐 UI 자체가 안 생김.

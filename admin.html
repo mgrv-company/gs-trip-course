@@ -57,6 +57,16 @@
   .cg-t { font-size: 12px; font-weight: 800; color: var(--green-deep); margin: 18px 0 2px; padding-top: 12px; border-top: 1px solid var(--line); }
   .cg:first-child .cg-t { border-top: 0; padding-top: 0; margin-top: 2px; }
 
+  /* 조회수 탭 */
+  .vrow { display: flex; gap: 10px; margin: 12px 0 4px; }
+  .vstat { flex: 1; background: var(--green-light); border-radius: 12px; padding: 14px; text-align: center; }
+  .vstat .vn { font-size: 26px; font-weight: 800; color: var(--green-deep); }
+  .vstat .vl { font-size: 12px; color: var(--gray); margin-top: 2px; }
+  .vbar { display: flex; align-items: center; gap: 8px; margin: 5px 0; }
+  .vbar .vd { width: 44px; color: var(--gray); }
+  .vbar .vg { height: 10px; background: var(--green); border-radius: 5px; min-width: 2px; }
+  .vbar .vc { font-weight: 700; color: var(--ink); }
+
   /* 필터 칩 */
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip { border: 1.5px solid var(--line); background: #fff; border-radius: 99px; padding: 6px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; user-select: none; }
@@ -130,6 +140,7 @@
       <div class="tab on" data-tab="manage">가게 관리</div>
       <div class="tab" data-tab="add">➕ 새 가게 추가</div>
       <div class="tab" data-tab="copy">✏️ 문구·디자인</div>
+      <div class="tab" data-tab="views">📊 조회수</div>
     </div>
 
     <!-- 관리 탭 -->
@@ -229,11 +240,24 @@
       </div>
       <div class="msg" id="copyMsg"></div>
     </div>
+
+    <!-- 조회수 탭 -->
+    <div id="tabViews" class="hidden">
+      <div class="card">
+        <h2>조회수 (나만 보기)</h2>
+        <p class="small">손님이 메인 페이지를 연 횟수예요. 브라우저 기준 하루 1회로 세고, 어드민(나) 방문은 빼요.</p>
+        <div class="vrow">
+          <div class="vstat"><div class="vn" id="vToday">–</div><div class="vl">오늘</div></div>
+          <div class="vstat"><div class="vn" id="vTotal">–</div><div class="vl">누적</div></div>
+        </div>
+        <div id="vDays" class="small" style="margin-top:6px">불러오는 중…</div>
+      </div>
+    </div>
   </div>
 </div>
 
 <div id="toast"></div>
 <script src="places.js?v=7"></script>
-<script src="admin.js?v=7"></script>
+<script src="admin.js?v=8"></script>
 </body>
 </html>

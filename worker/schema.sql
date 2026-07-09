@@ -50,6 +50,12 @@ CREATE TABLE IF NOT EXISTS annotations (
   resolved_at TEXT NOT NULL DEFAULT ''
 );
 
+-- 손님 페이지 조회수 (KST 날짜별 집계 — 브라우저당 하루 1회, 어드민 본인 제외)
+CREATE TABLE IF NOT EXISTS pageviews (
+  day TEXT PRIMARY KEY,
+  n   INTEGER NOT NULL DEFAULT 0
+);
+
 -- 어드민 로그인 세션 (비밀번호 확인 후 발급되는 임시 열쇠)
 CREATE TABLE IF NOT EXISTS sessions (
   token      TEXT PRIMARY KEY,
