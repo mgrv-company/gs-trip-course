@@ -4,26 +4,40 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- CSP: 우리 파일·허용한 곳 외의 스크립트/연결 차단 (XSS 방어층). 연결 허용: 어드민 백엔드(편집+피드백) -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https://gs-trip-admin.mangrove-goseong.workers.dev; manifest-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src https://gs-trip-admin.mangrove-goseong.workers.dev; manifest-src 'self'; base-uri 'none'; form-action 'none'">
 <title>맹그로브 고성 · 지금 갈만한 곳</title>
 <meta name="theme-color" content="#1f1e1d">
 <link rel="manifest" href="manifest.json">
 <meta name="description" content="맹그로브 고성 CA 추천 — 지금 문 연, 가까운, 안 붐비는 속초·고성 맛집과 카페">
+<!-- 소셜 공유(카카오톡·문자 등) 미리보기 카드 -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="맹그로브 고성">
+<meta property="og:title" content="맹그로브 고성 · 지금 갈만한 곳">
+<meta property="og:description" content="커뮤니티 매니저가 추천 — 지금 문 연, 가까운, 안 붐비는 속초·고성 맛집과 카페">
+<meta property="og:url" content="https://mgrv-company.github.io/gs-trip-course/">
+<meta property="og:image" content="https://mgrv-company.github.io/gs-trip-course/assets/goseong-sea.webp">
+<meta property="og:image:alt" content="맹그로브 고성 바다 전경">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" href="assets/favicon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<!-- 한글 본문 폰트: Pretendard (한국 웹 표준급). Inter는 라틴·숫자 폴백 -->
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<!-- 도입 화면 배경: 먼저 로드해 첫 진입을 부드럽게 -->
+<link rel="preload" as="image" href="assets/goseong-sea.webp">
 <style>
   :root {
     /* 맹그로브 브랜드 토큰 */
     --green: #00b453; --green-deep: #0a7a3c; --green-light: #eafdf1;
-    --ink: #1f1e1d; --gray: #76776c; --line: #ececea; --bg: #f6f5f2; --soft: #edece9;
+    --ink: #1f1e1d; --gray: #6b6a62; --line: #e9e7e2; --bg: #fbfaf8; --soft: #f2f1ec;
     --gold: #f0c34b; --gold-bg: #fff3cd;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    font-family: 'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+    font-family: 'Pretendard Variable', Pretendard, 'Inter', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
     background: var(--bg); color: var(--ink); line-height: 1.55; -webkit-font-smoothing: antialiased;
   }
   /* 배경: 모바일=단색(var(--bg)) / PC=고성 사진(2→3→7→4 순환, 은은한 레이어) */
@@ -35,7 +49,7 @@
     .bg-overlay { display: block; position: fixed; inset: 0; z-index: -1; background: rgba(31,30,29,0.24); }
     /* PC: 가운데 콘텐츠 컬럼을 단색 패널로 띄워 사진 위에서 또렷하게 */
     .topbar { max-width: 480px; margin: 0 auto; }
-    .wrap { background: var(--bg); box-shadow: 0 12px 50px rgba(0,0,0,.30); min-height: calc(100vh - 56px); }
+    .wrap { background: var(--bg); box-shadow: 0 12px 50px rgba(0,0,0,.30); min-height: calc(100dvh - 56px); }
   }
   @media (prefers-reduced-motion: reduce) { .bg-slide { transition: none; } }
   /* 상단 검정 브랜드 바 */
@@ -72,7 +86,7 @@
   .shuffle { flex: 0 0 auto; border: 1.5px solid var(--line); background: #fff; color: var(--ink); font-weight: 700; font-size: 12.5px; border-radius: 10px; padding: 8px 12px; cursor: pointer; }
   .shuffle:active { background: var(--soft); }
 
-  .card { background: #fff; border: 1px solid var(--line); border-radius: 18px; margin-top: 14px; box-shadow: 0 2px 14px rgba(31,30,29,.04); display: flex; gap: 13px; padding: 14px; align-items: flex-start; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 18px; margin-top: 14px; box-shadow: 0 1px 2px rgba(31,30,29,.05), 0 6px 16px rgba(31,30,29,.07), 0 14px 30px rgba(31,30,29,.05); display: flex; gap: 13px; padding: 14px; align-items: flex-start; }
   .card .ph { width: 110px; height: 110px; border-radius: 12px; object-fit: cover; display: block; flex: 0 0 auto; }
   .card .body { flex: 1; min-width: 0; padding: 0; }
   .card .rk { display: flex; align-items: center; gap: 8px; row-gap: 5px; flex-wrap: wrap; }
@@ -157,21 +171,119 @@
 
   footer { text-align: center; color: var(--gray); font-size: 11.5px; margin-top: 30px; }
   footer a { color: var(--green-deep); font-weight: 600; }
+
+  /* ── 인터랙션 폴리시: 누름 피드백 · 부드러운 전환 · 포커스 링 ── */
+  .seg, .chip, .navbtn { transition: background .16s ease, color .16s ease, border-color .16s ease, transform .12s ease; }
+  .card .links a { transition: background .16s ease, border-color .16s ease, transform .12s ease; }
+  .fbbtn, .fbbtn.ghost2, .shuffle { transition: background .16s ease, border-color .16s ease, transform .12s ease, opacity .16s ease; }
+  .seg:active, .chip:active, .navbtn:active, .shuffle:active,
+  .card .links a:active, .fbbtn:active { transform: scale(.97); }
+  @media (hover: hover) {
+    .card .links a:hover { background: var(--soft); }
+    .navbtn:hover, .seg:hover, .chip:hover { border-color: var(--gray); }
+  }
+  /* 키보드 포커스 표시 (접근성) */
+  .seg:focus-visible, .chip:focus-visible, .navbtn:focus-visible, .shuffle:focus-visible,
+  .fbbtn:focus-visible, .card .links a:focus-visible, .star:focus-visible,
+  #secClose:focus-visible, button:focus-visible, a:focus-visible {
+    outline: 2px solid var(--green); outline-offset: 2px; border-radius: 8px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .seg, .chip, .navbtn, .shuffle, .card .links a, .fbbtn { transition: none; }
+    .seg:active, .chip:active, .navbtn:active, .shuffle:active, .card .links a:active, .fbbtn:active { transform: none; }
+  }
+
+  /* 인라인 오류/안내 메시지 (브라우저 alert 대체) */
+  .fberr { display: none; font-size: 12.5px; font-weight: 600; color: #b03a3a; background: #fbeaea; border-radius: 9px; padding: 8px 11px; margin-bottom: 9px; line-height: 1.5; text-align: left; }
+  .fberr.show { display: block; }
+
+  /* ── 카드 정보 위계: CA 코멘트 승격 · 영업/대기는 조용한 chip · 숫자는 mono ── */
+  .num-mono { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+  .card .info { color: #55564e; font-size: 12.5px; line-height: 1.5; margin-top: 9px; }
+  .card .metachips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .card .mchip { font-size: 11.5px; font-weight: 600; color: #55564e; background: var(--soft); border-radius: 8px; padding: 4px 9px; display: inline-flex; align-items: center; gap: 4px; line-height: 1.35; }
+  .card .mchip.warn { background: var(--gold-bg); color: #8a6a14; }
+  .card .cacmt { margin-top: 11px; background: var(--green-light); border-left: 3px solid var(--green); border-radius: 8px; padding: 9px 11px; font-size: 13px; line-height: 1.55; color: #175239; font-weight: 600; }
+
+  /* ── 메인 추천: 하이브리드(원픽 히어로 + 미니멀 리스트) ── */
+  .op { color: var(--green-deep); font-weight: 700; font-size: 10.5px; }
+  .op.chk { color: var(--gray); }
+  .dimc { color: var(--gray); opacity: .8; }
+  .wt { color: #8a6a14; font-weight: 600; }
+  .rec-tag { display: inline-block; font-size: 10px; font-weight: 800; border: 1px solid var(--green-deep); color: var(--green-deep); border-radius: 6px; padding: 1px 6px; margin-left: 7px; letter-spacing: .02em; vertical-align: 2px; }
+  .rec-tag.sm { margin-left: 6px; padding: 0 5px; font-size: 9.5px; }
+  /* 원픽 히어로 카드 */
+  .hcard { background: #fff; border: 1px solid var(--line); border-radius: 15px; overflow: hidden; margin-top: 14px; box-shadow: 0 6px 18px rgba(31,30,29,.08); }
+  .hpic { position: relative; height: 180px; }
+  .hpic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .htag { position: absolute; left: 12px; top: 12px; background: rgba(31,30,29,.7); color: #fff; font-size: 10.5px; font-weight: 800; padding: 4px 10px; border-radius: 99px; letter-spacing: .02em; }
+  .hbd { padding: 14px 15px 16px; }
+  .hnm { font-size: 19px; font-weight: 800; letter-spacing: -0.4px; color: var(--ink); }
+  .hmeta { font-size: 12px; color: var(--gray); margin-top: 7px; line-height: 1.5; }
+  .hcmt { font-size: 13px; line-height: 1.55; color: #3a3934; margin-top: 10px; padding-left: 12px; border-left: 2px solid var(--green); }
+  .hlink { display: inline-block; margin-top: 12px; font-size: 12px; font-weight: 700; color: var(--ink); text-decoration: none; padding: 8px 14px; border: 1px solid var(--ink); border-radius: 9px; }
+  .hlink:active { transform: scale(.97); }
+  /* 이어서 추천 — 미니멀 행 */
+  .subrec { font-size: 11.5px; font-weight: 700; color: var(--gray); letter-spacing: .03em; margin: 20px 2px 2px; }
+  .mrow { display: flex; gap: 13px; padding: 15px 2px; border-top: 1px solid var(--line); text-decoration: none; color: inherit; }
+  .mrow:active { background: var(--soft); }
+  .mph { width: 60px; height: 60px; object-fit: cover; border-radius: 10px; flex: 0 0 auto; background: var(--soft); }
+  .mbd { flex: 1; min-width: 0; }
+  .mtop { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .mnm { font-size: 15.5px; font-weight: 700; letter-spacing: -0.3px; color: var(--ink); }
+  .op.sm { font-size: 10.5px; white-space: nowrap; }
+  .mmeta { font-size: 11.5px; color: var(--gray); margin-top: 4px; line-height: 1.5; }
+  .mcmt { font-size: 12px; line-height: 1.5; color: #57564f; margin-top: 6px; }
+
+  /* ── 도입 화면 (세션당 1회, 시간대 인사) ── */
+  body.intro-lock { overflow: hidden; }
+  #intro { position: fixed; inset: 0; z-index: 100; overflow: hidden; opacity: 1; transition: opacity .55s ease; }
+  #intro.hide { opacity: 0; pointer-events: none; }
+  #intro .intro-bg { position: absolute; inset: 0; background: url('assets/goseong-sea.webp') center/cover no-repeat; transform: scale(1.08); animation: introZoom 6s ease-out forwards; }
+  #intro .intro-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(12,22,18,.32) 0%, rgba(12,22,18,.5) 52%, rgba(12,22,18,.82) 100%); }
+  #intro .intro-content { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 32px; color: #fff; }
+  #intro .intro-logo { height: 34px; width: auto; margin-bottom: 26px; opacity: 0; animation: introUp .7s ease-out .15s forwards; }
+  #intro .intro-greet { font-size: 27px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.25; text-shadow: 0 2px 16px rgba(0,0,0,.4); opacity: 0; animation: introUp .7s ease-out .35s forwards; }
+  #intro .intro-sub { font-size: 14px; font-weight: 500; margin-top: 10px; opacity: 0; text-shadow: 0 1px 10px rgba(0,0,0,.45); animation: introUp .7s ease-out .55s forwards; }
+  #intro .intro-loading { position: absolute; bottom: 46px; left: 0; right: 0; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,.92); opacity: 0; animation: introUp .7s ease-out .8s forwards; }
+  #intro .intro-loading .dots { display: inline-flex; gap: 4px; }
+  #intro .intro-loading .dots i { width: 5px; height: 5px; border-radius: 50%; background: #fff; opacity: .5; animation: introDot 1s ease-in-out infinite; }
+  #intro .intro-loading .dots i:nth-child(2) { animation-delay: .15s; }
+  #intro .intro-loading .dots i:nth-child(3) { animation-delay: .3s; }
+  @keyframes introZoom { to { transform: scale(1.18); } }
+  @keyframes introUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes introDot { 0%, 100% { opacity: .35; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
+  @media (prefers-reduced-motion: reduce) {
+    #intro .intro-bg { animation: none; transform: scale(1.05); }
+    #intro .intro-logo, #intro .intro-greet, #intro .intro-sub, #intro .intro-loading { animation: none; opacity: 1; }
+    #intro .intro-loading .dots i { animation: none; opacity: .6; }
+  }
 </style>
 </head>
 <body>
+<!-- 도입 화면 (세션당 1회 · 시간대 인사 · 탭하면 스킵) -->
+<div id="intro" role="dialog" aria-label="맹그로브 고성 환영 화면">
+  <div class="intro-bg" aria-hidden="true"></div>
+  <div class="intro-scrim" aria-hidden="true"></div>
+  <div class="intro-content">
+    <img class="intro-logo" src="assets/mangrove-goseong-logo.svg" alt="맹그로브 고성">
+    <div class="intro-greet" id="introGreet">환영합니다</div>
+    <div class="intro-sub" id="introSub"></div>
+    <div class="intro-loading"><span id="introLoadTxt">갈만한 곳 찾는 중</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
+  </div>
+</div>
 <div class="bg-rotator" aria-hidden="true">
   <div class="bg-slide" style="background-image:url('assets/goseong-sea.webp')"></div>
   <div class="bg-slide" style="background-image:url('assets/goseong-rooftop.webp')"></div>
 </div>
 <div class="bg-overlay" aria-hidden="true"></div>
-<div class="topbar">
+<header class="topbar">
   <img class="logo" src="assets/mangrove-goseong-logo.svg" alt="맹그로브 고성">
-</div>
+</header>
 
-<div class="wrap">
+<main class="wrap">
   <div class="hero">
-    <img src="assets/goseong-hero-2.webp" alt="맹그로브 고성">
+    <img src="assets/goseong-hero-4.webp" alt="고성 바다를 품은 맹그로브 고성">
     <div class="cap"><b data-copy="hero.title">지금 어디로 갈까요?</b><span data-copy="hero.sub">커뮤니티 매니저가 추천하는 가게들</span></div>
   </div>
 
@@ -180,11 +292,11 @@
     <span class="t" id="ctxTime"></span>
   </div>
 
-  <div class="segs">
-    <div class="seg on" data-slot="auto" data-copy="seg.auto">영업중</div>
-    <div class="seg" data-slot="meal" data-copy="seg.meal">든든한 한 끼</div>
-    <div class="seg" data-slot="cafe" data-copy="seg.cafe">느낌 좋은 카페</div>
-    <div class="seg" data-slot="bar" data-copy="seg.bar">술과 함께</div>
+  <div class="segs" role="tablist">
+    <div class="seg on" role="button" tabindex="0" data-slot="auto" data-copy="seg.auto">영업중</div>
+    <div class="seg" role="button" tabindex="0" data-slot="meal" data-copy="seg.meal">든든한 한 끼</div>
+    <div class="seg" role="button" tabindex="0" data-slot="cafe" data-copy="seg.cafe">느낌 좋은 카페</div>
+    <div class="seg" role="button" tabindex="0" data-slot="bar" data-copy="seg.bar">술과 함께</div>
   </div>
 
   <div class="chips" id="optChips"></div>
@@ -240,13 +352,14 @@
     </div>
     <div id="rateForm" style="display:none">
       <textarea id="rateMemo" data-copy-ph="rating.placeholder" placeholder="어떤 부분이 도움이 되었는지 적어주세요. 혹은 필요한 정보가 있다면 기재해주셔도 좋습니다."></textarea>
+      <div class="fberr" id="rateErr" role="alert"></div>
       <button class="fbbtn" id="rateSend" data-copy="rating.btn">별점 추가하기</button>
     </div>
     <div class="done-line" id="rateDone" data-copy="rating.done" style="display:none">🙌 감사합니다! 더 좋은 추천으로 보답할게요.</div>
   </div>
 
   <footer>맹그로브 고성 · 속초·고성 로컬 정보</footer>
-</div>
+</main>
 
 <div id="section">
   <div class="shead">
@@ -264,6 +377,7 @@
       <input id="fbName" type="text" placeholder="성함 (선택)" style="display:none">
       <input id="fbPlace" type="text" placeholder="가게 이름 (기억나는 만큼만)">
       <textarea id="fbMemo" placeholder="예: 여기 진짜 좋았어요! / 웨이팅 1시간이었어요 / 문 닫았던데요"></textarea>
+      <div class="fberr" id="fbErr" role="alert"></div>
       <div class="row">
         <button class="cancel" id="fbCancel">취소</button>
         <button class="send" id="fbSend">보내기</button>
@@ -275,7 +389,7 @@
 
 <script src="places.js?v=7"></script>
 <script src="tour.js?v=1"></script>
-<script src="home.js?v=35"></script>
+<script src="home.js?v=38"></script>
 <!-- PC 배경 순환 스크립트는 home.js 끝으로 이동 (CSP 강화: 인라인 스크립트 금지) -->
 </body>
 </html>

@@ -143,20 +143,26 @@ function cardHTML(p, idx) {
   const open = openNow(p, new Date());
   if (open === true) badges.push('<span class="b open">● 영업중</span>');
   else if (open === null) badges.push('<span class="b chk">확인필요</span>');
-  const lines = [];
-  if (p.m && p.m.length) lines.push('🍽 ' + p.m.map(esc).join(' · '));
-  lines.push('🕐 ' + hoursNowText(p));
-  if (waitText(p)) lines.push(waitText(p));
+  // 메뉴: 조용한 한 줄
+  const menu = (p.m && p.m.length) ? `<div class="info">🍽 ${p.m.map(esc).join(' · ')}</div>` : '';
+  // 영업시간·대기: 조용한 chip (영업시간 숫자는 tabular mono)
+  const chips = [`<span class="mchip num-mono">🕐 ${esc(hoursNowText(p))}</span>`];
+  const wt = waitText(p);
+  if (wt) chips.push(`<span class="mchip${p.w === 2 ? ' warn' : ''}">${esc(wt)}</span>`);
+  const chipRow = `<div class="metachips">${chips.join('')}</div>`;
+  // CA·큐레이터 한 줄 코멘트: 차별점이라 승격 (있을 때만)
   const memo = p.note || p.mr;
-  if (memo) lines.push('💬 ' + esc(memo));
-  const rv = p.rv ? `<span class="rv">★ ${esc(p.rv[0])} (${esc(p.rv[1])})</span>` : '';
+  const cacmt = memo ? `<div class="cacmt">💬 ${esc(memo)}</div>` : '';
+  const rv = p.rv ? `<span class="rv num-mono">★ ${esc(p.rv[0])} (${esc(p.rv[1])})</span>` : '';
   const num = idx ? `<span class="num">${idx}</span>` : '';
   return `<div class="card">
     ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="">` : ''}
     <div class="body">
       <div class="rk">${num}<span class="nm">${esc(p.n)}</span>${badges.length ? ` <span class="badges">${badges.join('')}</span>` : ''}</div>
-      <div class="ct">${esc(p.c)} · ${moveText(p)} ${rv}</div>
-      <div class="info">${lines.join('<br>')}</div>
+      <div class="ct">${esc(p.c)} · <span class="num-mono">${moveText(p)}</span> ${rv}</div>
+      ${menu}
+      ${chipRow}
+      ${cacmt}
       <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">네이버 지도에서 보기 →</a>` : ''}</div>
     </div>
   </div>`;
@@ -178,6 +184,45 @@ function tourCardHTML(p) {
   </div>`;
 }
 
+// 원픽 히어로 카드 — 추천 1위(큰 사진 + CA 코멘트)
+function heroCardHTML(p) {
+  const open = openNow(p, new Date());
+  const rec = p.ca ? '<span class="rec-tag">강추</span>' : '';
+  const openTxt = open === true ? '<span class="op">● 영업중</span> · ' : (open === null ? '<span class="op chk">확인필요</span> · ' : '');
+  const rv = p.rv ? `<span class="num-mono">★ ${esc(p.rv[0])}</span> <span class="dimc">(${esc(p.rv[1])})</span> · ` : '';
+  const wait = p.w === 2 ? ' · <span class="wt">웨이팅 잦음</span>' : '';
+  const memo = p.note || p.mr;
+  const cmt = memo ? `<p class="hcmt">${esc(memo)}</p>` : '';
+  const link = p.u ? `<a class="hlink" href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">네이버 지도에서 보기 →</a>` : '';
+  return `<article class="hcard">
+    ${p.img ? `<div class="hpic"><img src="${esc(p.img)}" loading="lazy" alt=""><span class="htag">오늘의 원픽</span></div>` : ''}
+    <div class="hbd">
+      <div class="hnm">${esc(p.n)}${rec}</div>
+      <div class="hmeta">${openTxt}${rv}<span class="num-mono">${moveText(p)}</span> · <span class="num-mono">${esc(hoursNowText(p))}</span>${wait}</div>
+      ${cmt}${link}
+    </div>
+  </article>`;
+}
+
+// 미니멀 행 — 추천 2위 이하(작은 썸네일 + CA 한 줄). 행 전체가 지도 링크.
+function miniRowHTML(p) {
+  const open = openNow(p, new Date());
+  const openBadge = open === true ? '<span class="op sm">영업중</span>' : (open === null ? '<span class="op sm chk">확인필요</span>' : '');
+  const rec = p.ca ? '<span class="rec-tag sm">강추</span>' : '';
+  const rv = p.rv ? `<span class="num-mono">★ ${esc(p.rv[0])}</span> · ` : '';
+  const wait = p.w === 2 ? ' · <span class="wt">웨이팅</span>' : '';
+  const memo = p.note || p.mr;
+  const cmt = memo ? `<div class="mcmt">${esc(memo)}</div>` : '';
+  const inner = `${p.img ? `<img class="mph" src="${esc(p.img)}" loading="lazy" alt="">` : ''}<div class="mbd">
+      <div class="mtop"><span class="mnm">${esc(p.n)}${rec}</span>${openBadge}</div>
+      <div class="mmeta">${rv}<span class="num-mono">${moveText(p)}</span> · <span class="num-mono">${esc(hoursNowText(p))}</span>${wait}</div>
+      ${cmt}
+    </div>`;
+  return p.u
+    ? `<a class="mrow" href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">${inner}</a>`
+    : `<div class="mrow">${inner}</div>`;
+}
+
 let curSlot = 'auto';
 let curFilter = null;   // 선택된 옵션 태그 (식성/분위기), null=전체
 let recent = [];        // 최근 보여준 가게 이름 — 중복 방지(돌아가며 노출)
@@ -192,8 +237,8 @@ function renderChips() {
   const slot = activeSlot();
   const tags = curSlot === 'auto' ? [] : filtersFor(slot);
   if (!tags.length) { $('#optChips').innerHTML = ''; return; }   // 영업중·카페: 옵션 칩 없음
-  const chips = ['<span class="chip' + (curFilter === null ? ' on' : '') + '" data-tag="">전체</span>']
-    .concat(tags.map(t => `<span class="chip${curFilter === t ? ' on' : ''}" data-tag="${t}">${t}</span>`));
+  const chips = ['<span class="chip' + (curFilter === null ? ' on' : '') + '" role="button" tabindex="0" data-tag="">전체</span>']
+    .concat(tags.map(t => `<span class="chip${curFilter === t ? ' on' : ''}" role="button" tabindex="0" data-tag="${t}">${t}</span>`));
   $('#optChips').innerHTML = chips.join('');
 }
 
@@ -230,7 +275,7 @@ function renderNow() {
   $('#slotLabel').textContent = isAuto ? COPY['seg.auto'] : COPY['seg.' + slot];
   $('#slotSub').textContent = isAuto ? COPY['slotsub.auto'] : COPY['slotsub.' + slot];
   $('#nowList').innerHTML = picks.length
-    ? picks.map((p, i) => cardHTML(p, i + 1)).join('')
+    ? heroCardHTML(picks[0]) + (picks.length > 1 ? '<div class="subrec">이어서 추천</div>' + picks.slice(1).map(miniRowHTML).join('') : '')
     : `<p class="empty">지금 문 연 곳을 찾지 못했어요. 종류 탭이나 옵션을 바꿔보세요.</p>`;
 }
 
@@ -274,9 +319,14 @@ function fbTexts(mode) {
     place: COPY[pre + '.place'], memo: COPY[pre + '.memo'], done: COPY[pre + '.done'],
   };
 }
+// 인라인 오류 메시지 (브라우저 alert 대체) — 팝업 대신 폼 안에 부드럽게 표시
+function showFbErr(msg) { const e = $('#fbErr'); if (e) { e.textContent = msg; e.classList.add('show'); } }
+function hideFbErr() { const e = $('#fbErr'); if (e) { e.textContent = ''; e.classList.remove('show'); } }
+
 function openFb(mode) {
   fbMode = mode === 'suggest' ? 'suggest' : 'fb';
   const t = fbTexts(fbMode);
+  hideFbErr();
   $('#fbTitle').textContent = t.title;
   $('#fbDesc').textContent = t.desc;
   $('#fbPlace').placeholder = t.place;
@@ -302,9 +352,10 @@ const fbSend = $('#fbSend');
 if (fbSend) fbSend.addEventListener('click', async () => {
   const memo = $('#fbMemo').value.trim().slice(0, 500);
   const place = $('#fbPlace').value.trim().slice(0, 100);
+  hideFbErr();
   if (fbMode === 'suggest') {
-    if (!place) { alert('가게 이름을 입력해주세요.'); return; }
-  } else if (!memo) { alert('내용을 입력해주세요.'); return; }
+    if (!place) { showFbErr('가게 이름을 입력해주세요.'); return; }
+  } else if (!memo) { showFbErr('내용을 입력해주세요.'); return; }
   const payload = { place, memo, at: localAt(), t: FB_TOKEN };
   if (fbMode === 'suggest') { payload.kind = 'suggest'; payload.name = $('#fbName').value.trim().slice(0, 40); }
   fbSend.disabled = true;
@@ -317,7 +368,7 @@ if (fbSend) fbSend.addEventListener('click', async () => {
     $('#fbDone').style.display = '';
     setTimeout(closeFb, 1600);
   } catch (e) {
-    alert('전송에 실패했어요. 잠시 후 다시 시도해주세요.');
+    showFbErr('전송에 실패했어요. 잠시 후 다시 시도해주세요.');
   } finally {
     fbSend.disabled = false;
   }
@@ -347,7 +398,8 @@ if (starsEl) {
       $('#rateForm').style.display = 'none';
       $('#rateDone').style.display = '';
     } catch (e) {
-      alert('전송에 실패했어요. 잠시 후 다시 시도해주세요.');
+      const re = $('#rateErr');
+      if (re) { re.textContent = '전송에 실패했어요. 잠시 후 다시 시도해주세요.'; re.classList.add('show'); }
       btn.disabled = false;
     }
   });
@@ -392,7 +444,7 @@ function renderCollection(key, sub) {
   if (c.subs && !sub) sub = c.subs[0][0];
   const list = c.list(sub).slice().sort((a, b) => (a.d == null ? 9e9 : a.d) - (b.d == null ? 9e9 : b.d));
   const chips = c.subs ? '<div class="chips" style="margin:0 0 8px">' +
-    c.subs.map(([v, l]) => `<span class="chip${v === sub ? ' on' : ''}" data-coll="${key}" data-sub="${v}">${l}</span>`).join('') + '</div>' : '';
+    c.subs.map(([v, l]) => `<span class="chip${v === sub ? ' on' : ''}" role="button" tabindex="0" data-coll="${key}" data-sub="${v}">${l}</span>`).join('') + '</div>' : '';
   const noteHtml = c.note ? `<div class="notice" style="margin:0 0 6px">${c.note}</div>` : '';
   $('#secBody').innerHTML = chips + noteHtml + (list.length ? list.map(p => cardHTML(p)).join('') : '<p class="empty">해당하는 곳이 없어요.</p>');
 }
@@ -532,6 +584,53 @@ async function applySettings() {
     return false;   // 오프라인/장애 — 기본 문구 그대로
   }
 }
+
+// ── 접근성: div 기반 버튼(세그·칩·내비)을 키보드로 조작 가능하게 ──
+$$('.navbtn').forEach(function (el) { el.setAttribute('role', 'button'); if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0'); });
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+  const t = e.target.closest && e.target.closest('.seg, .chip, .navbtn');
+  if (!t) return;
+  e.preventDefault();
+  t.click();
+});
+
+// ── 도입 화면 (세션당 1회 · 시간대 인사 · 탭 또는 2.2초 후 메인으로) ──
+(function () {
+  const intro = document.getElementById('intro');
+  if (!intro) return;
+  // 이번 세션에 이미 봤으면 즉시 제거 (재방문 시 바로 메인)
+  let seen = false;
+  try { seen = sessionStorage.getItem('gsIntroSeen') === '1'; } catch (e) {}
+  if (seen) { intro.remove(); return; }
+  try { sessionStorage.setItem('gsIntroSeen', '1'); } catch (e) {}
+
+  // 시간대 인사 — 손님 기기 로컬시각(KST) 기준
+  const h = new Date().getHours();
+  let greet, emoji;
+  if (h >= 5 && h < 11) { greet = '좋은 아침이에요'; emoji = '🌅'; }
+  else if (h >= 11 && h < 17) { greet = '좋은 오후예요'; emoji = '☀️'; }
+  else if (h >= 17 && h < 21) { greet = '좋은 저녁이에요'; emoji = '🌇'; }
+  else { greet = '편안한 밤이에요'; emoji = '🌙'; }
+  const ap = h < 12 ? '오전' : '오후';
+  const h12 = ((h + 11) % 12) + 1;
+  const gEl = document.getElementById('introGreet');
+  const sEl = document.getElementById('introSub');
+  if (gEl) gEl.textContent = greet + ' ' + emoji;
+  if (sEl) sEl.textContent = '지금 고성은 ' + ap + ' ' + h12 + '시 무렵이에요';
+
+  document.body.classList.add('intro-lock');
+  let done = false;
+  function dismiss() {
+    if (done) return; done = true;
+    intro.classList.add('hide');
+    document.body.classList.remove('intro-lock');
+    setTimeout(function () { intro.remove(); }, 600);   // 페이드(0.55s) 후 DOM에서 제거
+  }
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const timer = setTimeout(dismiss, reduce ? 1400 : 2200);
+  intro.addEventListener('click', function () { clearTimeout(timer); dismiss(); });   // 탭하면 즉시 스킵
+})();
 
 // 시작: 스냅샷으로 즉시 그리고, 최신 편집이 도착하면 한 번 갱신
 renderContext();
