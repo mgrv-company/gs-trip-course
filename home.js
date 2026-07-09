@@ -600,6 +600,13 @@ document.addEventListener('visibilitychange', () => {
     return { target: el.tagName.toLowerCase() + cls, label: txt };
   }
 
+  // 어드민으로 돌아가기 (어드민에게만 보임, 좌하단)
+  const adminBtn = document.createElement('a');
+  adminBtn.id = 'cmAdmin';
+  adminBtn.href = 'admin.html';
+  adminBtn.textContent = '⚙️ 어드민';
+  document.body.appendChild(adminBtn);
+
   const dock = document.createElement('button');
   dock.id = 'cmDock';
   dock.type = 'button';
