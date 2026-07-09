@@ -233,6 +233,21 @@ function miniRowHTML(p) {
   </div>`;
 }
 
+// 노출 집계 — 추천 리스트에 보여진 가게들을 렌더마다 1회(디바운스) 비콘. 손님만(어드민 제외).
+// 클릭÷노출 = CTR(어드민 '인기 가게'에서 확인). 로드 시 여러 번 렌더돼도 디바운스로 1회만 전송.
+let _impTimer = null, _impItems = [];
+function queueImpressions(picks) {
+  try { if (localStorage.getItem('gstAdminSession')) return; } catch (e) { return; }   // 어드민 방문은 노출 집계 제외
+  _impItems = picks.map(p => ({ sid: String(p.s || ''), name: String(p.n || '') })).filter(x => x.sid || x.name);
+  if (_impTimer) clearTimeout(_impTimer);
+  _impTimer = setTimeout(function () {
+    if (!_impItems.length) return;
+    // text/plain 기본 → 프리플라이트 없는 단순요청. keepalive 로 탭 이동에도 전송 보장.
+    fetch(ADMIN_API + '/impression', { method: 'POST', keepalive: true, body: JSON.stringify({ items: _impItems.slice(0, 10) }) })
+      .catch(function (e) { console.debug('impression beacon 실패(무시 가능):', e && e.message); });
+  }, 1200);
+}
+
 let curSlot = 'auto';
 let curFilter = null;   // 선택된 옵션 태그 (식성/분위기), null=전체
 let recent = [];        // 최근 보여준 가게 이름 — 중복 방지(돌아가며 노출)
@@ -287,6 +302,7 @@ function renderNow() {
   $('#nowList').innerHTML = picks.length
     ? heroCardHTML(picks[0]) + (picks.length > 1 ? '<div class="subrec">이어서 추천</div>' + picks.slice(1).map(miniRowHTML).join('') : '')
     : `<p class="empty">지금 문 연 곳을 찾지 못했어요. 종류 탭이나 옵션을 바꿔보세요.</p>`;
+  if (picks.length) queueImpressions(picks);   // 보여준 가게 노출 집계(CTR용)
 }
 
 function renderContext() {

@@ -63,6 +63,13 @@ CREATE TABLE IF NOT EXISTS place_clicks (
   n    INTEGER NOT NULL DEFAULT 0
 );
 
+-- 가게별 노출수 (추천 리스트에 실제로 보여진 횟수 — 어드민 제외). 클릭수÷노출수 = CTR(진짜 관심도)
+CREATE TABLE IF NOT EXISTS place_impressions (
+  key  TEXT PRIMARY KEY,               -- sid (없으면 가게 이름), place_clicks 와 동일 키
+  name TEXT NOT NULL DEFAULT '',
+  n    INTEGER NOT NULL DEFAULT 0
+);
+
 -- 어드민 로그인 세션 (비밀번호 확인 후 발급되는 임시 열쇠)
 CREATE TABLE IF NOT EXISTS sessions (
   token      TEXT PRIMARY KEY,

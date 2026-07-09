@@ -356,8 +356,10 @@ async function loadViews() {
     const cmax = Math.max.apply(null, clicks.map(c => c.n).concat(1));
     $('#vClicks').innerHTML = clicks.slice(0, 20).map(c => {
       const w = Math.round(c.n / cmax * 100);
+      const ctr = c.imp > 0 ? Math.round(c.n / c.imp * 100) : null;   // 클릭÷노출 = 진짜 관심도(노출 편향 제거)
+      const ctrTxt = ctr != null ? ' · CTR ' + ctr + '% (노출 ' + c.imp + ')' : ' · 노출 집계 전';
       return '<div class="vbar"><span class="vname">' + esc(c.name || c.key) + '</span>' +
-             '<span class="vg" style="width:' + w + '%"></span><span class="vc">' + c.n + '</span></div>';
+             '<span class="vg" style="width:' + w + '%"></span><span class="vc">클릭 ' + c.n + ctrTxt + '</span></div>';
     }).join('');
   } catch (e) {
     $('#vClicks').textContent = '불러오기 실패: ' + e.message;
