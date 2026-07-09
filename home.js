@@ -154,7 +154,7 @@ function cardHTML(p, idx) {
   return `<div class="card">
     ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="">` : ''}
     <div class="body">
-      <div class="rk">${num}<span class="nm">${esc(p.n)}</span> ${badges.join(' ')}</div>
+      <div class="rk">${num}<span class="nm">${esc(p.n)}</span>${badges.length ? ` <span class="badges">${badges.join('')}</span>` : ''}</div>
       <div class="ct">${esc(p.c)} · ${moveText(p)} ${rv}</div>
       <div class="info">${lines.join('<br>')}</div>
       <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">네이버 지도에서 보기 →</a>` : ''}</div>
@@ -237,7 +237,7 @@ function renderNow() {
 function renderContext() {
   const now = new Date();
   const hh = String(now.getHours()).padStart(2, '0'), mm = String(now.getMinutes()).padStart(2, '0');
-  $('#ctxTime').textContent = `${DAY_NAMES[now.getDay()]}요일 ${hh}:${mm} 기준`;
+  $('#ctxTime').textContent = `${now.getMonth() + 1}월 ${now.getDate()}일 (${DAY_NAMES[now.getDay()]}) ${hh}:${mm} 기준`;
 }
 
 // 탭

@@ -52,7 +52,7 @@
   .hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,.05) 60%); }
   .hero .cap { position: absolute; left: 20px; right: 20px; bottom: 18px; color: #fff; z-index: 1; text-shadow: 0 1px 10px rgba(0,0,0,.4); }
-  .hero .cap b { font-size: 29px; font-weight: 800; letter-spacing: -0.7px; line-height: 1.1; }
+  .hero .cap b { font-size: 26px; font-weight: 800; letter-spacing: -0.6px; line-height: 1.15; }
   .hero .cap span { display: block; font-size: 12.5px; opacity: .94; margin-top: 7px; font-weight: 500; }
 
   .pill { display: inline-block; background: var(--green); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 11px; border-radius: 99px; }
@@ -75,7 +75,8 @@
   .card { background: #fff; border: 1px solid var(--line); border-radius: 18px; margin-top: 14px; box-shadow: 0 2px 14px rgba(31,30,29,.04); display: flex; gap: 13px; padding: 14px; align-items: flex-start; }
   .card .ph { width: 110px; height: 110px; border-radius: 12px; object-fit: cover; display: block; flex: 0 0 auto; }
   .card .body { flex: 1; min-width: 0; padding: 0; }
-  .card .rk { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .card .rk { display: flex; align-items: center; gap: 8px; row-gap: 5px; flex-wrap: wrap; }
+  .card .rk .badges { display: inline-flex; gap: 6px; flex-wrap: wrap; }
   .card .num { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 800; color: #fff; background: var(--green); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
   .card .nm { font-weight: 800; font-size: 17px; letter-spacing: -0.3px; }
   .card .ct { font-size: 12.5px; color: var(--gray); margin-top: 7px; }
@@ -89,7 +90,7 @@
   .b.open { background: var(--green-light); color: var(--green-deep); }
   .b.chk { background: var(--soft); color: var(--gray); }
   .empty { text-align: center; color: var(--gray); font-size: 14px; padding: 34px 10px; }
-  .notice { background: var(--green-light); color: #2f6b50; font-size: 12px; line-height: 1.65; border-radius: 12px; padding: 12px 14px; margin-top: 16px; }
+  .notice { background: var(--green-light); color: #175239; font-size: 13px; font-weight: 600; line-height: 1.7; border-radius: 12px; padding: 13px 15px; margin-top: 16px; }
 
   /* 디자인 코멘트 모드 (어드민 전용 — 손님에겐 안 뜸) */
   #cmDock { position: fixed; right: 14px; bottom: 14px; z-index: 60; border: 0; border-radius: 999px; padding: 11px 15px; font-size: 13px; font-weight: 800; background: #1f1e1d; color: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.25); cursor: pointer; }
@@ -120,9 +121,10 @@
   .feedback p { font-size: 12.5px; color: #50514a; line-height: 1.7; margin-bottom: 13px; }
   .fbbtn { width: 100%; background: var(--ink); color: #fff; border: 0; border-radius: 12px; padding: 13px; font-size: 14px; font-weight: 700; cursor: pointer; }
   .fbbtn.ghost2 { background: #fff; border: 1.5px solid var(--green); color: var(--green-deep); margin-top: 8px; }
-  .stars { display: flex; gap: 4px; justify-content: center; }
-  .star { font-size: 31px; line-height: 1; background: none; border: 0; color: #d8d7d2; cursor: pointer; padding: 4px 5px; }
-  .star.on { color: var(--gold); }
+  .stars { display: flex; gap: 1px; justify-content: center; }
+  .star { font-size: 27px; line-height: 1; background: none; border: 0; cursor: pointer; padding: 4px 2px; filter: grayscale(1); opacity: .45; transition: filter .12s, opacity .12s, transform .12s; }
+  .star.on { filter: none; opacity: 1; }
+  .star:active { transform: scale(1.15); }
   #rateForm textarea { width: 100%; border: 1.5px solid var(--line); border-radius: 10px; padding: 11px 12px; font-size: 14px; font-family: inherit; margin: 11px 0 10px; min-height: 60px; resize: vertical; color: var(--ink); }
   .done-line { font-size: 14px; font-weight: 700; color: var(--green-deep); padding: 6px 0 2px; }
 
@@ -234,7 +236,7 @@
   <div class="feedback" id="rateCard">
     <p><b data-copy="rating.title">이 추천 서비스는 어떠셨어요?</b><br><span data-copy="rating.body" style="white-space:pre-line">원하는 별점을 누르고, 아래 '별점 추가하기' 버튼을 눌러주세요.</span></p>
     <div class="stars" id="stars">
-      <button class="star" data-v="1">★</button><button class="star" data-v="2">★</button><button class="star" data-v="3">★</button><button class="star" data-v="4">★</button><button class="star" data-v="5">★</button>
+      <button class="star" data-v="1">⭐</button><button class="star" data-v="2">⭐</button><button class="star" data-v="3">⭐</button><button class="star" data-v="4">⭐</button><button class="star" data-v="5">⭐</button>
     </div>
     <div id="rateForm" style="display:none">
       <textarea id="rateMemo" data-copy-ph="rating.placeholder" placeholder="어떤 부분이 도움이 되었는지 적어주세요. 혹은 필요한 정보가 있다면 기재해주셔도 좋습니다."></textarea>
@@ -273,7 +275,7 @@
 
 <script src="places.js?v=7"></script>
 <script src="tour.js?v=1"></script>
-<script src="home.js?v=34"></script>
+<script src="home.js?v=35"></script>
 <!-- PC 배경 순환 스크립트는 home.js 끝으로 이동 (CSP 강화: 인라인 스크립트 금지) -->
 </body>
 </html>
