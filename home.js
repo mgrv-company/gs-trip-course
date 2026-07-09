@@ -5,6 +5,8 @@ const $ = (s, el) => (el || document).querySelector(s);
 const $$ = (s, el) => Array.from((el || document).querySelectorAll(s));
 // HTML 이스케이프 — 데이터(가게명·메모 등)를 화면에 꽂기 전 특수문자 무력화 (저장형 XSS 방지)
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// 이미지 URL http→https 승격 (CSP img-src가 http 차단 → 사진 누락 방지)
+const httpsUp = u => String(u == null ? '' : u).replace(/^http:\/\//i, 'https://');
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 const LIMIT = 3;                 // 추천 개수
 // 든든한 한 끼 옵션 — 통합 카테고리 (라벨 → 포함 식성 태그)
@@ -187,40 +189,52 @@ function tourCardHTML(p) {
 // 원픽 히어로 카드 — 추천 1위(큰 사진 + CA 코멘트)
 function heroCardHTML(p) {
   const open = openNow(p, new Date());
-  const rec = p.ca ? '<span class="rec-tag">강추</span>' : '';
+  const rec = p.ca ? '<span class="rec-tag">추천</span>' : '';
   const openTxt = open === true ? '<span class="op">● 영업중</span> · ' : (open === null ? '<span class="op chk">확인필요</span> · ' : '');
-  const rv = p.rv ? `<span class="num-mono">★ ${esc(p.rv[0])}</span> <span class="dimc">(${esc(p.rv[1])})</span> · ` : '';
   const wait = p.w === 2 ? ' · <span class="wt">웨이팅 잦음</span>' : '';
+  // 1줄: 영업상태 + 거리 + 영업시간 (지금·어디로 가는지)
+  const line1 = `<div class="hmeta">${openTxt}<span class="num-mono">${moveText(p)}</span> · <span class="num-mono">${esc(hoursNowText(p))}</span>${wait}</div>`;
+  // 2줄: 별점 + 메뉴 (무엇을 얼마에)
+  const rv = p.rv ? `<span class="num-mono">★ ${esc(p.rv[0])}</span> <span class="dimc">(${esc(p.rv[1])})</span>` : '';
+  const menu = (p.m && p.m.length) ? `${p.rv ? ' · ' : ''}🍽 ${p.m.map(esc).join(' · ')}` : '';
+  const line2 = (rv || menu) ? `<div class="hmeta2">${rv}${menu}</div>` : '';
   const memo = p.note || p.mr;
   const cmt = memo ? `<p class="hcmt">${esc(memo)}</p>` : '';
   const link = p.u ? `<a class="hlink" href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">네이버 지도에서 보기 →</a>` : '';
   return `<article class="hcard">
-    ${p.img ? `<div class="hpic"><img src="${esc(p.img)}" loading="lazy" alt=""><span class="htag">오늘의 원픽</span></div>` : ''}
+    ${p.img ? `<div class="hpic"><img src="${esc(httpsUp(p.img))}" loading="lazy" alt=""><span class="htag">PICK</span></div>` : ''}
     <div class="hbd">
       <div class="hnm">${esc(p.n)}${rec}</div>
-      <div class="hmeta">${openTxt}${rv}<span class="num-mono">${moveText(p)}</span> · <span class="num-mono">${esc(hoursNowText(p))}</span>${wait}</div>
-      ${cmt}${link}
+      ${line1}${line2}${cmt}${link}
     </div>
   </article>`;
 }
 
-// 미니멀 행 — 추천 2위 이하(작은 썸네일 + CA 한 줄). 행 전체가 지도 링크.
+// 미니 행 — 추천 2위 이하. 접혀 있다가 클릭하면 크게 펼쳐짐(사진·메뉴·코멘트·지도).
 function miniRowHTML(p) {
   const open = openNow(p, new Date());
   const openBadge = open === true ? '<span class="op sm">영업중</span>' : (open === null ? '<span class="op sm chk">확인필요</span>' : '');
-  const rec = p.ca ? '<span class="rec-tag sm">강추</span>' : '';
+  const rec = p.ca ? '<span class="rec-tag sm">추천</span>' : '';
   const rv = p.rv ? `<span class="num-mono">★ ${esc(p.rv[0])}</span> · ` : '';
   const wait = p.w === 2 ? ' · <span class="wt">웨이팅</span>' : '';
+  const menu = (p.m && p.m.length) ? `<div class="dmenu">🍽 ${p.m.map(esc).join(' · ')}</div>` : '';
   const memo = p.note || p.mr;
-  const cmt = memo ? `<div class="mcmt">${esc(memo)}</div>` : '';
-  const inner = `${p.img ? `<img class="mph" src="${esc(p.img)}" loading="lazy" alt="">` : ''}<div class="mbd">
-      <div class="mtop"><span class="mnm">${esc(p.n)}${rec}</span>${openBadge}</div>
-      <div class="mmeta">${rv}<span class="num-mono">${moveText(p)}</span> · <span class="num-mono">${esc(hoursNowText(p))}</span>${wait}</div>
-      ${cmt}
-    </div>`;
-  return p.u
-    ? `<a class="mrow" href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">${inner}</a>`
-    : `<div class="mrow">${inner}</div>`;
+  const cmt = memo ? `<p class="dcmt">${esc(memo)}</p>` : '';
+  const link = p.u ? `<a class="dlink" href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">네이버 지도에서 보기 →</a>` : '';
+  return `<div class="mitem">
+    <div class="mrow" role="button" tabindex="0" aria-expanded="false">
+      ${p.img ? `<img class="mph" src="${esc(httpsUp(p.img))}" loading="lazy" alt="">` : ''}
+      <div class="mbd">
+        <div class="mtop"><span class="mnm">${esc(p.n)}${rec}</span>${openBadge}</div>
+        <div class="mmeta">${rv}<span class="num-mono">${moveText(p)}</span> · <span class="num-mono">${esc(hoursNowText(p))}</span>${wait}</div>
+      </div>
+      <span class="mchev" aria-hidden="true">▾</span>
+    </div>
+    <div class="mdetail">
+      ${p.img ? `<div class="dpic"><img src="${esc(httpsUp(p.img))}" loading="lazy" alt=""></div>` : ''}
+      ${menu}${cmt}${link}
+    </div>
+  </div>`;
 }
 
 let curSlot = 'auto';
@@ -308,6 +322,24 @@ $('#optChips').addEventListener('click', e => {
 
 // 다른 곳 보기 (재추첨)
 $('#shuffleBtn').addEventListener('click', renderNow);
+
+// 이어서 추천: 미니 행 클릭 → 접힘/펼침 (지도 링크 클릭은 이동 그대로). #nowList는 유지되므로 위임 1회.
+$('#nowList').addEventListener('click', function (e) {
+  if (e.target.closest('a')) return;
+  const row = e.target.closest('.mrow');
+  if (!row) return;
+  const item = row.closest('.mitem');
+  if (!item) return;
+  const opened = item.classList.toggle('open');
+  row.setAttribute('aria-expanded', opened ? 'true' : 'false');
+});
+$('#nowList').addEventListener('keydown', function (e) {
+  if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+  const row = e.target.closest('.mrow');
+  if (!row) return;
+  e.preventDefault();
+  row.click();
+});
 
 // 피드백/추천 — 같은 팝업을 모드에 따라 문구만 바꿔 사용 (페이지 안에서 전송, 이동 없음)
 let fbMode = 'fb';   // 'fb' 가게 피드백 / 'suggest' 좋았던 곳 추천
@@ -612,12 +644,34 @@ document.addEventListener('keydown', function (e) {
   else if (h >= 11 && h < 17) { greet = '좋은 오후예요'; emoji = '☀️'; }
   else if (h >= 17 && h < 21) { greet = '좋은 저녁이에요'; emoji = '🌇'; }
   else { greet = '편안한 밤이에요'; emoji = '🌙'; }
-  const ap = h < 12 ? '오전' : '오후';
-  const h12 = ((h + 11) % 12) + 1;
   const gEl = document.getElementById('introGreet');
   const sEl = document.getElementById('introSub');
   if (gEl) gEl.textContent = greet + ' ' + emoji;
-  if (sEl) sEl.textContent = '지금 고성은 ' + ap + ' ' + h12 + '시 무렵이에요';
+  if (sEl) sEl.textContent = '고성 날씨 불러오는 중…';
+
+  // 지금 고성 날씨 — Open-Meteo(무료·API키 없음·CORS 허용). CSP connect-src에 api.open-meteo.com 허용.
+  function wmo(code) {
+    if (code === 0) return ['맑음', '☀️'];
+    if (code === 1) return ['대체로 맑음', '🌤'];
+    if (code === 2) return ['구름 조금', '⛅'];
+    if (code === 3) return ['흐림', '☁️'];
+    if (code === 45 || code === 48) return ['안개', '🌫'];
+    if (code >= 51 && code <= 57) return ['이슬비', '🌦'];
+    if (code >= 61 && code <= 67) return ['비', '🌧'];
+    if (code >= 71 && code <= 77) return ['눈', '🌨'];
+    if (code >= 80 && code <= 82) return ['소나기', '🌦'];
+    if (code === 85 || code === 86) return ['소낙눈', '🌨'];
+    if (code >= 95) return ['천둥번개', '⛈'];
+    return ['', '🌡'];
+  }
+  fetch('https://api.open-meteo.com/v1/forecast?latitude=38.28&longitude=128.52&current=temperature_2m,weather_code,wind_speed_10m&wind_speed_unit=ms&timezone=Asia%2FSeoul')
+    .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+    .then(function (j) {
+      const c = j.current, t = Math.round(c.temperature_2m), w = wmo(c.weather_code);
+      const wind = c.wind_speed_10m >= 9 ? ' · 바람 많이 불어요 💨' : '';
+      if (sEl) sEl.textContent = '지금 고성 ' + t + '°C · ' + w[0] + ' ' + w[1] + wind;
+    })
+    .catch(function () { if (sEl) sEl.textContent = '오늘도 즐거운 고성 여행 되세요'; });
 
   document.body.classList.add('intro-lock');
   let done = false;
@@ -628,7 +682,7 @@ document.addEventListener('keydown', function (e) {
     setTimeout(function () { intro.remove(); }, 600);   // 페이드(0.55s) 후 DOM에서 제거
   }
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const timer = setTimeout(dismiss, reduce ? 1400 : 2200);
+  const timer = setTimeout(dismiss, reduce ? 2600 : 4200);   // 좀 더 여유있게(날씨 볼 시간)
   intro.addEventListener('click', function () { clearTimeout(timer); dismiss(); });   // 탭하면 즉시 스킵
 })();
 
