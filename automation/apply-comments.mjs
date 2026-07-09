@@ -33,7 +33,10 @@ function d1raw(argstr) {
 }
 // 읽기: SQL 은 ASCII(상태값/id만) → argv 안전
 function d1json(sql) {
-  const j = JSON.parse(d1raw('--json --command "' + sql + '"'));
+  const out = d1raw('--json --command "' + sql + '"');
+  // wrangler/npx 가 stdout 앞뒤에 배너·경고를 섞어도 JSON 배열만 도려내 파싱 (첫 '[' ~ 마지막 ']')
+  const i = out.indexOf('['), k = out.lastIndexOf(']');
+  const j = JSON.parse(i >= 0 && k > i ? out.slice(i, k + 1) : out);
   return (j[0] && j[0].results) || [];
 }
 // 쓰기: SQL 을 UTF-8 파일로 저장 후 --file (한글 안전)
@@ -71,6 +74,7 @@ if (cmd === 'apply') {
   const appliedIds = [], reviewIds = [], applog = [], reviewlog = [];
 
   for (const a of (plan.apply || [])) {
+    if (!Number.isInteger(a.id)) continue;   // id 없는 항목은 상태를 못 바꾸니 적용 안 함 → 아래 leftover 스윕이 review 로 회수
     if (a.type === 'copy' && COPY_KEYS.has(a.key) && typeof a.value === 'string' && a.value.trim()) {
       s.copy[a.key] = a.value.slice(0, 400);
       appliedIds.push(a.id); applog.push('• ' + a.key + ' → ' + a.value.slice(0, 60));
@@ -81,14 +85,21 @@ if (cmd === 'apply') {
   }
   for (const r of (plan.review || [])) { if (r.id) { reviewIds.push(r.id); reviewlog.push('• ' + (r.reason || '검토 필요')); } }
 
+  const now = new Date().toISOString();
   if (appliedIds.length) {
     const json = JSON.stringify({ copy: s.copy, theme: s.theme });
-    d1file("INSERT INTO settings (key,value,updated_at) VALUES ('site','" + sqlEsc(json) + "','auto') " +
+    d1file("INSERT INTO settings (key,value,updated_at) VALUES ('site','" + sqlEsc(json) + "','" + now + "') " +
            "ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at;");
   }
-  const now = new Date().toISOString();
-  if (appliedIds.length) d1file("UPDATE annotations SET status='done', resolved_at='" + now + "' WHERE id IN (" + uniq(appliedIds).join(',') + ");");
-  if (reviewIds.length) d1file("UPDATE annotations SET status='review' WHERE id IN (" + uniq(reviewIds).join(',') + ");");
+  const ints = arr => uniq(arr).filter(Number.isInteger);
+  if (ints(appliedIds).length) d1file("UPDATE annotations SET status='done', resolved_at='" + now + "' WHERE id IN (" + ints(appliedIds).join(',') + ");");
+  if (ints(reviewIds).length) d1file("UPDATE annotations SET status='review' WHERE id IN (" + ints(reviewIds).join(',') + ");");
+  // 남은 ready(자동 분류 실패·모델 누락 등)는 review 로 회수 → 매일 재처리·재알림 무한루프 방지
+  const leftover = d1json("SELECT id, note FROM annotations WHERE status='ready'");
+  if (leftover.length) {
+    d1file("UPDATE annotations SET status='review' WHERE status='ready';");
+    leftover.forEach(r => { reviewIds.push(r.id); reviewlog.push('• (자동 분류 안 됨 — 확인 필요) ' + String(r.note).slice(0, 50)); });
+  }
 
   const L = [];
   L.push(USER_MENTION + ' 📌 *트립코스 디자인 코멘트 자동 반영*');

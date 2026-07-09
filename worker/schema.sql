@@ -56,6 +56,13 @@ CREATE TABLE IF NOT EXISTS pageviews (
   n   INTEGER NOT NULL DEFAULT 0
 );
 
+-- 가게별 클릭수 (손님이 카드의 '네이버 지도에서 보기'를 누른 횟수 — 어드민 본인 제외)
+CREATE TABLE IF NOT EXISTS place_clicks (
+  key  TEXT PRIMARY KEY,               -- sid (없으면 가게 이름)
+  name TEXT NOT NULL DEFAULT '',
+  n    INTEGER NOT NULL DEFAULT 0
+);
+
 -- 어드민 로그인 세션 (비밀번호 확인 후 발급되는 임시 열쇠)
 CREATE TABLE IF NOT EXISTS sessions (
   token      TEXT PRIMARY KEY,

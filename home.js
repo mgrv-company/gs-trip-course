@@ -157,7 +157,7 @@ function cardHTML(p, idx) {
       <div class="rk">${num}<span class="nm">${esc(p.n)}</span> ${badges.join(' ')}</div>
       <div class="ct">${esc(p.c)} · ${moveText(p)} ${rv}</div>
       <div class="info">${lines.join('<br>')}</div>
-      <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener">네이버 지도에서 보기 →</a>` : ''}</div>
+      <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">네이버 지도에서 보기 →</a>` : ''}</div>
     </div>
   </div>`;
 }
@@ -173,7 +173,7 @@ function tourCardHTML(p) {
       <div class="rk"><span class="nm">${esc(p.n)}</span></div>
       <div class="ct">${p.d != null ? moveText({ d: p.d }) : ''}</div>
       <div class="info">${lines.join('<br>')}</div>
-      <div class="links"><a href="${esc(p.u)}" target="_blank" rel="noopener">네이버 지도에서 보기 →</a></div>
+      <div class="links"><a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-name="${esc(p.n || '')}">네이버 지도에서 보기 →</a></div>
     </div>
   </div>`;
 }
@@ -569,9 +569,22 @@ document.addEventListener('visibilitychange', () => {
     const key = 'gsHit:' + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
     if (localStorage.getItem(key)) return;                 // 오늘 이미 셌으면 skip(새로고침 부풀리기 방지)
     localStorage.setItem(key, '1');
-    fetch(ADMIN_API + '/view', { method: 'POST', keepalive: true }).catch(function () {});
-  } catch (e) {}
+    fetch(ADMIN_API + '/view', { method: 'POST', keepalive: true }).catch(function (e) { console.debug('view beacon 실패(무시 가능):', e && e.message); });
+  } catch (e) { console.debug('view beacon skip:', e && e.message); }   // localStorage 접근 불가(사생활모드 등)면 조용히 넘어가되 로그는 남김
 })();
+
+// ── 가게 클릭 집계 (카드의 '네이버 지도에서 보기' 클릭, 손님만) ──
+document.addEventListener('click', function (e) {
+  const a = e.target.closest('a[data-clk]');
+  if (!a) return;
+  try { if (localStorage.getItem('gstAdminSession')) return; } catch (e2) {}   // 어드민 본인 클릭은 제외
+  const sid = a.getAttribute('data-sid') || '';
+  const name = a.getAttribute('data-name') || '';
+  if (!sid && !name) return;
+  // text/plain 기본 → 프리플라이트 없는 단순요청. keepalive 로 새 탭 열려도 전송 보장.
+  fetch(ADMIN_API + '/click', { method: 'POST', keepalive: true, body: JSON.stringify({ sid: sid, name: name }) })
+    .catch(function (err) { console.debug('click beacon 실패(무시 가능):', err && err.message); });
+}, true);
 
 // ── 디자인 코멘트 모드 (어드민 전용) ─────────────────
 // 어드민 로그인(같은 도메인이라 토큰 공유) 상태면, 메인 페이지에서 요소를 클릭해 메모를 남길 수 있음.
@@ -619,16 +632,19 @@ document.addEventListener('visibilitychange', () => {
 
   function renderDock() { dock.textContent = mode ? '✏️ 코멘트 켜짐' : '✏️ 코멘트'; dock.classList.toggle('on', mode); }
 
+  let loadErr = '';
   function renderPanel() {
-    const openN = list.filter(a => a.status !== 'ready').length;   // 아직 '전송' 안 한 작성분
-    const items = list.length ? list.map(a => {
-      const st = a.status === 'ready'
-        ? '<span class="cmSt ready">반영 대기</span>'
-        : '<span class="cmSt">작성</span>';
-      return '<div class="cmItem"><div class="cmNote">' + esc(a.note) + '</div>' +
-        '<div class="cmMeta">📍 ' + esc(a.label || a.target) + '</div>' +
-        '<div class="cmRow">' + st + '<button class="cmDel" type="button" data-id="' + a.id + '">삭제</button></div></div>';
-    }).join('') : '<div class="cmEmpty">코멘트가 없어요. 아래 "요소 클릭 모드"를 켜고 화면을 눌러보세요.</div>';
+    // 전송(반영 요청) 대상은 '작성(open)'만. 'ready'는 반영 대기, 'review'는 자동반영이 코드변경으로 분류한 것.
+    const openN = list.filter(a => a.status === 'open').length;
+    const STLABEL = { ready: '<span class="cmSt ready">반영 대기</span>', review: '<span class="cmSt review">검토 필요</span>' };
+    const items = list.length ? list.map(a =>
+      '<div class="cmItem"><div class="cmNote">' + esc(a.note) + '</div>' +
+      '<div class="cmMeta">📍 ' + esc(a.label || a.target) + '</div>' +
+      '<div class="cmRow">' + (STLABEL[a.status] || '<span class="cmSt">작성</span>') +
+      '<button class="cmDel" type="button" data-id="' + a.id + '">삭제</button></div></div>'
+    ).join('') : (loadErr
+      ? '<div class="cmEmpty">' + esc(loadErr) + '</div>'
+      : '<div class="cmEmpty">코멘트가 없어요. 아래 "요소 클릭 모드"를 켜고 화면을 눌러보세요.</div>');
     panel.innerHTML =
       '<div class="cmHead"><b>디자인 코멘트 ' + list.length + '</b>' +
       '<button id="cmMode" type="button">' + (mode ? '요소 클릭 모드 · 켜짐' : '요소 클릭 모드 켜기') + '</button>' +
@@ -638,7 +654,12 @@ document.addEventListener('visibilitychange', () => {
       '<span class="cmHint">누르면 다음 자동 반영(하루 1회) 때 처리돼요</span></div>';
   }
 
-  async function load() { try { list = (await apiA('/admin/annotations')).annotations || []; } catch (e) { list = []; } renderPanel(); renderDock(); }
+  // 실패해도 기존 목록을 지우지 않고 사유를 표시 (빈 목록=코멘트 없음 으로 오해 방지)
+  async function load() {
+    try { list = (await apiA('/admin/annotations')).annotations || []; loadErr = ''; }
+    catch (e) { loadErr = '코멘트 불러오기 실패: ' + e.message + ' — 저장된 코멘트가 사라진 게 아니라 조회만 실패했어요.'; }
+    renderPanel(); renderDock();
+  }
 
   function ask(el) {
     const d = describe(el);
@@ -653,7 +674,7 @@ document.addEventListener('visibilitychange', () => {
   // 코멘트 모드일 때: 어떤 클릭이든 가로채서(내비게이션 방지) 메모 입력
   document.addEventListener('click', function (e) {
     if (!mode) return;
-    if (e.target.closest('#cmPanel') || e.target.closest('#cmDock')) return;
+    if (e.target.closest('#cmPanel') || e.target.closest('#cmDock') || e.target.closest('#cmAdmin')) return;
     e.preventDefault(); e.stopPropagation();
     ask(e.target);
   }, true);
@@ -675,7 +696,7 @@ document.addEventListener('visibilitychange', () => {
       return;
     }
     const del = e.target.closest('.cmDel');
-    if (del) { apiA('/admin/annotations?id=' + del.dataset.id, { method: 'DELETE' }).then(load).catch(function () {}); }
+    if (del) { apiA('/admin/annotations?id=' + del.dataset.id, { method: 'DELETE' }).then(load).catch(function (e) { alert('삭제 실패: ' + e.message); }); }
   });
 
   load();   // 시작 시 개수 파악(백그라운드)

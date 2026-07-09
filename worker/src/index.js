@@ -11,8 +11,16 @@
 const SESSION_DAYS = 60;            // 어드민 로그인 유지 기간
 const FB_LIMIT = 15;                // 피드백: 10분당 최대 건수
 const LOGIN_LIMIT = 10;             // 로그인 시도: IP당 10분에 최대 횟수 (무차별 대입 방지)
+const VIEW_LIMIT = 40;             // 조회수 집계: IP당 10분 최대 (부풀리기·D1 쓰기 남용 방지)
+const SEND_LIMIT = 12;             // 코멘트 반영요청: IP당 10분 최대 (슬랙 스팸 방지)
+const CLICK_LIMIT = 120;           // 가게 클릭 집계: IP당 10분 최대 (남용 방지, 정상 사용엔 넉넉)
 const PUB_CACHE_MS = 15000;         // 공개 읽기 메모리 캐시 (남용시 무료한도 소진 방지 — 어드민 저장하면 즉시 비움)
 const SLACK_BOT_NAME = '고성 트립 코스 봇';  // 이 서비스가 #gs-routine 에 보내는 슬랙 알림 표시 이름 (공용 웹훅이라 이름만 덮어씀)
+
+// KST 날짜(YYYY-MM-DD) — 조회수 버킷 등 날짜 집계에 공용 사용
+const kstDay = () => new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+// 슬랙 특수문법 무력화 — <!channel> 전체알림 장난·가짜 링크 방지 (모든 슬랙 전송 경로 공용)
+const slackEsc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 let pubCache = {};                  // { 경로: { data, at } } — 인스턴스 메모리 캐시
 
@@ -148,8 +156,23 @@ export default {
       // ── 공개: 조회수 집계 (손님 페이지 로드 시 1회) ──────────
       // 브라우저당 하루 1회는 프론트(localStorage)에서 거른다. KST 날짜별로 누적.
       if (path === '/view' && req.method === 'POST') {
-        const day = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);   // KST
+        const ip = req.headers.get('CF-Connecting-IP') || 'local';
+        if (await overLimit(db, 'view@' + ip, VIEW_LIMIT)) return json(req, { ok: true });   // 초과 시 집계 생략(응답은 동일)
+        const day = kstDay();
         await db.prepare('INSERT INTO pageviews (day, n) VALUES (?, 1) ON CONFLICT(day) DO UPDATE SET n = n + 1').bind(day).run();
+        return json(req, { ok: true });
+      }
+
+      // ── 공개: 가게 클릭 집계 (카드의 '네이버 지도에서 보기' 클릭) ──
+      if (path === '/click' && req.method === 'POST') {
+        const ip = req.headers.get('CF-Connecting-IP') || 'local';
+        if (await overLimit(db, 'click@' + ip, CLICK_LIMIT)) return json(req, { ok: true });
+        let b; try { b = await req.json(); } catch { return json(req, { ok: true }); }
+        const key = String(b.sid || b.name || '').slice(0, 80).trim();
+        if (!key) return json(req, { ok: true });
+        const name = String(b.name || '').slice(0, 100);
+        await db.prepare('INSERT INTO place_clicks (key, name, n) VALUES (?, ?, 1) ON CONFLICT(key) DO UPDATE SET n = n + 1, name = excluded.name')
+          .bind(key, name).run();
         return json(req, { ok: true });
       }
 
@@ -159,8 +182,6 @@ export default {
         let data;
         try { data = await req.json(); } catch { return ok; }
         if (data.t !== env.FB_TOKEN) return ok;                       // (1) 토큰 검증
-        // 슬랙 특수문법 무력화 — <!channel> 전체알림 장난·가짜 링크 방지
-        const slackEsc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
         // 서비스 별점 평가 (kind: 'rating') — DB 보관(집계용) + 슬랙 알림
         if (data.kind === 'rating') {
@@ -404,12 +425,13 @@ export default {
       // 어드민: 반영 요청(전송) — open 코멘트를 ready 로 표시하고 #gs-routine 에 알림.
       // 실제 반영은 하루 1회 무인 실행이 ready 만 처리한다.
       if (path === '/admin/annotations/send' && req.method === 'POST') {
+        const ip = req.headers.get('CF-Connecting-IP') || 'local';
+        if (await overLimit(db, 'send@' + ip, SEND_LIMIT)) return json(req, { error: '잠시 후 다시 시도해주세요.' }, 429);
         const open = await db.prepare("SELECT label, note FROM annotations WHERE status = 'open'").all();
         const n = open.results.length;
         if (n === 0) return json(req, { count: 0 });
         await db.prepare("UPDATE annotations SET status = 'ready' WHERE status = 'open'").run();
         if (env.SLACK_WEBHOOK) {
-          const slackEsc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
           const lines = open.results.slice(0, 15)
             .map(r => '• ' + slackEsc(r.note) + (r.label ? '  _(' + slackEsc(String(r.label)).slice(0, 40) + ')_' : '')).join('\n');
           const text = '<@U0AG0G63PTR> 📌 *트립코스 디자인 코멘트 ' + n + '건 반영 요청됨*\n\n' + lines
@@ -424,11 +446,17 @@ export default {
 
       // 어드민: 조회수 (오늘/누적/최근 일자별) — 나만 보기
       if (path === '/admin/views' && req.method === 'GET') {
-        const day = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+        const day = kstDay();
         const total = await db.prepare('SELECT COALESCE(SUM(n),0) AS t FROM pageviews').first();
-        const today = await db.prepare('SELECT n FROM pageviews WHERE day = ?').bind(day).first();
         const days = await db.prepare('SELECT day, n FROM pageviews ORDER BY day DESC LIMIT 30').all();
-        return json(req, { total: total?.t || 0, today: today?.n || 0, days: days.results });
+        const todayRow = days.results.find(r => r.day === day);   // 오늘치는 days 첫 구간에 이미 있음(별도 쿼리 불필요)
+        return json(req, { total: total?.t || 0, today: todayRow ? todayRow.n : 0, days: days.results });
+      }
+
+      // 어드민: 가게별 클릭수 (많이 눌린 순) — 나만 보기
+      if (path === '/admin/clicks' && req.method === 'GET') {
+        const rows = await db.prepare('SELECT key, name, n FROM place_clicks ORDER BY n DESC LIMIT 30').all();
+        return json(req, { clicks: rows.results });
       }
 
       // 어드민: 코멘트 삭제

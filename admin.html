@@ -64,6 +64,7 @@
   .vstat .vl { font-size: 12px; color: var(--gray); margin-top: 2px; }
   .vbar { display: flex; align-items: center; gap: 8px; margin: 5px 0; }
   .vbar .vd { width: 44px; color: var(--gray); }
+  .vbar .vname { width: 118px; color: var(--ink); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .vbar .vg { height: 10px; background: var(--green); border-radius: 5px; min-width: 2px; }
   .vbar .vc { font-weight: 700; color: var(--ink); }
 
@@ -252,12 +253,17 @@
         </div>
         <div id="vDays" class="small" style="margin-top:6px">불러오는 중…</div>
       </div>
+      <div class="card">
+        <h2>인기 가게 (클릭 순)</h2>
+        <p class="small">손님이 카드의 '네이버 지도에서 보기'를 누른 횟수예요. 어떤 가게에 관심이 많은지 알 수 있어요. (어드민 클릭 제외)</p>
+        <div id="vClicks" class="small">불러오는 중…</div>
+      </div>
     </div>
   </div>
 </div>
 
 <div id="toast"></div>
 <script src="places.js?v=7"></script>
-<script src="admin.js?v=8"></script>
+<script src="admin.js?v=9"></script>
 </body>
 </html>

@@ -335,16 +335,32 @@ async function loadViews() {
     $('#vToday').textContent = v.today ?? 0;
     $('#vTotal').textContent = v.total ?? 0;
     const days = v.days || [];
-    if (!days.length) { $('#vDays').textContent = '아직 방문 기록이 없어요.'; return; }
-    const max = Math.max.apply(null, days.map(d => d.n).concat(1));
-    $('#vDays').innerHTML = days.slice(0, 14).map(d => {
-      const md = String(d.day).slice(5).replace('-', '/');
-      const w = Math.round(d.n / max * 100);
-      return '<div class="vbar"><span class="vd">' + md + '</span>' +
-             '<span class="vg" style="width:' + w + '%"></span><span class="vc">' + d.n + '</span></div>';
-    }).join('');
+    if (!days.length) {
+      $('#vDays').textContent = '아직 방문 기록이 없어요.';
+    } else {
+      const max = Math.max.apply(null, days.map(d => d.n).concat(1));
+      $('#vDays').innerHTML = days.slice(0, 14).map(d => {
+        const md = String(d.day).slice(5).replace('-', '/');
+        const w = Math.round(d.n / max * 100);
+        return '<div class="vbar"><span class="vd">' + md + '</span>' +
+               '<span class="vg" style="width:' + w + '%"></span><span class="vc">' + d.n + '</span></div>';
+      }).join('');
+    }
   } catch (e) {
     $('#vDays').textContent = '불러오기 실패: ' + e.message;
+  }
+  // 인기 가게 (클릭 순)
+  try {
+    const clicks = (await api('/admin/clicks')).clicks || [];
+    if (!clicks.length) { $('#vClicks').textContent = '아직 클릭 기록이 없어요.'; return; }
+    const cmax = Math.max.apply(null, clicks.map(c => c.n).concat(1));
+    $('#vClicks').innerHTML = clicks.slice(0, 20).map(c => {
+      const w = Math.round(c.n / cmax * 100);
+      return '<div class="vbar"><span class="vname">' + esc(c.name || c.key) + '</span>' +
+             '<span class="vg" style="width:' + w + '%"></span><span class="vc">' + c.n + '</span></div>';
+    }).join('');
+  } catch (e) {
+    $('#vClicks').textContent = '불러오기 실패: ' + e.message;
   }
 }
 
