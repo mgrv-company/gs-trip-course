@@ -318,7 +318,6 @@ $$('.tab').forEach(t => t.addEventListener('click', () => {
   $$('.tab').forEach(x => x.classList.remove('on'));
   t.classList.add('on');
   $('#tabManage').classList.toggle('hidden', t.dataset.tab !== 'manage');
-  $('#tabAdd').classList.toggle('hidden', t.dataset.tab !== 'add');
   $('#tabCopy').classList.toggle('hidden', t.dataset.tab !== 'copy');
   $('#tabViews').classList.toggle('hidden', t.dataset.tab !== 'views');
   if (t.dataset.tab === 'copy' && !settingsLoaded) {
@@ -327,44 +326,88 @@ $$('.tab').forEach(t => t.addEventListener('click', () => {
   if (t.dataset.tab === 'views') loadViews();
 }));
 
-// ── 조회수 (나만 보기) ───────────────────────────────
+// ── 대시보드 (조회수·인기 가게, 나만 보기) ─────────────
+const _ymd = d => { const p = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); };
+const _mondayOf = d => { const x = new Date(d); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return _ymd(x); };  // 이번 주 월요일
+let _dash = null;   // 공유 리포트용 최근 데이터 스냅샷
+
 async function loadViews() {
-  $('#vToday').textContent = '–'; $('#vTotal').textContent = '–'; $('#vDays').textContent = '불러오는 중…';
+  // 1) 조회수 4종 + 추이
   try {
     const v = await api('/admin/views');
-    $('#vToday').textContent = v.today ?? 0;
-    $('#vTotal').textContent = v.total ?? 0;
     const days = v.days || [];
-    if (!days.length) {
-      $('#vDays').textContent = '아직 방문 기록이 없어요.';
-    } else {
-      const max = Math.max.apply(null, days.map(d => d.n).concat(1));
-      $('#vDays').innerHTML = days.slice(0, 14).map(d => {
-        const md = String(d.day).slice(5).replace('-', '/');
-        const w = Math.round(d.n / max * 100);
-        return '<div class="vbar"><span class="vd">' + md + '</span>' +
-               '<span class="vg" style="width:' + w + '%"></span><span class="vc">' + d.n + '</span></div>';
-      }).join('');
-    }
+    const now = new Date(), todayStr = _ymd(now), monStr = _mondayOf(now), monthPre = todayStr.slice(0, 7);
+    const sumIf = pred => days.reduce((s, d) => s + (pred(String(d.day)) ? d.n : 0), 0);
+    const week = sumIf(day => day >= monStr), month = sumIf(day => day.startsWith(monthPre));
+    $('#vToday').textContent = v.today ?? 0;
+    $('#vWeek').textContent = week;
+    $('#vMonth').textContent = month;
+    $('#vTotal').textContent = v.total ?? 0;
+    const recent = days.slice(0, 14).reverse();               // 오래된→최근(왼→오)
+    const cmax = Math.max.apply(null, recent.map(d => d.n).concat(1));
+    $('#vChart').innerHTML = recent.length ? recent.map(d => {
+      const md = String(d.day).slice(5).replace('-', '/'), h = Math.round(d.n / cmax * 88);
+      return '<div class="cbar"><span class="cval">' + d.n + '</span><span class="bar' + (d.day === todayStr ? ' today' : '') + '" style="height:' + h + 'px"></span><span class="cday">' + md + '</span></div>';
+    }).join('') : '<span class="small">아직 방문 기록이 없어요.</span>';
+    _dash = { today: v.today ?? 0, week, month, total: v.total ?? 0, recent, todayStr };
   } catch (e) {
-    $('#vDays').textContent = '불러오기 실패: ' + e.message;
+    $('#vChart').textContent = '불러오기 실패: ' + e.message;
   }
-  // 인기 가게 (클릭 순)
+  // 2) 클릭 Top10 + CTR Top10
   try {
     const clicks = (await api('/admin/clicks')).clicks || [];
-    if (!clicks.length) { $('#vClicks').textContent = '아직 클릭 기록이 없어요.'; return; }
-    const cmax = Math.max.apply(null, clicks.map(c => c.n).concat(1));
-    $('#vClicks').innerHTML = clicks.slice(0, 20).map(c => {
-      const w = Math.round(c.n / cmax * 100);
-      const ctr = c.imp > 0 ? Math.round(c.n / c.imp * 100) : null;   // 클릭÷노출 = 진짜 관심도(노출 편향 제거)
-      const ctrTxt = ctr != null ? ' · CTR ' + ctr + '% (노출 ' + c.imp + ')' : ' · 노출 집계 전';
-      return '<div class="vbar"><span class="vname">' + esc(c.name || c.key) + '</span>' +
-             '<span class="vg" style="width:' + w + '%"></span><span class="vc">클릭 ' + c.n + ctrTxt + '</span></div>';
-    }).join('');
+    const byClicks = clicks.slice().sort((a, b) => b.n - a.n).slice(0, 10);
+    $('#vTopClicks').innerHTML = byClicks.length
+      ? byClicks.map(c => '<li><span class="rname">' + esc(c.name || c.key) + '</span><span class="rval">' + c.n + '<span class="rsub">클릭</span></span></li>').join('')
+      : '<li class="empty">아직 클릭 기록이 없어요.</li>';
+    const byCTR = clicks.filter(c => c.imp > 0).map(c => Object.assign({ ctr: c.n / c.imp }, c)).sort((a, b) => b.ctr - a.ctr || b.imp - a.imp).slice(0, 10);
+    $('#vTopCTR').innerHTML = byCTR.length
+      ? byCTR.map(c => '<li><span class="rname">' + esc(c.name || c.key) + '</span><span class="rval">' + Math.round(c.ctr * 100) + '%<span class="rsub">노출 ' + c.imp + '</span></span></li>').join('')
+      : '<li class="empty">노출 데이터가 쌓이면 표시돼요.</li>';
+    if (_dash) { _dash.byClicks = byClicks; _dash.byCTR = byCTR; }
   } catch (e) {
-    $('#vClicks').textContent = '불러오기 실패: ' + e.message;
+    $('#vTopClicks').textContent = '불러오기 실패: ' + e.message;
   }
 }
+
+// ── 공유용 HTML 리포트 (자체완결 파일 다운로드 — 로그인 없이 남에게 공유) ──
+function buildReportHTML(d) {
+  const cmax = Math.max.apply(null, (d.recent || []).map(x => x.n).concat(1));
+  const bars = (d.recent || []).map(x => {
+    const md = String(x.day).slice(5).replace('-', '/'), h = Math.round(x.n / cmax * 90);
+    return '<div class="cb"><span class="cv">' + x.n + '</span><span class="bar" style="height:' + h + 'px"></span><span class="cd">' + md + '</span></div>';
+  }).join('');
+  const rank = (arr, valFn) => (arr && arr.length)
+    ? '<ol>' + arr.map(c => '<li><span class="n">' + esc(c.name || c.key) + '</span><span class="v">' + valFn(c) + '</span></li>').join('') + '</ol>'
+    : '<p class="empty">데이터 없음</p>';
+  const now = new Date(), stamp = _ymd(now) + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+  return '<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+    + '<title>맹그로브 고성 · 트립코스 리포트 ' + _ymd(now) + '</title><style>'
+    + '*{margin:0;padding:0;box-sizing:border-box}body{font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",system-ui,sans-serif;background:#f6f5f2;color:#1f1e1d;line-height:1.5;padding:22px 16px 50px}'
+    + '.w{max-width:520px;margin:0 auto}h1{font-size:19px;font-weight:800}.sub{font-size:12.5px;color:#76776c;margin:5px 0 18px}'
+    + '.card{background:#fff;border:1px solid #ececea;border-radius:16px;padding:16px;margin-top:14px}.card h2{font-size:15px;font-weight:800;margin-bottom:4px}.card p{font-size:12px;color:#76776c;margin-bottom:6px}'
+    + '.g{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0 2px}.s{background:#eafdf1;border-radius:12px;padding:13px 6px;text-align:center}.s.hl{background:#0a7a3c}.s.hl .n,.s.hl .l{color:#fff}.s .n{font-size:23px;font-weight:800;color:#0a7a3c;font-variant-numeric:tabular-nums}.s .l{font-size:11px;color:#76776c;margin-top:2px}'
+    + '.chart{display:flex;align-items:flex-end;gap:5px;height:112px;margin-top:14px}.cb{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;justify-content:flex-end;height:100%}.cb .bar{width:100%;max-width:22px;background:#00b453;border-radius:4px 4px 0 0;min-height:2px}.cb .cv{font-size:9.5px;font-weight:700;font-variant-numeric:tabular-nums}.cb .cd{font-size:8.5px;color:#76776c}'
+    + 'ol{list-style:none;counter-reset:r;margin-top:8px}ol li{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #ececea;font-size:14px}ol li:first-child{border-top:0}ol li:before{counter-increment:r;content:counter(r);flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:#edece9;color:#76776c;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}ol li:first-child:before{background:#00b453;color:#fff}.n{flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.v{font-weight:700;color:#0a7a3c;font-variant-numeric:tabular-nums}.empty{color:#76776c;font-size:13px;padding:6px 0}'
+    + 'footer{text-align:center;font-size:11px;color:#a0a099;margin-top:24px}</style></head><body><div class="w">'
+    + '<h1>맹그로브 고성 · 트립코스 리포트</h1><div class="sub">' + stamp + ' 기준 · 손님 조회수/인기 가게 (어드민 제외)</div>'
+    + '<div class="card"><h2>📊 조회수</h2><div class="g"><div class="s"><div class="n">' + d.today + '</div><div class="l">오늘</div></div><div class="s"><div class="n">' + d.week + '</div><div class="l">이번 주</div></div><div class="s"><div class="n">' + d.month + '</div><div class="l">이번 달</div></div><div class="s hl"><div class="n">' + d.total + '</div><div class="l">누적</div></div></div><div class="chart">' + bars + '</div></div>'
+    + '<div class="card"><h2>🖱 클릭 많은 가게 Top 10</h2><p>네이버 지도 보기 클릭 순</p>' + rank(d.byClicks, c => c.n + ' 클릭') + '</div>'
+    + '<div class="card"><h2>🎯 CTR 높은 가게 Top 10</h2><p>노출 대비 클릭 비율 순</p>' + rank(d.byCTR, c => Math.round(c.ctr * 100) + '% (노출 ' + c.imp + ')') + '</div>'
+    + '<footer>맹그로브 고성 · 지금 갈만한 곳</footer></div></body></html>';
+}
+function downloadReport() {
+  if (!_dash || _dash.byClicks === undefined) { toast('대시보드를 먼저 불러와주세요', true); return; }
+  const html = buildReportHTML(_dash);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+  a.download = '트립코스-리포트-' + _dash.todayStr + '.html';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+  toast('공유용 HTML을 저장했어요');
+}
+const _shareBtn = $('#shareBtn');
+if (_shareBtn) _shareBtn.addEventListener('click', downloadReport);
 
 // ── 문구·디자인 ──────────────────────────────────────
 // [key, 라벨, 입력형태, 기본값] — home.js COPY 기본값과 key·문구가 일치해야 함.

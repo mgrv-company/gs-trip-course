@@ -479,7 +479,7 @@ export default {
         const rows = await db.prepare(
           'SELECT c.key AS key, c.name AS name, c.n AS n, COALESCE(i.n, 0) AS imp ' +
           'FROM place_clicks c LEFT JOIN place_impressions i ON i.key = c.key ' +
-          'ORDER BY c.n DESC LIMIT 30'
+          'ORDER BY c.n DESC LIMIT 100'
         ).all();
         return json(req, { clicks: rows.results });
       }

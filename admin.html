@@ -68,6 +68,41 @@
   .vbar .vg { height: 10px; background: var(--green); border-radius: 5px; min-width: 2px; }
   .vbar .vc { font-weight: 700; color: var(--ink); }
 
+  /* 대시보드 (2026-07 개편) */
+  .dash-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .dash-head h2 { margin: 0; }
+  .statgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 14px 0 4px; }
+  .stat { background: var(--green-light); border-radius: 12px; padding: 14px 6px; text-align: center; }
+  .stat.hl { background: var(--green-deep); }
+  .stat.hl .sn, .stat.hl .sl { color: #fff; }
+  .stat .sn { font-size: 24px; font-weight: 800; color: var(--green-deep); font-variant-numeric: tabular-nums; }
+  .stat .sl { font-size: 11.5px; color: var(--gray); margin-top: 3px; }
+  @media (max-width: 380px) { .statgrid { grid-template-columns: repeat(2, 1fr); } .stat .sn { font-size: 22px; } }
+  .charttitle { font-size: 12.5px; font-weight: 700; color: var(--gray); margin: 16px 0 8px; }
+  .chart { display: flex; align-items: flex-end; gap: 5px; height: 116px; }
+  .chart .cbar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; justify-content: flex-end; height: 100%; }
+  .chart .cbar .bar { width: 100%; max-width: 22px; background: var(--green); border-radius: 4px 4px 0 0; min-height: 2px; }
+  .chart .cbar .bar.today { background: var(--green-deep); }
+  .chart .cbar .cval { font-size: 9.5px; color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .chart .cbar .cday { font-size: 8.5px; color: var(--gray); white-space: nowrap; }
+  .badge10 { font-size: 11px; font-weight: 800; color: var(--green-deep); background: var(--green-light); border-radius: 99px; padding: 2px 9px; vertical-align: 3px; }
+  .ranklist { list-style: none; padding: 0; margin: 10px 0 0; counter-reset: r; }
+  .ranklist li { display: flex; align-items: center; gap: 11px; padding: 11px 2px; border-top: 1px solid var(--line); }
+  .ranklist li:first-child { border-top: 0; }
+  .ranklist li::before { counter-increment: r; content: counter(r); flex: 0 0 auto; width: 23px; height: 23px; border-radius: 50%; background: var(--soft); color: var(--gray); font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; }
+  .ranklist li:nth-child(1)::before { background: var(--green); color: #fff; }
+  .ranklist li:nth-child(2)::before, .ranklist li:nth-child(3)::before { background: var(--green-light); color: var(--green-deep); }
+  .ranklist .rname { flex: 1; min-width: 0; font-weight: 700; font-size: 14.5px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ranklist .rval { flex: 0 0 auto; font-size: 12.5px; font-weight: 700; color: var(--green-deep); font-variant-numeric: tabular-nums; }
+  .ranklist .rsub { font-size: 11px; color: var(--gray); font-weight: 500; margin-left: 3px; }
+  .ranklist .empty { color: var(--gray); padding: 8px 2px; }
+
+  /* 새 가게 추가 접이식 */
+  details.addnew > summary { cursor: pointer; font-weight: 800; font-size: 15px; list-style: none; padding: 2px 0; }
+  details.addnew > summary::-webkit-details-marker { display: none; }
+  details.addnew > summary::before { content: '▸ '; color: var(--green-deep); }
+  details.addnew[open] > summary::before { content: '▾ '; }
+
   /* 필터 칩 */
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip { border: 1.5px solid var(--line); background: #fff; border-radius: 99px; padding: 6px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; user-select: none; }
@@ -139,8 +174,7 @@
 
     <div class="tabs">
       <div class="tab on" data-tab="manage">가게 관리</div>
-      <div class="tab" data-tab="add">➕ 새 가게 추가</div>
-      <div class="tab" data-tab="copy">✏️ 문구·디자인</div>
+      <div class="tab" data-tab="copy">✏️ 문구</div>
       <div class="tab" data-tab="views">📊 조회수</div>
     </div>
 
@@ -165,12 +199,10 @@
         <button class="btn ghost sm" id="rebuildBtn">🔄 사이트 스냅샷 재빌드</button>
       </div>
       <p class="small" style="text-align:center; margin-top:6px">평소엔 필요 없어요 — 편집은 즉시 반영되고, 매일 아침 7시에 자동으로도 돌아갑니다.</p>
-    </div>
 
-    <!-- 추가 탭 -->
-    <div id="tabAdd" class="hidden">
-      <div class="card">
-        <h2>새 가게 추가</h2>
+      <!-- 새 가게 추가 (가게 관리 안 접이식) -->
+      <details class="card addnew" style="margin-top:14px">
+        <summary>➕ 새 가게 추가</summary>
         <p class="small">네이버 저장 리스트에 없는 가게를 직접 넣을 때 사용해요. 주간 자동 갱신에도 지워지지 않습니다.<br>(영업시간·평점은 자동수집되지 않아 카드에 "방문 전 확인"으로 표시)</p>
         <label>이름 *</label>
         <input type="text" id="f_name" placeholder="예: 고성 한치횟집">
@@ -209,10 +241,10 @@
           <button class="btn" id="addBtn">추가하고 바로 반영</button>
         </div>
         <div class="msg" id="addMsg"></div>
-      </div>
+      </details>
     </div>
 
-    <!-- 문구·디자인 탭 -->
+    <!-- 문구 탭 -->
     <div id="tabCopy" class="hidden">
       <div class="card">
         <h2>문구 편집</h2>
@@ -245,18 +277,29 @@
     <!-- 조회수 탭 -->
     <div id="tabViews" class="hidden">
       <div class="card">
-        <h2>조회수 (나만 보기)</h2>
-        <p class="small">손님이 메인 페이지를 연 횟수예요. 브라우저 기준 하루 1회로 세고, 어드민(나) 방문은 빼요.</p>
-        <div class="vrow">
-          <div class="vstat"><div class="vn" id="vToday">–</div><div class="vl">오늘</div></div>
-          <div class="vstat"><div class="vn" id="vTotal">–</div><div class="vl">누적</div></div>
+        <div class="dash-head">
+          <h2>📊 대시보드</h2>
+          <button class="btn ghost sm" id="shareBtn">🔗 공유용 HTML</button>
         </div>
-        <div id="vDays" class="small" style="margin-top:6px">불러오는 중…</div>
+        <p class="small">손님이 메인 페이지를 연 횟수예요. 브라우저 기준 하루 1회로 세고, 어드민(나) 방문은 빼요. 공유 버튼으로 남에게 보낼 수 있는 HTML 리포트를 저장할 수 있어요.</p>
+        <div class="statgrid">
+          <div class="stat"><div class="sn" id="vToday">–</div><div class="sl">오늘</div></div>
+          <div class="stat"><div class="sn" id="vWeek">–</div><div class="sl">이번 주</div></div>
+          <div class="stat"><div class="sn" id="vMonth">–</div><div class="sl">이번 달</div></div>
+          <div class="stat hl"><div class="sn" id="vTotal">–</div><div class="sl">누적</div></div>
+        </div>
+        <div class="charttitle">최근 14일 조회수 추이</div>
+        <div id="vChart" class="chart">불러오는 중…</div>
       </div>
       <div class="card">
-        <h2>인기 가게 (클릭 순 · CTR 함께)</h2>
-        <p class="small">손님이 '네이버 지도에서 보기'를 누른 <b>클릭수</b>와, 노출 대비 클릭 비율인 <b>CTR</b>을 함께 봐요. 클릭수만 보면 많이 노출된 가게가 유리하니, <b>CTR이 높을수록 '보여주면 실제로 눌리는' 진짜 관심</b>이 큰 가게예요. (어드민 제외)</p>
-        <div id="vClicks" class="small">불러오는 중…</div>
+        <h2>🖱 클릭 많은 가게 <span class="badge10">Top 10</span></h2>
+        <p class="small">손님이 '네이버 지도에서 보기'를 누른 횟수 순 (어드민 제외)</p>
+        <ol id="vTopClicks" class="ranklist">불러오는 중…</ol>
+      </div>
+      <div class="card">
+        <h2>🎯 CTR 높은 가게 <span class="badge10">Top 10</span></h2>
+        <p class="small">노출 대비 클릭 비율(CTR) 순 — <b>보여주면 실제로 눌리는 진짜 관심</b>. 노출이 쌓일수록 정확해져요.</p>
+        <ol id="vTopCTR" class="ranklist">불러오는 중…</ol>
       </div>
     </div>
   </div>
@@ -264,6 +307,6 @@
 
 <div id="toast"></div>
 <script src="places.js?v=7"></script>
-<script src="admin.js?v=10"></script>
+<script src="admin.js?v=11"></script>
 </body>
 </html>
