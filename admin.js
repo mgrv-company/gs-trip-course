@@ -362,7 +362,7 @@ async function loadViews() {
       : '<li class="empty">아직 클릭 기록이 없어요.</li>';
     const byCTR = clicks.filter(c => c.imp > 0).map(c => Object.assign({ ctr: c.n / c.imp }, c)).sort((a, b) => b.ctr - a.ctr || b.imp - a.imp).slice(0, 10);
     $('#vTopCTR').innerHTML = byCTR.length
-      ? byCTR.map(c => '<li><span class="rname">' + esc(c.name || c.key) + '</span><span class="rval">' + Math.round(c.ctr * 100) + '%<span class="rsub">노출 ' + c.imp + '</span></span></li>').join('')
+      ? byCTR.map(c => '<li><span class="rname">' + esc(c.name || c.key) + '</span><span class="rval">' + Math.round(c.ctr * 100) + '%<span class="rsub">클릭 ' + c.n + ' · 노출 ' + c.imp + '</span></span></li>').join('')
       : '<li class="empty">노출 데이터가 쌓이면 표시돼요.</li>';
     if (_dash) { _dash.byClicks = byClicks; _dash.byCTR = byCTR; }
   } catch (e) {
@@ -393,7 +393,7 @@ function buildReportHTML(d) {
     + '<h1>맹그로브 고성 · 트립코스 리포트</h1><div class="sub">' + stamp + ' 기준 · 손님 조회수/인기 가게 (어드민 제외)</div>'
     + '<div class="card"><h2>📊 조회수</h2><div class="g"><div class="s"><div class="n">' + d.today + '</div><div class="l">오늘</div></div><div class="s"><div class="n">' + d.week + '</div><div class="l">이번 주</div></div><div class="s"><div class="n">' + d.month + '</div><div class="l">이번 달</div></div><div class="s hl"><div class="n">' + d.total + '</div><div class="l">누적</div></div></div><div class="chart">' + bars + '</div></div>'
     + '<div class="card"><h2>🖱 클릭 많은 가게 Top 10</h2><p>네이버 지도 보기 클릭 순</p>' + rank(d.byClicks, c => c.n + ' 클릭') + '</div>'
-    + '<div class="card"><h2>🎯 CTR 높은 가게 Top 10</h2><p>노출 대비 클릭 비율 순</p>' + rank(d.byCTR, c => Math.round(c.ctr * 100) + '% (노출 ' + c.imp + ')') + '</div>'
+    + '<div class="card"><h2>🎯 CTR 높은 가게 Top 10</h2><p>노출 대비 클릭 비율 순</p>' + rank(d.byCTR, c => Math.round(c.ctr * 100) + '% (클릭 ' + c.n + ' · 노출 ' + c.imp + ')') + '</div>'
     + '<footer>맹그로브 고성 · 지금 갈만한 곳</footer></div></body></html>';
 }
 function downloadReport() {
