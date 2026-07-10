@@ -255,9 +255,9 @@
   #intro .intro-bg { position: absolute; inset: 0; background: url('assets/goseong-sea.webp') center/cover no-repeat; transform: scale(1.08); animation: introZoom 6s ease-out forwards; }
   #intro .intro-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(12,22,18,.32) 0%, rgba(12,22,18,.5) 52%, rgba(12,22,18,.82) 100%); }
   #intro .intro-content { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 32px; color: #fff; }
-  #intro .intro-logo { height: 34px; width: auto; margin-bottom: 26px; opacity: 0; animation: introUp .7s ease-out .15s forwards; }
+  #intro .intro-logo { height: 40px; width: auto; margin-bottom: 16px; opacity: 0; animation: introUp .7s ease-out .15s forwards; }
   #intro .intro-greet { font-size: 27px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.25; text-shadow: 0 2px 16px rgba(0,0,0,.4); opacity: 0; animation: introUp .7s ease-out .35s forwards; }
-  #intro .intro-sub { font-size: 14px; font-weight: 500; margin-top: 10px; opacity: 0; text-shadow: 0 1px 10px rgba(0,0,0,.45); animation: introUp .7s ease-out .55s forwards; }
+  #intro .intro-sub { font-size: 15px; font-weight: 500; margin-top: 0; opacity: 0; text-shadow: 0 1px 10px rgba(0,0,0,.45); animation: introUp .7s ease-out .3s forwards; }
   #intro .intro-loading { position: absolute; bottom: 46px; left: 0; right: 0; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,.92); opacity: 0; animation: introUp .7s ease-out .8s forwards; }
   #intro .intro-loading .dots { display: inline-flex; gap: 4px; }
   #intro .intro-loading .dots i { width: 5px; height: 5px; border-radius: 50%; background: #fff; opacity: .5; animation: introDot 1s ease-in-out infinite; }
@@ -280,7 +280,6 @@
   <div class="intro-scrim" aria-hidden="true"></div>
   <div class="intro-content">
     <img class="intro-logo" src="assets/mangrove-goseong-logo.svg" alt="맹그로브 고성">
-    <div class="intro-greet" id="introGreet">환영합니다</div>
     <div class="intro-sub" id="introSub"></div>
     <div class="intro-loading"><span id="introLoadTxt">갈만한 곳 찾는 중</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
   </div>
@@ -402,7 +401,7 @@
 
 <script src="places.js?v=7"></script>
 <script src="tour.js?v=1"></script>
-<script src="home.js?v=43"></script>
+<script src="home.js?v=44"></script>
 <!-- PC 배경 순환 스크립트는 home.js 끝으로 이동 (CSP 강화: 인라인 스크립트 금지) -->
 </body>
 </html>

@@ -662,16 +662,8 @@ document.addEventListener('keydown', function (e) {
   if (seen) { intro.remove(); return; }
   try { sessionStorage.setItem('gsIntroSeen', '1'); } catch (e) {}
 
-  // 시간대 인사 — 손님 기기 로컬시각(KST) 기준
-  const h = new Date().getHours();
-  let greet, emoji;
-  if (h >= 5 && h < 11) { greet = '좋은 아침이에요'; emoji = '🌅'; }
-  else if (h >= 11 && h < 17) { greet = '좋은 오후예요'; emoji = '☀️'; }
-  else if (h >= 17 && h < 21) { greet = '좋은 저녁이에요'; emoji = '🌇'; }
-  else { greet = '편안한 밤이에요'; emoji = '🌙'; }
-  const gEl = document.getElementById('introGreet');
+  // 인사문구 제거 — 중앙에 로고 + 날씨만
   const sEl = document.getElementById('introSub');
-  if (gEl) gEl.textContent = greet + ' ' + emoji;
   if (sEl) sEl.textContent = '고성 날씨 불러오는 중…';
 
   // 지금 고성 날씨 — Open-Meteo(무료·API키 없음·CORS 허용). CSP connect-src에 api.open-meteo.com 허용.
