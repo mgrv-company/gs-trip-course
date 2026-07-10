@@ -19,6 +19,7 @@
     "sid": "15067705"
   },
   "고식당": {
+    "exclude": true,
     "pick": true,
     "notion": true,
     "note": "철판해물볶음·한치튀김에 생맥주를 드셔보세요!",
