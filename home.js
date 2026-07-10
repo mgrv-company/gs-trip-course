@@ -197,7 +197,7 @@ function placeCardHTML(p, isPick) {
   const line1 = `<div class="hmeta">${openTxt}<span class="num-mono">${moveText(p)}</span> · <span class="num-mono">${esc(hoursNowText(p))}</span>${wait}</div>`;
   // 2줄: 별점 + 메뉴 (무엇을 얼마에)
   const rv = p.rv ? `<span class="num-mono">★ ${esc(p.rv[0])}</span> <span class="dimc">(${esc(p.rv[1])})</span>` : '';
-  const menu = (p.m && p.m.length) ? `${p.rv ? ' · ' : ''}🍽 ${p.m.map(esc).join(' · ')}` : '';
+  const menu = (p.m && p.m.length) ? `${p.rv ? ' · ' : ''}🍽 ${p.m.slice(0, 2).map(esc).join(' · ')}` : '';
   const line2 = (rv || menu) ? `<div class="hmeta2">${rv}${menu}</div>` : '';
   const memo = p.note || p.mr;
   const cmt = memo ? `<p class="hcmt">${esc(memo)}</p>` : '';
@@ -223,9 +223,10 @@ function miniRowHTML(p) {
   return `<div class="mitem">
     <div class="mrow" role="button" tabindex="0" aria-expanded="false">
       <div class="mbd">
-        <div class="mtop"><span class="mnm">${esc(p.n)}${rec}</span>${openBadge}</div>
+        <div class="mtop"><span class="mnm">${esc(p.n)}${rec}</span></div>
         <div class="mmeta">${rv}<span class="num-mono">${moveText(p)}</span> · <span class="num-mono">${esc(hoursNowText(p))}</span>${wait}</div>
       </div>
+      ${openBadge}
       <span class="mchev" aria-hidden="true">▾</span>
     </div>
     <div class="mdetail">${placeCardHTML(p, false)}<button class="mcollapse" type="button">접기 ▲</button></div>
@@ -252,7 +253,9 @@ document.addEventListener('error', function (e) {
   const t = e.target;
   if (t && t.tagName === 'IMG' && t.classList && t.classList.contains('card-img') && t.dataset.fb !== '1') {
     t.dataset.fb = '1';
-    t.src = 'assets/goseong-hero-7.webp';
+    t.style.display = 'none';
+    const pic = t.closest('.hpic');
+    if (pic) pic.classList.add('noimg');   // 가짜 가게사진 오해 방지 → 중립 플레이스홀더
   }
 }, true);
 

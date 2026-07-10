@@ -215,28 +215,30 @@
   .rec-tag.sm { margin-left: 6px; padding: 0 5px; font-size: 9.5px; }
   /* 원픽 히어로 카드 */
   .hcard { background: #fff; border: 1px solid var(--line); border-radius: 15px; overflow: hidden; margin-top: 14px; box-shadow: 0 6px 18px rgba(31,30,29,.08); }
-  .hpic { position: relative; }
-  .hpic img { width: 100%; height: auto; display: block; }
+  .hpic { position: relative; aspect-ratio: 1 / 1; overflow: hidden; }
+  .hpic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hpic.noimg { display: flex; align-items: center; justify-content: center; background: var(--soft); }
+  .hpic.noimg::after { content: '사진 준비 중'; font-size: 12px; font-weight: 600; color: var(--gray); }
   .htag { position: absolute; left: 12px; top: 12px; background: rgba(31,30,29,.7); color: #fff; font-size: 10.5px; font-weight: 800; padding: 4px 10px; border-radius: 99px; letter-spacing: .02em; }
   .hbd { padding: 14px 15px 16px; }
   .hnm { font-size: 19px; font-weight: 800; letter-spacing: -0.4px; color: var(--ink); }
   .hmeta { font-size: 12px; color: var(--gray); margin-top: 7px; line-height: 1.5; }
   .hcmt { font-size: 13px; line-height: 1.55; color: #3a3934; margin-top: 10px; padding-left: 12px; border-left: 2px solid var(--green); }
-  .hmeta2 { font-size: 12px; color: var(--gray); margin-top: 4px; line-height: 1.5; }
+  .hmeta2 { font-size: 12px; color: var(--gray); margin-top: 4px; line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .hlink { display: inline-block; margin-top: 12px; font-size: 12px; font-weight: 600; color: var(--gray); text-decoration: underline; text-underline-offset: 2px; }
   .hlink:active { opacity: .6; }
   .sh-ic { opacity: .45; font-weight: 400; margin-right: 1px; }
   /* 이어서 추천 — 접힘/펼침 아코디언 */
   .subrec { font-size: 11.5px; font-weight: 700; color: var(--gray); letter-spacing: .03em; margin: 20px 2px 2px; }
   .mitem { border-top: 1px solid var(--line); }
-  .mrow { display: flex; gap: 13px; padding: 15px 2px; align-items: center; cursor: pointer; }
+  .mrow { display: flex; gap: 13px; padding: 17px 4px; align-items: center; cursor: pointer; }
   .mrow:active { background: var(--soft); }
   .mph { width: 60px; height: 60px; object-fit: cover; border-radius: 10px; flex: 0 0 auto; background: var(--soft); }
   .mbd { flex: 1; min-width: 0; }
   .mtop { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .mnm { font-size: 15.5px; font-weight: 700; letter-spacing: -0.3px; color: var(--ink); }
   .op.sm { font-size: 10.5px; white-space: nowrap; }
-  .mmeta { font-size: 11.5px; color: var(--gray); margin-top: 4px; line-height: 1.5; }
+  .mmeta { font-size: 11.5px; color: var(--gray); margin-top: 6px; line-height: 1.5; }
   .mchev { flex: 0 0 auto; color: var(--gray); font-size: 12px; align-self: center; }
   /* 펼치면: 접힌 행 숨기고 1위와 동일한 카드 노출 */
   .mdetail { display: none; }
@@ -400,7 +402,7 @@
 
 <script src="places.js?v=7"></script>
 <script src="tour.js?v=1"></script>
-<script src="home.js?v=42"></script>
+<script src="home.js?v=43"></script>
 <!-- PC 배경 순환 스크립트는 home.js 끝으로 이동 (CSP 강화: 인라인 스크립트 금지) -->
 </body>
 </html>
