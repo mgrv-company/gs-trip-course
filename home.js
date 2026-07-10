@@ -204,7 +204,7 @@ function placeCardHTML(p, isPick) {
   const link = p.u ? `<a class="hlink" href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">네이버 지도에서 보기 →</a>` : '';
   const tag = isPick ? '<span class="htag">PICK</span>' : '';
   return `<article class="hcard">
-    ${p.img ? `<div class="hpic"><img src="${esc(httpsUp(p.img))}" loading="lazy" alt="">${tag}</div>` : ''}
+    ${p.img ? `<div class="hpic"><img class="card-img" src="${esc(httpsUp(p.img))}" loading="lazy" alt="">${tag}</div>` : ''}
     <div class="hbd">
       <div class="hnm">${esc(p.n)}${rec}</div>
       ${line1}${line2}${cmt}${link}
@@ -222,7 +222,6 @@ function miniRowHTML(p) {
   const wait = p.w === 2 ? ' · <span class="wt">웨이팅</span>' : '';
   return `<div class="mitem">
     <div class="mrow" role="button" tabindex="0" aria-expanded="false">
-      ${p.img ? `<img class="mph" src="${esc(httpsUp(p.img))}" loading="lazy" alt="">` : ''}
       <div class="mbd">
         <div class="mtop"><span class="mnm">${esc(p.n)}${rec}</span>${openBadge}</div>
         <div class="mmeta">${rv}<span class="num-mono">${moveText(p)}</span> · <span class="num-mono">${esc(hoursNowText(p))}</span>${wait}</div>
@@ -247,6 +246,15 @@ function queueImpressions(picks) {
       .catch(function (e) { console.debug('impression beacon 실패(무시 가능):', e && e.message); });
   }, 1200);
 }
+
+// 사진 로드 실패 시 대체 이미지 — 네이버 사진이 깨지면 차라리 다른 이미지. (CSP상 인라인 onerror 불가 → 위임 캡처)
+document.addEventListener('error', function (e) {
+  const t = e.target;
+  if (t && t.tagName === 'IMG' && t.classList && t.classList.contains('card-img') && t.dataset.fb !== '1') {
+    t.dataset.fb = '1';
+    t.src = 'assets/goseong-hero-7.webp';
+  }
+}, true);
 
 let curSlot = 'auto';
 let curFilter = null;   // 선택된 옵션 태그 (식성/분위기), null=전체

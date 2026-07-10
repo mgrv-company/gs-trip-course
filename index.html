@@ -74,7 +74,8 @@
   .ctxrow .t { font-size: 12.5px; color: var(--gray); }
 
   .segs { display: flex; gap: 7px; margin-top: 14px; }
-  .seg { flex: 1; text-align: center; min-height: 44px; display: flex; align-items: center; justify-content: center; padding: 6px 4px; border: 1px solid var(--line); background: #fff; border-radius: 12px; font-size: 13px; line-height: 1.2; font-weight: 600; cursor: pointer; user-select: none; color: #4a4945; }
+  .seg { flex: 1; text-align: center; min-height: 44px; display: flex; align-items: center; justify-content: center; padding: 6px 4px; border: 1px solid var(--line); background: #fff; border-radius: 12px; font-size: 13px; line-height: 1.2; font-weight: 600; cursor: pointer; user-select: none; color: #4a4945; word-break: keep-all; }
+  @media (max-width: 400px) { .seg { font-size: 12px; padding: 6px 2px; letter-spacing: -0.2px; } }
   .seg.on { border-color: var(--ink); background: var(--ink); color: #fff; }
   .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
   .chip { border: 1.5px solid var(--line); background: #fff; border-radius: 99px; padding: 6px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; user-select: none; color: var(--ink); }
@@ -214,8 +215,8 @@
   .rec-tag.sm { margin-left: 6px; padding: 0 5px; font-size: 9.5px; }
   /* 원픽 히어로 카드 */
   .hcard { background: #fff; border: 1px solid var(--line); border-radius: 15px; overflow: hidden; margin-top: 14px; box-shadow: 0 6px 18px rgba(31,30,29,.08); }
-  .hpic { position: relative; height: 180px; }
-  .hpic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hpic { position: relative; }
+  .hpic img { width: 100%; height: auto; display: block; }
   .htag { position: absolute; left: 12px; top: 12px; background: rgba(31,30,29,.7); color: #fff; font-size: 10.5px; font-weight: 800; padding: 4px 10px; border-radius: 99px; letter-spacing: .02em; }
   .hbd { padding: 14px 15px 16px; }
   .hnm { font-size: 19px; font-weight: 800; letter-spacing: -0.4px; color: var(--ink); }
@@ -232,7 +233,7 @@
   .mrow:active { background: var(--soft); }
   .mph { width: 60px; height: 60px; object-fit: cover; border-radius: 10px; flex: 0 0 auto; background: var(--soft); }
   .mbd { flex: 1; min-width: 0; }
-  .mtop { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .mtop { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .mnm { font-size: 15.5px; font-weight: 700; letter-spacing: -0.3px; color: var(--ink); }
   .op.sm { font-size: 10.5px; white-space: nowrap; }
   .mmeta { font-size: 11.5px; color: var(--gray); margin-top: 4px; line-height: 1.5; }
@@ -399,7 +400,7 @@
 
 <script src="places.js?v=7"></script>
 <script src="tour.js?v=1"></script>
-<script src="home.js?v=41"></script>
+<script src="home.js?v=42"></script>
 <!-- PC 배경 순환 스크립트는 home.js 끝으로 이동 (CSP 강화: 인라인 스크립트 금지) -->
 </body>
 </html>
