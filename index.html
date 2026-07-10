@@ -26,8 +26,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <!-- 한글 본문 폰트: Pretendard (한국 웹 표준급). Inter는 라틴·숫자 폴백 -->
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
-<!-- 도입 화면 배경: 먼저 로드해 첫 진입을 부드럽게 -->
-<link rel="preload" as="image" href="assets/goseong-sea.webp">
+<!-- 도입 화면 배경: 경량 최적화본(87KB)을 먼저 로드해 모바일에서도 바로 보이게 -->
+<link rel="preload" as="image" href="assets/goseong-sea-intro.webp">
 <style>
   :root {
     /* 맹그로브 브랜드 토큰 */
@@ -252,7 +252,7 @@
   body.intro-lock { overflow: hidden; }
   #intro { position: fixed; inset: 0; z-index: 100; overflow: hidden; opacity: 1; transition: opacity .55s ease; }
   #intro.hide { opacity: 0; pointer-events: none; }
-  #intro .intro-bg { position: absolute; inset: 0; background: url('assets/goseong-sea.webp') center/cover no-repeat; transform: scale(1.08); animation: introZoom 6s ease-out forwards; }
+  #intro .intro-bg { position: absolute; inset: 0; background: url('assets/goseong-sea-intro.webp') center/cover no-repeat; transform: scale(1.08); animation: introZoom 6s ease-out forwards; }
   #intro .intro-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(12,22,18,.32) 0%, rgba(12,22,18,.5) 52%, rgba(12,22,18,.82) 100%); }
   #intro .intro-content { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 32px; color: #fff; }
   #intro .intro-logo { height: 40px; width: auto; margin-bottom: 16px; opacity: 0; animation: introUp .7s ease-out .15s forwards; }
