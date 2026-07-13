@@ -464,7 +464,17 @@ function buildReportHTML(d) {
     + '<div class="card"><h2>📊 조회수</h2><div class="g"><div class="s"><div class="n">' + d.today + '</div><div class="l">오늘</div></div><div class="s"><div class="n">' + d.week + '</div><div class="l">이번 주</div></div><div class="s"><div class="n">' + d.month + '</div><div class="l">이번 달</div></div><div class="s hl"><div class="n">' + d.total + '</div><div class="l">누적</div></div></div><div class="chart">' + bars + '</div></div>'
     + '<div class="card"><h2>🖱 클릭 많은 가게 Top 10</h2><p>네이버 지도 보기 클릭 순</p>' + rank(d.byClicks, c => c.n + ' 클릭') + '</div>'
     + '<div class="card"><h2>🎯 CTR 높은 가게 Top 10</h2><p>노출 대비 클릭 비율 순</p>' + rank(d.byCTR, c => Math.round(c.ctr * 100) + '% (클릭 ' + c.n + ' · 노출 ' + c.imp + ')') + '</div>'
+    + buildRatingCardHTML(d.rating)
     + '<footer>맹그로브 고성 · 지금 갈만한 곳</footer></div></body></html>';
+}
+// 공유 리포트용 ⭐ 서비스 평가 카드 — 별점 데이터가 아직 없으면(대시보드 미로드) 카드 자체를 생략
+function buildRatingCardHTML(rt) {
+  if (!rt) return '';
+  const avgTxt = rt.count ? Number(rt.avg).toFixed(1) + '점' : '데이터 없음';
+  const dist = rt.dist || {};
+  const bars = [5, 4, 3, 2, 1].map(s => '<div class="s"><div class="n">' + (dist[s] || 0) + '</div><div class="l">' + s + '★</div></div>').join('');
+  return '<div class="card"><h2>⭐ 서비스 평가</h2><p>평균 ' + avgTxt + ' · 응답 ' + (rt.count || 0) + '건</p>'
+    + '<div class="g" style="grid-template-columns:repeat(5,1fr)">' + bars + '</div></div>';
 }
 function downloadReport() {
   if (!_dash || _dash.byClicks === undefined) { toast('대시보드를 먼저 불러와주세요', true); return; }
