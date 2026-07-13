@@ -383,11 +383,40 @@ async function loadViews() {
       ? r.low.map(x => '<div class="lowitem"><span class="lowscore">' + '★'.repeat(x.score) + '☆'.repeat(5 - x.score) + '</span>'
           + (x.memo ? '<div class="lowmemo">' + esc(x.memo) + '</div>' : '') + '<div class="lowat">' + esc((x.at || '').slice(0, 16).replace('T', ' ')) + '</div></div>').join('')
       : '<div class="lowitem small">1~2점 평가가 없어요.</div>';
+    _ratingsAll = r.recent || [];
+    const _allBox = $('#vRateAll');
+    _allBox.innerHTML = '';
+    _allBox.style.display = 'none';   // 새로고침 시 접어둠 — 다음 클릭 때 최신 데이터로 다시 열림
     if (_dash) _dash.rating = r;
   } catch (e) {
     $('#vRateAvg').textContent = '실패';
   }
+  // 4) 시간대별(0~23시) 클릭 분포
+  try {
+    const h = (await api('/admin/click-hours')).hours || [];
+    const hmax = Math.max.apply(null, h.concat(1));
+    $('#vHourChart').innerHTML = h.map((n, hour) =>
+      '<div class="cbar"><span class="cval">' + (n || '') + '</span><span class="bar" style="height:' + Math.round(n / hmax * 88) + 'px"></span><span class="cday">' + hour + '시</span></div>'
+    ).join('');
+  } catch (e) {
+    $('#vHourChart').textContent = '불러오기 실패: ' + e.message;
+  }
 }
+let _ratingsAll = [];
+const _vRateCountBox = $('#vRateCountBox');
+if (_vRateCountBox) _vRateCountBox.addEventListener('click', () => {
+  const el = $('#vRateAll');
+  const show = el.style.display === 'none';
+  el.style.display = show ? '' : 'none';
+  if (show) {
+    el.innerHTML = _ratingsAll.length
+      ? '<div class="charttitle" style="margin-top:0">전체 평가 (최근 ' + _ratingsAll.length + '건)</div>'
+        + _ratingsAll.map(x => '<div class="lowitem"><span class="lowscore">' + '★'.repeat(x.score) + '☆'.repeat(5 - x.score) + '</span>'
+            + (x.memo ? '<div class="lowmemo">' + esc(x.memo) + '</div>' : '<div class="lowmemo small">(한줄평 없음)</div>')
+            + '<div class="lowat">' + esc((x.at || '').slice(0, 16).replace('T', ' ')) + '</div></div>').join('')
+      : '<div class="lowitem small">아직 평가가 없어요.</div>';
+  }
+});
 
 // 종류·구역별 클릭 분포 — 백엔드 집계 없이 클릭 데이터(key=sid)를 현재 가게 목록(items)과 묶어서 계산
 function renderClickBreakdown(clicks) {

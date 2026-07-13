@@ -20,6 +20,8 @@ const SLACK_BOT_NAME = '고성 트립 코스 봇';  // 이 서비스가 #gs-rout
 
 // KST 날짜(YYYY-MM-DD) — 조회수 버킷 등 날짜 집계에 공용 사용
 const kstDay = () => new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+// KST 시(0~23) — 클릭 시간대 집계용
+const kstHour = () => new Date(Date.now() + 9 * 3600 * 1000).getUTCHours();
 // 슬랙 특수문법 무력화 — <!channel> 전체알림 장난·가짜 링크 방지 (모든 슬랙 전송 경로 공용)
 const slackEsc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -174,6 +176,8 @@ export default {
         const name = String(b.name || '').slice(0, 100);
         await db.prepare('INSERT INTO place_clicks (key, name, n) VALUES (?, ?, 1) ON CONFLICT(key) DO UPDATE SET n = n + 1, name = excluded.name')
           .bind(key, name).run();
+        await db.prepare('INSERT INTO click_hours (hour, n) VALUES (?, 1) ON CONFLICT(hour) DO UPDATE SET n = n + 1')
+          .bind(kstHour()).run();
         return json(req, { ok: true });
       }
 
@@ -481,7 +485,8 @@ export default {
         const dist = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
         for (const r of distRows.results) dist[r.score] = r.c;
         const low = await db.prepare('SELECT score, memo, at FROM ratings WHERE score <= 2 ORDER BY at DESC LIMIT 10').all();
-        return json(req, { count: total?.c || 0, avg: total?.a || 0, dist, low: low.results });
+        const recent = await db.prepare('SELECT score, memo, at FROM ratings ORDER BY at DESC LIMIT 200').all();
+        return json(req, { count: total?.c || 0, avg: total?.a || 0, dist, low: low.results, recent: recent.results });
       }
 
       // 어드민: 가게별 클릭수 (많이 눌린 순) — 나만 보기
@@ -492,6 +497,14 @@ export default {
           'ORDER BY c.n DESC LIMIT 100'
         ).all();
         return json(req, { clicks: rows.results });
+      }
+
+      // 어드민: 시간대별(0~23시, KST) 클릭 분포 — 나만 보기. 이 기능 배포 이후 클릭부터 집계됨.
+      if (path === '/admin/click-hours' && req.method === 'GET') {
+        const rows = await db.prepare('SELECT hour, n FROM click_hours').all();
+        const hours = Array.from({ length: 24 }, (_, h) => 0);
+        for (const r of rows.results) hours[r.hour] = r.n;
+        return json(req, { hours });
       }
 
       // 어드민: 코멘트 삭제

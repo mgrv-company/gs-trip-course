@@ -70,6 +70,12 @@ CREATE TABLE IF NOT EXISTS place_impressions (
   n    INTEGER NOT NULL DEFAULT 0
 );
 
+-- 시간대별(0~23시, KST) 클릭 분포 — 언제 손님이 많이 클릭하는지 (요일 구분 없이 시각만)
+CREATE TABLE IF NOT EXISTS click_hours (
+  hour INTEGER PRIMARY KEY,
+  n    INTEGER NOT NULL DEFAULT 0
+);
+
 -- 어드민 로그인 세션 (비밀번호 확인 후 발급되는 임시 열쇠)
 CREATE TABLE IF NOT EXISTS sessions (
   token      TEXT PRIMARY KEY,

@@ -74,6 +74,8 @@
   .statgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 14px 0 4px; }
   .stat { background: var(--green-light); border-radius: 12px; padding: 14px 6px; text-align: center; }
   .stat.hl { background: var(--green-deep); }
+  .stat.clickable { cursor: pointer; }
+  .stat.clickable:hover { filter: brightness(0.97); }
   .stat.hl .sn, .stat.hl .sl { color: #fff; }
   .stat .sn { font-size: 24px; font-weight: 800; color: var(--green-deep); font-variant-numeric: tabular-nums; }
   .stat .sl { font-size: 11.5px; color: var(--gray); margin-top: 3px; }
@@ -318,10 +320,12 @@
         <p class="small">손님이 메인 하단에서 남긴 별점(1~5)과 한줄평이에요.</p>
         <div class="statgrid" style="grid-template-columns:repeat(2,1fr)">
           <div class="stat hl"><div class="sn" id="vRateAvg">–</div><div class="sl">평균 별점</div></div>
-          <div class="stat"><div class="sn" id="vRateCount">–</div><div class="sl">응답 수</div></div>
+          <div class="stat clickable" id="vRateCountBox" role="button" tabindex="0"><div class="sn" id="vRateCount">–</div><div class="sl">응답 수 (눌러서 전체 보기)</div></div>
         </div>
         <div id="vRateDist" class="ratedist"></div>
+        <div class="charttitle">최근 낮은 평가(1~2점)</div>
         <div id="vRateLow" class="lowlist"></div>
+        <div id="vRateAll" class="lowlist" style="display:none;margin-top:10px"></div>
       </div>
       <div class="card">
         <h2>📊 종류·구역별 클릭 분포</h2>
@@ -331,12 +335,17 @@
         <div class="charttitle">구역별</div>
         <ol id="vClickByZone" class="ranklist">불러오는 중…</ol>
       </div>
+      <div class="card">
+        <h2>🕐 시간대별 클릭 분포</h2>
+        <p class="small">손님이 몇 시에 가게를 많이 클릭하는지예요. 이 기능을 넣은 시점부터 쌓여요(과거 클릭엔 시각 기록이 없었어요).</p>
+        <div id="vHourChart" class="chart">불러오는 중…</div>
+      </div>
     </div>
   </div>
 </div>
 
 <div id="toast"></div>
 <script src="places.js?v=7"></script>
-<script src="admin.js?v=13"></script>
+<script src="admin.js?v=14"></script>
 </body>
 </html>
