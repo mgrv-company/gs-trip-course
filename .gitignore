@@ -14,6 +14,7 @@ data/*
 !data/hours.json
 !data/places_tagged.json
 !data/fetch_tour.py
+!data/refresh_all.py
 test/
 _private/
 .auth-profile/
