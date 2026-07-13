@@ -474,6 +474,16 @@ export default {
         return json(req, { total: total?.t || 0, today: todayRow ? todayRow.n : 0, days: days.results });
       }
 
+      // 어드민: 서비스 별점 요약 (평균·분포·최근 낮은 평가) — 나만 보기
+      if (path === '/admin/ratings' && req.method === 'GET') {
+        const total = await db.prepare('SELECT COUNT(*) c, AVG(score) a FROM ratings').first();
+        const distRows = await db.prepare('SELECT score, COUNT(*) c FROM ratings GROUP BY score').all();
+        const dist = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+        for (const r of distRows.results) dist[r.score] = r.c;
+        const low = await db.prepare('SELECT score, memo, at FROM ratings WHERE score <= 2 ORDER BY at DESC LIMIT 10').all();
+        return json(req, { count: total?.c || 0, avg: total?.a || 0, dist, low: low.results });
+      }
+
       // 어드민: 가게별 클릭수 (많이 눌린 순) — 나만 보기
       if (path === '/admin/clicks' && req.method === 'GET') {
         const rows = await db.prepare(

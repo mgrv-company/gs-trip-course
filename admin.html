@@ -96,6 +96,18 @@
   .ranklist .rval { flex: 0 0 auto; font-size: 12.5px; font-weight: 700; color: var(--green-deep); font-variant-numeric: tabular-nums; }
   .ranklist .rsub { font-size: 11px; color: var(--gray); font-weight: 500; margin-left: 3px; }
   .ranklist .empty { color: var(--gray); padding: 8px 2px; }
+  .ratedist { margin: 14px 0 4px; }
+  .ratedist .rdrow { display: flex; align-items: center; gap: 8px; font-size: 12.5px; margin: 5px 0; }
+  .ratedist .rdrow .rdlabel { flex: 0 0 28px; color: var(--gray); font-weight: 700; }
+  .ratedist .rdrow .rdbar { flex: 1; height: 10px; background: var(--soft); border-radius: 5px; overflow: hidden; }
+  .ratedist .rdrow .rdbar > span { display: block; height: 100%; background: var(--green); }
+  .ratedist .rdrow .rdn { flex: 0 0 auto; width: 24px; text-align: right; color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .lowlist { margin-top: 12px; }
+  .lowlist .lowitem { border-top: 1px solid var(--line); padding: 9px 2px; font-size: 13px; }
+  .lowlist .lowitem:first-child { border-top: 0; }
+  .lowlist .lowscore { font-weight: 800; color: #c0392b; }
+  .lowlist .lowmemo { color: var(--ink); margin-top: 2px; }
+  .lowlist .lowat { color: var(--gray); font-size: 11px; margin-top: 2px; }
 
   /* 새 가게 추가 접이식 */
   details.addnew > summary { cursor: pointer; font-weight: 800; font-size: 15px; list-style: none; padding: 2px 0; }
@@ -301,12 +313,30 @@
         <p class="small">노출 대비 클릭 비율(CTR) 순 — <b>보여주면 실제로 눌리는 진짜 관심</b>. 노출이 쌓일수록 정확해져요.</p>
         <ol id="vTopCTR" class="ranklist">불러오는 중…</ol>
       </div>
+      <div class="card">
+        <h2>⭐ 서비스 평가</h2>
+        <p class="small">손님이 메인 하단에서 남긴 별점(1~5)과 한줄평이에요.</p>
+        <div class="statgrid" style="grid-template-columns:repeat(2,1fr)">
+          <div class="stat hl"><div class="sn" id="vRateAvg">–</div><div class="sl">평균 별점</div></div>
+          <div class="stat"><div class="sn" id="vRateCount">–</div><div class="sl">응답 수</div></div>
+        </div>
+        <div id="vRateDist" class="ratedist"></div>
+        <div id="vRateLow" class="lowlist"></div>
+      </div>
+      <div class="card">
+        <h2>📊 종류·구역별 클릭 분포</h2>
+        <p class="small">가게 클릭수를 종류·구역별로 묶었어요.</p>
+        <div class="charttitle">종류별</div>
+        <ol id="vClickByType" class="ranklist">불러오는 중…</ol>
+        <div class="charttitle">구역별</div>
+        <ol id="vClickByZone" class="ranklist">불러오는 중…</ol>
+      </div>
     </div>
   </div>
 </div>
 
 <div id="toast"></div>
 <script src="places.js?v=7"></script>
-<script src="admin.js?v=12"></script>
+<script src="admin.js?v=13"></script>
 </body>
 </html>

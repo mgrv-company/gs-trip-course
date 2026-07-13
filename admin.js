@@ -353,7 +353,7 @@ async function loadViews() {
   } catch (e) {
     $('#vChart').textContent = '불러오기 실패: ' + e.message;
   }
-  // 2) 클릭 Top10 + CTR Top10
+  // 2) 클릭 Top10 + CTR Top10 + 종류·구역별 분포
   try {
     const clicks = (await api('/admin/clicks')).clicks || [];
     const byClicks = clicks.slice().sort((a, b) => b.n - a.n).slice(0, 10);
@@ -364,10 +364,51 @@ async function loadViews() {
     $('#vTopCTR').innerHTML = byCTR.length
       ? byCTR.map(c => '<li><span class="rname">' + esc(c.name || c.key) + '</span><span class="rval">' + Math.round(c.ctr * 100) + '%<span class="rsub">클릭 ' + c.n + ' · 노출 ' + c.imp + '</span></span></li>').join('')
       : '<li class="empty">노출 데이터가 쌓이면 표시돼요.</li>';
+    renderClickBreakdown(clicks);
     if (_dash) { _dash.byClicks = byClicks; _dash.byCTR = byCTR; }
   } catch (e) {
     $('#vTopClicks').textContent = '불러오기 실패: ' + e.message;
   }
+  // 3) 서비스 별점 요약
+  try {
+    const r = await api('/admin/ratings');
+    $('#vRateAvg').textContent = r.count ? Number(r.avg).toFixed(1) : '–';
+    $('#vRateCount').textContent = r.count || 0;
+    const dmax = Math.max.apply(null, [1, 2, 3, 4, 5].map(s => r.dist[s] || 0));
+    $('#vRateDist').innerHTML = [5, 4, 3, 2, 1].map(s => {
+      const n = r.dist[s] || 0, w = Math.round(n / dmax * 100);
+      return '<div class="rdrow"><span class="rdlabel">' + s + '★</span><span class="rdbar"><span style="width:' + w + '%"></span></span><span class="rdn">' + n + '</span></div>';
+    }).join('');
+    $('#vRateLow').innerHTML = r.low.length
+      ? r.low.map(x => '<div class="lowitem"><span class="lowscore">' + '★'.repeat(x.score) + '☆'.repeat(5 - x.score) + '</span>'
+          + (x.memo ? '<div class="lowmemo">' + esc(x.memo) + '</div>' : '') + '<div class="lowat">' + esc((x.at || '').slice(0, 16).replace('T', ' ')) + '</div></div>').join('')
+      : '<div class="lowitem small">1~2점 평가가 없어요.</div>';
+    if (_dash) _dash.rating = r;
+  } catch (e) {
+    $('#vRateAvg').textContent = '실패';
+  }
+}
+
+// 종류·구역별 클릭 분포 — 백엔드 집계 없이 클릭 데이터(key=sid)를 현재 가게 목록(items)과 묶어서 계산
+function renderClickBreakdown(clicks) {
+  const bySid = {};
+  items.forEach(it => { bySid[it.sid] = it; });
+  const byType = {}, byZone = {};
+  clicks.forEach(c => {
+    const it = bySid[c.key];
+    if (!it) return;   // 관광정보(TourAPI) 카드 등 가게 목록에 없는 항목은 종류·구역 정보가 없어 제외
+    const t = it.type || '기타', z = it.zone || '기타';
+    byType[t] = (byType[t] || 0) + c.n;
+    byZone[z] = (byZone[z] || 0) + c.n;
+  });
+  const renderRank = (obj) => {
+    const rows = Object.entries(obj).sort((a, b) => b[1] - a[1]);
+    return rows.length
+      ? rows.map(([k, n]) => '<li><span class="rname">' + esc(k) + '</span><span class="rval">' + n + '<span class="rsub">클릭</span></span></li>').join('')
+      : '<li class="empty">데이터가 쌓이면 표시돼요.</li>';
+  };
+  $('#vClickByType').innerHTML = renderRank(byType);
+  $('#vClickByZone').innerHTML = renderRank(byZone);
 }
 
 // ── 공유용 HTML 리포트 (자체완결 파일 다운로드 — 로그인 없이 남에게 공유) ──
