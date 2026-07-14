@@ -542,18 +542,23 @@ function renderFestivalsHTML() {
 // ── 섹션 오버레이 ──────────────────────────────────
 function openSection(key) {
   sendEvent('coll:' + key);
-  const titleMap = { takeout: '🍱 포장·배달 (객실에서)', activity: '🏄 액티비티', beach: '🏖 해수욕장', festival: '🎉 고성·속초 축제', walk: '🚶 걸어서 갈 곳', capick: '📌 CA 강추', time: '🎯 아침·심야' };
+  const titleMap = { takeout: '🍱 포장·배달 (객실에서)', activity: '🏄 액티비티', beach: '🏖 해수욕장', attraction: '🗺 즐길 곳', festival: '🎉 고성·속초 축제', walk: '🚶 걸어서 갈 곳', capick: '📌 CA 강추', time: '🎯 아침·심야' };
   $('#secTitle').textContent = (COLL[key] && COLL[key].title) || titleMap[key] || '';
   if (COLL[key]) { renderCollection(key); $('#section').classList.add('show'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
   let html = '';
   const tourNote = '<div class="notice" style="margin-top:0;margin-bottom:6px">📍 한국관광공사 정보 기반이에요. 방문 전 운영 여부를 확인해보세요.</div>';
+  const byDist = arr => arr.slice().sort((a, b) => (a.d == null ? 9e9 : a.d) - (b.d == null ? 9e9 : b.d));
   if (key === 'takeout') {
     const list = PLACES.filter(p => p.to && !p.x);
     html = list.length ? list.map(p => cardHTML(p)).join('') : '<p class="empty">등록된 포장·배달 가게가 없어요.</p>';
   } else if (key === 'activity' && typeof TOUR !== 'undefined') {
     html = tourNote + TOUR.activities.map(tourCardHTML).join('');
-  } else if (key === 'beach' && typeof TOUR !== 'undefined') {
-    html = tourNote + TOUR.beaches.map(tourCardHTML).join('');
+  } else if (key === 'beach') {
+    const list = byDist(PLACES.filter(p => p.t === '해변' && !p.x));
+    html = list.length ? list.map(p => cardHTML(p)).join('') : '<p class="empty">해변 정보를 찾지 못했어요.</p>';
+  } else if (key === 'attraction') {
+    const list = byDist(PLACES.filter(p => p.t === '명소' && !p.x));
+    html = list.length ? list.map(p => cardHTML(p)).join('') : '<p class="empty">즐길 곳 정보를 찾지 못했어요.</p>';
   } else if (key === 'festival') {
     html = renderFestivalsHTML();
   } else {
