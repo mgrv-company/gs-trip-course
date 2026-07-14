@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>맹그로브 고성 · 해수욕장 지도 (테스트)</title>
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.tile.openstreetmap.org https:; connect-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root { --green: #00b453; --green-deep: #0a7a3c; --green-light: #eafdf1; --ink: #1f1e1d; --gray: #76776c; --line: #ececea; --bg: #f6f5f2; --soft: #edece9; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; background: var(--bg); color: var(--ink); line-height: 1.55; }
+  body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', system-ui, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.55; }
+  #debugLine { font-size: 11.5px; color: #c0392b; font-weight: 700; margin-bottom: 8px; white-space: pre-wrap; }
   .topbar { position: sticky; top: 0; z-index: 20; background: var(--ink); color: #fff; display: flex; align-items: center; gap: 10px; padding: 14px 16px; }
   .topbar .wm { font-weight: 800; font-size: 16px; }
   .topbar .pg { font-size: 12.5px; color: #cfcfca; font-weight: 600; margin-left: auto; }
@@ -46,6 +46,7 @@
 <div class="wrap">
   <div class="notice">⚠️ 테스트 페이지예요 — 실제 홈 화면엔 아직 연결 안 됐고, 어디에도 링크 안 걸려 있어요. 여기서 확인 후 문제없으면 홈에 반영할게요.</div>
   <h2>🏖 고성 해수욕장</h2>
+  <div id="debugLine"></div>
   <div id="map"></div>
   <div class="infopanel" id="infoPanel"><div class="empty-hint">지도를 불러오는 중…</div></div>
 </div>
@@ -53,17 +54,30 @@
 <script src="places.js?v=17"></script>
 <script src="vendor/leaflet/leaflet.js"></script>
 <script>
+function debug(msg) { const el = document.getElementById('debugLine'); if (el) el.textContent = msg; console.log('[지도 디버그]', msg); }
+window.addEventListener('error', (e) => debug('스크립트 오류: ' + (e.error && e.error.message ? e.error.message : e.message)));
+
+try {
+
+if (typeof L === 'undefined') { debug('Leaflet 라이브러리(vendor/leaflet/leaflet.js)를 못 불러왔어요.'); throw new Error('no L'); }
+if (typeof PLACES === 'undefined') { debug('places.js를 못 불러왔어요.'); throw new Error('no PLACES'); }
+
 const MANGROVE = { lat: 38.2872314, lng: 128.5479364 };
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function driveMin(d) { return Math.round(d / 50 * 60) + 3; }
 
-const BEACHES = (typeof PLACES !== 'undefined' ? PLACES : []).filter(p => p.t === '해변' && !p.x && p.lat && p.lng);
+const BEACHES = PLACES.filter(p => p.t === '해변' && !p.x && p.lat && p.lng);
+debug('해변 ' + BEACHES.length + '곳 로드됨 · 타일 불러오는 중…');
 
 const map = L.map('map', { zoomControl: true }).setView([MANGROVE.lat, MANGROVE.lng], 11);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; OpenStreetMap contributors',
   maxZoom: 18,
 }).addTo(map);
+let tileOkCount = 0, tileErrCount = 0;
+tileLayer.on('load', () => debug(tileErrCount ? ('타일 일부 실패(' + tileErrCount + '건) — 네트워크 상태를 확인해보세요') : ''));
+tileLayer.on('tileerror', (e) => { tileErrCount++; debug('타일 로딩 실패 ' + tileErrCount + '건 (마지막: ' + (e.error && e.error.message || 'CSP/네트워크 차단 의심') + ')'); });
+tileLayer.on('tileload', () => { tileOkCount++; if (tileOkCount === 1) debug(''); });
 
 // 맹그로브 고성 마커
 const mgIcon = L.divIcon({ className: 'mg-icon', iconSize: [16, 16] });
@@ -145,6 +159,11 @@ renderMarkers();
 const top = BEACHES.slice().sort((a, b) => (b.rv ? b.rv[1] : 0) - (a.rv ? a.rv[1] : 0))[0];
 if (top) selectBeach(top, [top]);
 else document.getElementById('infoPanel').innerHTML = '<div class="empty-hint">해변 데이터를 찾지 못했어요.</div>';
+
+} catch (err) {
+  debug('오류: ' + (err && err.message ? err.message : String(err)));
+  console.error(err);
+}
 </script>
 </body>
 </html>
