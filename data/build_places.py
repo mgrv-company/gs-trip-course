@@ -130,6 +130,7 @@ for x in places:
         'f': x['food'], 'v': x['vibe'], 'z': x['zone'][:2],
         'd': x['dist_km'], 'a': x['address'], 'u': x['naver'], 'img': x['thumb'],
         's': str(x['sid']),   # 홈이 백엔드 최신 편집을 얹을 때 대조용
+        'lat': x.get('lat'), 'lng': x.get('lng'),   # 지도 표시용(해수욕장 등)
     }
     if h:
         item['h'] = h

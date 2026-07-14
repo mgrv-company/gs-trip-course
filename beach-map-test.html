@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>맹그로브 고성 · 해수욕장 지도 (테스트)</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.tile.openstreetmap.org https:; connect-src 'self'">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --green: #00b453; --green-deep: #0a7a3c; --green-light: #eafdf1; --ink: #1f1e1d; --gray: #76776c; --line: #ececea; --bg: #f6f5f2; --soft: #edece9; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; background: var(--bg); color: var(--ink); line-height: 1.55; }
+  .topbar { position: sticky; top: 0; z-index: 20; background: var(--ink); color: #fff; display: flex; align-items: center; gap: 10px; padding: 14px 16px; }
+  .topbar .wm { font-weight: 800; font-size: 16px; }
+  .topbar .pg { font-size: 12.5px; color: #cfcfca; font-weight: 600; margin-left: auto; }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 16px 16px 40px; }
+  .notice { font-size: 12px; color: #8a6a14; background: #fff3cd; border-radius: 10px; padding: 10px 13px; margin-bottom: 14px; line-height: 1.6; }
+  h2 { font-size: 16px; font-weight: 800; margin-bottom: 8px; }
+
+  #map { width: 100%; height: 400px; border-radius: 16px; border: 1px solid var(--line); }
+  .mg-icon { background: var(--ink); border: 2px solid #fff; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,.3); }
+  .cluster-badge { position: absolute; top: -6px; right: -6px; background: #d64545; color: #fff; font-size: 9px; font-weight: 800; border-radius: 99px; width: 15px; height: 15px; display: flex; align-items: center; justify-content: center; }
+
+  .infopanel { margin-top: 14px; }
+  .empty-hint { text-align: center; color: var(--gray); font-size: 12.5px; padding: 20px; border: 1.5px dashed var(--line); border-radius: 14px; }
+  .beachcard { background: #fff; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; box-shadow: 0 6px 18px rgba(31,30,29,.08); }
+  .beachcard .ph { width: 100%; height: 160px; object-fit: cover; display: block; background: var(--soft); }
+  .beachcard .noph { width: 100%; height: 160px; display: flex; align-items: center; justify-content: center; background: var(--soft); font-size: 30px; color: var(--gray); }
+  .beachcard .bd { padding: 14px 16px; }
+  .beachcard .nm { font-weight: 800; font-size: 17px; }
+  .beachcard .meta { font-size: 12.5px; color: var(--gray); margin-top: 6px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .beachcard .meta .rv { color: var(--ink); font-weight: 700; }
+  .beachcard .meta .drive { font-weight: 700; color: var(--green-deep); }
+  .beachcard .links { margin-top: 12px; }
+  .beachcard .links a { font-size: 12.5px; color: var(--ink); text-decoration: none; border: 1px solid var(--line); border-radius: 9px; padding: 8px 13px; display: inline-block; font-weight: 600; }
+  .nearby { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .nearby .lbl { font-size: 11px; font-weight: 700; color: var(--gray); margin-bottom: 8px; }
+  .nearby .chips { display: flex; gap: 7px; flex-wrap: wrap; }
+  .nearby .chip { border: 1px solid var(--line); border-radius: 99px; padding: 6px 11px; font-size: 11.5px; font-weight: 600; cursor: pointer; background: #fff; color: var(--ink); }
+  .nearby .chip:hover { border-color: var(--green); background: var(--green-light); }
+</style>
+</head>
+<body>
+<div class="topbar"><span class="wm">mangrove</span><span class="pg">고성 · 해수욕장 지도 (테스트 페이지)</span></div>
+<div class="wrap">
+  <div class="notice">⚠️ 테스트 페이지예요 — 실제 홈 화면엔 아직 연결 안 됐고, 어디에도 링크 안 걸려 있어요. 여기서 확인 후 문제없으면 홈에 반영할게요.</div>
+  <h2>🏖 고성 해수욕장</h2>
+  <div id="map"></div>
+  <div class="infopanel" id="infoPanel"><div class="empty-hint">지도를 불러오는 중…</div></div>
+</div>
+
+<script src="places.js?v=17"></script>
+<script src="vendor/leaflet/leaflet.js"></script>
+<script>
+const MANGROVE = { lat: 38.2872314, lng: 128.5479364 };
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function driveMin(d) { return Math.round(d / 50 * 60) + 3; }
+
+const BEACHES = (typeof PLACES !== 'undefined' ? PLACES : []).filter(p => p.t === '해변' && !p.x && p.lat && p.lng);
+
+const map = L.map('map', { zoomControl: true }).setView([MANGROVE.lat, MANGROVE.lng], 11);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors',
+  maxZoom: 18,
+}).addTo(map);
+
+// 맹그로브 고성 마커
+const mgIcon = L.divIcon({ className: 'mg-icon', iconSize: [16, 16] });
+L.marker([MANGROVE.lat, MANGROVE.lng], { icon: mgIcon, interactive: false })
+  .addTo(map).bindTooltip('맹그로브 고성', { permanent: true, direction: 'top', className: 'mg-tooltip', offset: [0, -8] });
+
+// 전체 범위로 초기 화면 맞추기
+const bounds = L.latLngBounds(BEACHES.map(b => [b.lat, b.lng]).concat([[MANGROVE.lat, MANGROVE.lng]]));
+map.fitBounds(bounds, { padding: [24, 24] });
+
+let selected = null;
+let markerLayer = L.layerGroup().addTo(map);
+
+function computeClusters() {
+  const sorted = BEACHES.slice().sort((a, b) => (b.rv ? b.rv[1] : 0) - (a.rv ? a.rv[1] : 0));
+  const THRESH = 34; // 화면 px
+  const placed = [];
+  for (const b of sorted) {
+    const pt = map.latLngToContainerPoint([b.lat, b.lng]);
+    let host = null;
+    for (const p of placed) {
+      const d = pt.distanceTo(p._pt);
+      if (d < THRESH) { host = p; break; }
+    }
+    if (host) host._members.push(b);
+    else { b._pt = pt; b._members = [b]; placed.push(b); }
+  }
+  return placed;
+}
+
+function beachCardHTML(b) {
+  const rv = b.rv ? `<span class="rv">★ ${esc(b.rv[0])} (${esc(b.rv[1])})</span>` : `<span>리뷰 정보 없음</span>`;
+  const img = b.img ? `<img class="ph" src="${esc(b.img)}" loading="lazy" alt="">` : `<div class="noph">🏖</div>`;
+  return `${img}<div class="bd">
+    <div class="nm">${esc(b.n)}</div>
+    <div class="meta">${rv}<span class="drive">🚗 맹그로브에서 차로 ${driveMin(b.d)}분</span></div>
+    <div class="links"><a href="${esc(b.u)}" target="_blank" rel="noopener">네이버 지도에서 보기 →</a></div>
+  </div>`;
+}
+
+function selectBeach(b, cluster) {
+  selected = b;
+  renderMarkers();
+  const panel = document.getElementById('infoPanel');
+  let html = `<div class="beachcard">${beachCardHTML(b)}`;
+  const members = (cluster || b._members || [b]);
+  const others = members.filter(m => m !== b).sort((x, y) => (y.rv ? y.rv[1] : 0) - (x.rv ? x.rv[1] : 0));
+  if (others.length) {
+    html += `<div class="bd nearby"><div class="lbl">📍 이 근처에 ${others.length}곳 더 있어요</div><div class="chips">`
+      + others.map(o => `<span class="chip" data-sid="${esc(o.s)}">${esc(o.n)}${o.rv ? ' · ★' + esc(o.rv[0]) : ''}</span>`).join('')
+      + `</div></div>`;
+  }
+  html += `</div>`;
+  panel.innerHTML = html;
+  panel.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
+    const target = members.find(m => m.s === c.dataset.sid);
+    if (target) selectBeach(target, members);
+  }));
+}
+
+function renderMarkers() {
+  markerLayer.clearLayers();
+  const clusters = computeClusters();
+  clusters.forEach(b => {
+    const n = (b.rv ? b.rv[1] : 0);
+    const size = Math.max(20, Math.min(34, 20 + Math.log10(n + 1) * 6));
+    const isSel = selected === b;
+    const html = `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${isSel ? '#0a7a3c' : '#00b453'};border:${isSel ? 3 : 2}px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);position:relative;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;">🏖${b._members.length > 1 ? `<span class="cluster-badge">+${b._members.length - 1}</span>` : ''}</div>`;
+    const icon = L.divIcon({ className: '', html, iconSize: [size, size] });
+    const marker = L.marker([b.lat, b.lng], { icon }).addTo(markerLayer);
+    marker.on('click', () => selectBeach(b, b._members));
+  });
+}
+
+map.on('zoomend moveend', renderMarkers);
+renderMarkers();
+
+// 초기 선택: 리뷰 가장 많은 곳
+const top = BEACHES.slice().sort((a, b) => (b.rv ? b.rv[1] : 0) - (a.rv ? a.rv[1] : 0))[0];
+if (top) selectBeach(top, [top]);
+else document.getElementById('infoPanel').innerHTML = '<div class="empty-hint">해변 데이터를 찾지 못했어요.</div>';
+</script>
+</body>
+</html>
