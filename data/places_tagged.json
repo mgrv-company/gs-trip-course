@@ -5271,5 +5271,1753 @@
   "thumb": "",
   "naver": "https://map.naver.com/p/entry/place/1759404618",
   "guessed": false
+ },
+ {
+  "name": "어항집",
+  "type": "술집",
+  "list": "술집",
+  "category": "술집",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.36,
+  "address": "강원 속초시 중앙로229번길 1",
+  "lat": 38.2110882,
+  "lng": 128.5936651,
+  "sid": "2090337567",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2090337567",
+  "guessed": false
+ },
+ {
+  "name": "이정숙왕손만두찐빵",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 12.19,
+  "address": "강원 속초시 새마을길 28",
+  "lat": 38.1865168,
+  "lng": 128.6029815,
+  "sid": "35168860",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/35168860",
+  "guessed": false
+ },
+ {
+  "name": "속초어장물회",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.24,
+  "address": "강원 속초시 엑스포로 31",
+  "lat": 38.19106,
+  "lng": 128.5877,
+  "sid": "36663644",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/36663644",
+  "guessed": false
+ },
+ {
+  "name": "천진식탁",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 3.36,
+  "address": "강원 고성군 토성면 토성로 148-1",
+  "lat": 38.25819,
+  "lng": 128.55867,
+  "sid": "1010318965",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1010318965",
+  "guessed": false
+ },
+ {
+  "name": "베러굿서플라이",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 8.01,
+  "address": "강원 속초시 사진길 11",
+  "lat": 38.2226734,
+  "lng": 128.5885333,
+  "sid": "2050789215",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2050789215",
+  "guessed": false
+ },
+ {
+  "name": "육구방앗간",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.09,
+  "address": "강원 속초시 청학로 13",
+  "lat": 38.200907,
+  "lng": 128.5835795,
+  "sid": "15009189",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15009189",
+  "guessed": false
+ },
+ {
+  "name": "백금당속초",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.3,
+  "address": "강원 속초시 엑스포로1길 21",
+  "lat": 38.19053,
+  "lng": 128.58768,
+  "sid": "1811441883",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1811441883",
+  "guessed": false
+ },
+ {
+  "name": "미엘 파티세리",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.33,
+  "address": "강원 속초시 엑스포로1길 9",
+  "lat": 38.19057,
+  "lng": 128.58888,
+  "sid": "1540138773",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1540138773",
+  "guessed": false
+ },
+ {
+  "name": "명파해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 31.09,
+  "address": "강원 고성군 현내면",
+  "lat": 38.5434815,
+  "lng": 128.4053042,
+  "sid": "13491513",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13491513",
+  "guessed": false
+ },
+ {
+  "name": "마차진해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 27.21,
+  "address": "강원특별자치도 고성군 현내면 마차진리",
+  "lat": 38.51061,
+  "lng": 128.42039,
+  "sid": "13491518",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13491518",
+  "guessed": false
+ },
+ {
+  "name": "대진1리해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 26.43,
+  "address": "강원특별자치도 고성군 현내면 배봉리",
+  "lat": 38.50432,
+  "lng": 128.42451,
+  "sid": "13491292",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13491292",
+  "guessed": false
+ },
+ {
+  "name": "대진5리해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 25.5,
+  "address": "강원특별자치도 고성군 현내면 대진리",
+  "lat": 38.49676,
+  "lng": 128.42915,
+  "sid": "36072157",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/36072157",
+  "guessed": false
+ },
+ {
+  "name": "초도해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 25.12,
+  "address": "강원특별자치도 고성군 현내면 초도리",
+  "lat": 38.49307,
+  "lng": 128.42927,
+  "sid": "13491028",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13491028",
+  "guessed": false
+ },
+ {
+  "name": "화진포해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 23.4,
+  "address": "강원특별자치도 고성군 현내면 초도리 99",
+  "lat": 38.47947,
+  "lng": 128.43883,
+  "sid": "11491809",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/11491809",
+  "guessed": false
+ },
+ {
+  "name": "거진1리해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 19.27,
+  "address": "강원특별자치도 고성군 거진읍 거진리",
+  "lat": 38.44805,
+  "lng": 128.4655,
+  "sid": "36072141",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/36072141",
+  "guessed": false
+ },
+ {
+  "name": "거진해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 19.04,
+  "address": "강원특별자치도 고성군 거진읍 거진리",
+  "lat": 38.44222,
+  "lng": 128.45515,
+  "sid": "13491505",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13491505",
+  "guessed": false
+ },
+ {
+  "name": "반암해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 16.64,
+  "address": "강원 고성군 거진읍 반암리",
+  "lat": 38.4213013,
+  "lng": 128.4632125,
+  "sid": "11491707",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/11491707",
+  "guessed": false
+ },
+ {
+  "name": "동호리해변",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.87,
+  "address": "강원특별자치도 고성군 간성읍 동호리 16-2",
+  "lat": 38.38519,
+  "lng": 128.49378,
+  "sid": "1505275206",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1505275206",
+  "guessed": false
+ },
+ {
+  "name": "가진해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.14,
+  "address": "강원특별자치도 고성군 죽왕면",
+  "lat": 38.37327,
+  "lng": 128.50928,
+  "sid": "13491770",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13491770",
+  "guessed": false
+ },
+ {
+  "name": "공현진2리해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 8.4,
+  "address": "강원특별자치도 고성군 죽왕면 공현진리",
+  "lat": 38.35668,
+  "lng": 128.50996,
+  "sid": "36072526",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/36072526",
+  "guessed": false
+ },
+ {
+  "name": "공현진1리해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 7.82,
+  "address": "강원 고성군 죽왕면 공현진리",
+  "lat": 38.3516736,
+  "lng": 128.5119978,
+  "sid": "13491061",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13491061",
+  "guessed": false
+ },
+ {
+  "name": "송지호해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 5.15,
+  "address": "강원특별자치도 고성군 죽왕면",
+  "lat": 38.33081,
+  "lng": 128.52788,
+  "sid": "13491067",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13491067",
+  "guessed": false
+ },
+ {
+  "name": "봉수대해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 4.5,
+  "address": "강원특별자치도 고성군 죽왕면 오호리",
+  "lat": 38.32439,
+  "lng": 128.52739,
+  "sid": "13491251",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13491251",
+  "guessed": false
+ },
+ {
+  "name": "삼포해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 3.09,
+  "address": "강원 고성군 ",
+  "lat": 38.3137166,
+  "lng": 128.537125,
+  "sid": "13444347",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13444347",
+  "guessed": false
+ },
+ {
+  "name": "자작도해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 2.41,
+  "address": "강원특별자치도 고성군 죽왕면",
+  "lat": 38.30856,
+  "lng": 128.54276,
+  "sid": "13491134",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13491134",
+  "guessed": false
+ },
+ {
+  "name": "백도해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 1.55,
+  "address": "강원특별자치도 고성군 죽왕면 문암진리 19-22",
+  "lat": 38.30113,
+  "lng": 128.5464,
+  "sid": "13491937",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13491937",
+  "guessed": false
+ },
+ {
+  "name": "교암리해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "도보권",
+  "dist_km": 0.55,
+  "address": "강원특별자치도 고성군 토성면 교암리",
+  "lat": 38.2921,
+  "lng": 128.54703,
+  "sid": "13491638",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13491638",
+  "guessed": false
+ },
+ {
+  "name": "아야진해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 1.35,
+  "address": "강원특별자치도 고성군 토성면",
+  "lat": 38.27587,
+  "lng": 128.55339,
+  "sid": "13491425",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13491425",
+  "guessed": false
+ },
+ {
+  "name": "청간정해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 2.54,
+  "address": "강원특별자치도 고성군 토성면 청간리 54-20",
+  "lat": 38.26604,
+  "lng": 128.55877,
+  "sid": "1056026653",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1056026653",
+  "guessed": false
+ },
+ {
+  "name": "청간해변",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 2.25,
+  "address": "강원특별자치도 고성군 토성면 청간리",
+  "lat": 38.26813,
+  "lng": 128.55653,
+  "sid": "21656492",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/21656492",
+  "guessed": false
+ },
+ {
+  "name": "천진해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 3.22,
+  "address": "강원특별자치도 고성군 토성면 천진리",
+  "lat": 38.25993,
+  "lng": 128.56031,
+  "sid": "13491824",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13491824",
+  "guessed": false
+ },
+ {
+  "name": "봉포해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 4.13,
+  "address": "강원특별자치도 고성군 토성면",
+  "lat": 38.25286,
+  "lng": 128.56597,
+  "sid": "13491948",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13491948",
+  "guessed": false
+ },
+ {
+  "name": "외옹치해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 12.71,
+  "address": "강원특별자치도 속초시 대포동",
+  "lat": 38.18348,
+  "lng": 128.60893,
+  "sid": "13491373",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13491373",
+  "guessed": false
+ },
+ {
+  "name": "속초해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.77,
+  "address": "강원특별자치도 속초시 조양동 1450-158",
+  "lat": 38.1908,
+  "lng": 128.60347,
+  "sid": "11491735",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/11491735",
+  "guessed": false
+ },
+ {
+  "name": "등대해수욕장",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 8.78,
+  "address": "강원특별자치도 속초시 영랑동",
+  "lat": 38.21754,
+  "lng": 128.59511,
+  "sid": "13491890",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13491890",
+  "guessed": false
+ },
+ {
+  "name": "마산봉",
+  "type": "명소",
+  "list": "명소",
+  "category": "지도정보",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 13.19,
+  "address": "강원특별자치도 고성군 간성읍 흘리 산1-108",
+  "lat": 38.26763,
+  "lng": 128.39892,
+  "sid": "1607084028",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1607084028",
+  "guessed": false
+ },
+ {
+  "name": "해파랑길45코스",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.22,
+  "address": "강원 속초시 아바이마을길 15-6",
+  "lat": 38.20266,
+  "lng": 128.59381,
+  "sid": "32323680",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/32323680",
+  "guessed": false
+ },
+ {
+  "name": "해파랑길46코스",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 2.05,
+  "address": "강원특별자치도 고성군 토성면 아야진리 56-14",
+  "lat": 38.27035,
+  "lng": 128.55726,
+  "sid": "32323711",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/32323711",
+  "guessed": false
+ },
+ {
+  "name": "고성통일전망타워",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 36.54,
+  "address": "강원 고성군 현내면 통일전망대로 457",
+  "lat": 38.58662,
+  "lng": 128.3749,
+  "sid": "1626583294",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1626583294",
+  "guessed": false
+ },
+ {
+  "name": "통일전망대출렁다리",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 27.73,
+  "address": "강원 고성군 현내면 금강산로 481",
+  "lat": 38.51469,
+  "lng": 128.41736,
+  "sid": "1802646182",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1802646182",
+  "guessed": false
+ },
+ {
+  "name": "대진항 해상공원",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 25.83,
+  "address": "강원 고성군 현내면 대진항길 80",
+  "lat": 38.49916,
+  "lng": 128.42654,
+  "sid": "1714349376",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1714349376",
+  "guessed": false
+ },
+ {
+  "name": "대진등대",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 26.22,
+  "address": "강원 고성군 한나루로4길 16-38",
+  "lat": 38.5036694,
+  "lng": 128.4286024,
+  "sid": "20059721",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/20059721",
+  "guessed": false
+ },
+ {
+  "name": "화진포의성김일성별장",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 22.68,
+  "address": "강원 고성군 거진읍 화진포길 280",
+  "lat": 38.47389,
+  "lng": 128.44293,
+  "sid": "19978654",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/19978654",
+  "guessed": false
+ },
+ {
+  "name": "화진포",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 22.41,
+  "address": "강원특별자치도 고성군 거진읍 화포리",
+  "lat": 38.46964,
+  "lng": 128.43871,
+  "sid": "13491281",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13491281",
+  "guessed": false
+ },
+ {
+  "name": "화진포소나무숲산림욕장",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 21.63,
+  "address": "강원 고성군 거진읍 화진포길 258-115",
+  "lat": 38.46596,
+  "lng": 128.44992,
+  "sid": "31482287",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/31482287",
+  "guessed": false
+ },
+ {
+  "name": "응봉",
+  "type": "명소",
+  "list": "명소",
+  "category": "지도정보",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 21.6,
+  "address": "강원 고성군 화진포길 204-25",
+  "lat": 38.464766,
+  "lng": 128.4474309,
+  "sid": "1090525328",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1090525328",
+  "guessed": false
+ },
+ {
+  "name": "화진포 해맞이교",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 20.96,
+  "address": "강원 고성군 거진읍 화진포길 258-115",
+  "lat": 38.45954,
+  "lng": 128.45033,
+  "sid": "1401326249",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1401326249",
+  "guessed": false
+ },
+ {
+  "name": "해오름쉼터",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 20.11,
+  "address": "강원특별자치도 고성군 거진읍 거진리",
+  "lat": 38.4549,
+  "lng": 128.46145,
+  "sid": "36039905",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/36039905",
+  "guessed": false
+ },
+ {
+  "name": "백섬해상전망대",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 19.38,
+  "address": "강원 고성군 거진읍 거진리",
+  "lat": 38.4496091,
+  "lng": 128.4670206,
+  "sid": "1972673790",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1972673790",
+  "guessed": false
+ },
+ {
+  "name": "거진해맞이봉산림욕장",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 19.46,
+  "address": "강원 고성군 거진읍 거탄진로209번길 19",
+  "lat": 38.45006,
+  "lng": 128.46609,
+  "sid": "15147369",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15147369",
+  "guessed": false
+ },
+ {
+  "name": "건봉사",
+  "type": "명소",
+  "list": "명소",
+  "category": "생활/문화",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 19.62,
+  "address": "강원 고성군 건봉사로 723",
+  "lat": 38.4030987,
+  "lng": 128.3782624,
+  "sid": "1606983550",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1606983550",
+  "guessed": false
+ },
+ {
+  "name": "국립진부령 자연휴양림",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 15.68,
+  "address": "강원 고성군 소똥령길 96",
+  "lat": 38.3247251,
+  "lng": 128.3746886,
+  "sid": "4345129037",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/4345129037",
+  "guessed": false
+ },
+ {
+  "name": "고성군작은영화관",
+  "type": "명소",
+  "list": "명소",
+  "category": "생활/문화",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 12.07,
+  "address": "강원 고성군 간성읍 수성로 3",
+  "lat": 38.37905,
+  "lng": 128.47409,
+  "sid": "1084685442",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1084685442",
+  "guessed": false
+ },
+ {
+  "name": "달홀공원",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.94,
+  "address": "강원특별자치도 고성군 간성읍 신안리 137",
+  "lat": 38.37774,
+  "lng": 128.47433,
+  "sid": "1178398796",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1178398796",
+  "guessed": false
+ },
+ {
+  "name": "수성샘터산림욕장",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 12.52,
+  "address": "강원특별자치도 고성군 간성읍 상리 산19-1 일원",
+  "lat": 38.3752,
+  "lng": 128.45833,
+  "sid": "1968566480",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1968566480",
+  "guessed": false
+ },
+ {
+  "name": "하늬라벤더팜",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 13.45,
+  "address": "강원 고성군 꽃대마을길 175",
+  "lat": 38.3494048,
+  "lng": 128.4156437,
+  "sid": "12283047",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/12283047",
+  "guessed": false
+ },
+ {
+  "name": "수뭇개바위",
+  "type": "명소",
+  "list": "명소",
+  "category": "지도정보",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 8.26,
+  "address": "강원특별자치도 고성군 죽왕면 공현진리",
+  "lat": 38.35615,
+  "lng": 128.51247,
+  "sid": "32637628",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/32637628",
+  "guessed": false
+ },
+ {
+  "name": "송지호해변공원",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 6.79,
+  "address": "강원 고성군 죽왕면 동해대로 6090",
+  "lat": 38.34219,
+  "lng": 128.51408,
+  "sid": "15150294",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15150294",
+  "guessed": false
+ },
+ {
+  "name": "왕곡마을",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 7.22,
+  "address": "강원특별자치도 고성군 죽왕면 오봉리",
+  "lat": 38.34022,
+  "lng": 128.50019,
+  "sid": "13491777",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13491777",
+  "guessed": false
+ },
+ {
+  "name": "고성갈래구경길송지호둘레길",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 6.83,
+  "address": "강원특별자치도 고성군 죽왕면 오봉리 산14-1",
+  "lat": 38.34015,
+  "lng": 128.50829,
+  "sid": "1191674307",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1191674307",
+  "guessed": false
+ },
+ {
+  "name": "송지호",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 6.46,
+  "address": "강원특별자치도 고성군 죽왕면 오봉리",
+  "lat": 38.33739,
+  "lng": 128.51048,
+  "sid": "13491847",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13491847",
+  "guessed": false
+ },
+ {
+  "name": "송지호관망타워",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 6.06,
+  "address": "강원 고성군 죽왕면 동해대로 6021",
+  "lat": 38.33627,
+  "lng": 128.51765,
+  "sid": "20027267",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/20027267",
+  "guessed": false
+ },
+ {
+  "name": "송지호국민관광지",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 5.18,
+  "address": "강원특별자치도 고성군 죽왕면 오호리",
+  "lat": 38.33105,
+  "lng": 128.52762,
+  "sid": "15149516",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15149516",
+  "guessed": false
+ },
+ {
+  "name": "아나하서프",
+  "type": "명소",
+  "list": "명소",
+  "category": "여가",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 4.91,
+  "address": "강원 고성군 죽왕면 심층수길 51-2",
+  "lat": 38.3284,
+  "lng": 128.52758,
+  "sid": "1242388288",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1242388288",
+  "guessed": false
+ },
+ {
+  "name": "서낭바위",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 4.75,
+  "address": "강원 고성군 죽왕면 심층수길 40-3",
+  "lat": 38.32757,
+  "lng": 128.52986,
+  "sid": "1145784497",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1145784497",
+  "guessed": false
+ },
+ {
+  "name": "문암리선사유적",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 1.98,
+  "address": "강원특별자치도 고성군 죽왕면 문암진리",
+  "lat": 38.30481,
+  "lng": 128.54441,
+  "sid": "1700454169",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1700454169",
+  "guessed": false
+ },
+ {
+  "name": "능파대",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "도보권",
+  "dist_km": 1.06,
+  "address": "강원 고성군 죽왕면 괘진길 65",
+  "lat": 38.2967404,
+  "lng": 128.5488754,
+  "sid": "15150899",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15150899",
+  "guessed": false
+ },
+ {
+  "name": "천학정",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "도보권",
+  "dist_km": 0.2,
+  "address": "강원특별자치도 고성군 토성면 교암리 177-1",
+  "lat": 38.289,
+  "lng": 128.54766,
+  "sid": "19493918",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/19493918",
+  "guessed": false
+ },
+ {
+  "name": "운봉산",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 3.47,
+  "address": "강원 고성군 토성면 학야리 산5-2",
+  "lat": 38.2877194,
+  "lng": 128.5081314,
+  "sid": "15152149",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15152149",
+  "guessed": false
+ },
+ {
+  "name": "도원리계곡",
+  "type": "명소",
+  "list": "명소",
+  "category": "지도정보",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 6.82,
+  "address": "강원특별자치도 고성군 토성면 도원리 495-42",
+  "lat": 38.26716,
+  "lng": 128.47405,
+  "sid": "15152219",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15152219",
+  "guessed": false
+ },
+ {
+  "name": "청간정",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 2.69,
+  "address": "강원특별자치도 고성군 토성면 청간리",
+  "lat": 38.26443,
+  "lng": 128.55837,
+  "sid": "13491372",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13491372",
+  "guessed": false
+ },
+ {
+  "name": "해풍공원",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 4.66,
+  "address": "강원 고성군 토성면 토성로 20",
+  "lat": 38.24842,
+  "lng": 128.56812,
+  "sid": "1079776622",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1079776622",
+  "guessed": false
+ },
+ {
+  "name": "바우지움조각미술관",
+  "type": "명소",
+  "list": "명소",
+  "category": "생활/문화",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 8.8,
+  "address": "강원 고성군 원암온천3길 37",
+  "lat": 38.2123921,
+  "lng": 128.5151879,
+  "sid": "36845206",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/36845206",
+  "guessed": false
+ },
+ {
+  "name": "설악산자생식물원",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.29,
+  "address": "강원 속초시 바람꽃마을길 164",
+  "lat": 38.1964347,
+  "lng": 128.524975,
+  "sid": "20758200",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/20758200",
+  "guessed": false
+ },
+ {
+  "name": "숨은책방",
+  "type": "명소",
+  "list": "명소",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.24,
+  "address": "강원 속초시 바람꽃마을길 160-3",
+  "lat": 38.1969228,
+  "lng": 128.5247659,
+  "sid": "1184952485",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1184952485",
+  "guessed": false
+ },
+ {
+  "name": "설악산책",
+  "type": "명소",
+  "list": "명소",
+  "category": "생활/문화",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.92,
+  "address": "강원 속초시 관광로 439",
+  "lat": 38.1986148,
+  "lng": 128.5353224,
+  "sid": "21799882",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/21799882",
+  "guessed": false
+ },
+ {
+  "name": "영랑호수윗길",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 8.37,
+  "address": "강원특별자치도 속초시 금호동 600-12",
+  "lat": 38.21581,
+  "lng": 128.57821,
+  "sid": "1752191241",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1752191241",
+  "guessed": false
+ },
+ {
+  "name": "영랑호수공원",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 8.94,
+  "address": "강원특별자치도 속초시 동명동 512-82",
+  "lat": 38.2121,
+  "lng": 128.58429,
+  "sid": "15087440",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15087440",
+  "guessed": false
+ },
+ {
+  "name": "청초호호수공원",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.58,
+  "address": "강원 속초시 엑스포로 140",
+  "lat": 38.19606,
+  "lng": 128.58246,
+  "sid": "528686921",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/528686921",
+  "guessed": false
+ },
+ {
+  "name": "설악산국립공원",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 13.63,
+  "address": "강원 속초시 설악산로 833",
+  "lat": 38.16702,
+  "lng": 128.51731,
+  "sid": "13491004",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13491004",
+  "guessed": false
+ },
+ {
+  "name": "신흥사",
+  "type": "명소",
+  "list": "명소",
+  "category": "생활/문화",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 13.58,
+  "address": "강원 속초시 설악산로 1137",
+  "lat": 38.175604,
+  "lng": 128.4847509,
+  "sid": "12323245",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/12323245",
+  "guessed": false
+ },
+ {
+  "name": "금강산화암사",
+  "type": "명소",
+  "list": "명소",
+  "category": "생활/문화",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.53,
+  "address": "강원 고성군 화암사길 100",
+  "lat": 38.2263223,
+  "lng": 128.4711825,
+  "sid": "11663901",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/11663901",
+  "guessed": false
+ },
+ {
+  "name": "울산바위촬영휴게소",
+  "type": "명소",
+  "list": "명소",
+  "category": "기타",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.97,
+  "address": "강원 고성군 토성면 미시령로 2653",
+  "lat": 38.20718,
+  "lng": 128.49662,
+  "sid": "1834475998",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1834475998",
+  "guessed": false
+ },
+ {
+  "name": "미시령계곡",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.69,
+  "address": "강원특별자치도 고성군 토성면 원암리",
+  "lat": 38.21011,
+  "lng": 128.47484,
+  "sid": "13490979",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13490979",
+  "guessed": false
+ },
+ {
+  "name": "상도문돌담마을",
+  "type": "명소",
+  "list": "명소",
+  "category": "지도정보",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 13.71,
+  "address": "강원특별자치도 속초시 도문동",
+  "lat": 38.16405,
+  "lng": 128.55404,
+  "sid": "15100341",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15100341",
+  "guessed": false
+ },
+ {
+  "name": "속초등대전망대",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.37,
+  "address": "강원 속초시 영금정로5길 8-28",
+  "lat": 38.21364,
+  "lng": 128.60018,
+  "sid": "37781582",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/37781582",
+  "guessed": false
+ },
+ {
+  "name": "영랑호범바위",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 8.42,
+  "address": "강원 속초시 금호동 610-22",
+  "lat": 38.2147156,
+  "lng": 128.5758236,
+  "sid": "21576070",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/21576070",
+  "guessed": false
+ },
+ {
+  "name": "영랑호",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 8.22,
+  "address": "강원특별자치도 속초시 장사동",
+  "lat": 38.21828,
+  "lng": 128.58193,
+  "sid": "13491910",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13491910",
+  "guessed": false
+ },
+ {
+  "name": "청초호",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.66,
+  "address": "강원특별자치도 속초시 청호동",
+  "lat": 38.19658,
+  "lng": 128.58764,
+  "sid": "13490953",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13490953",
+  "guessed": false
+ },
+ {
+  "name": "북끝서점",
+  "type": "명소",
+  "list": "명소",
+  "category": "쇼핑",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "도보권",
+  "dist_km": 0.57,
+  "address": "강원 고성군 토성면 교암길 78-1",
+  "lat": 38.2920207,
+  "lng": 128.5455905,
+  "sid": "1229121932",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1229121932",
+  "guessed": false
+ },
+ {
+  "name": "문우당서림",
+  "type": "명소",
+  "list": "명소",
+  "category": "쇼핑",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.1,
+  "address": "강원 속초시 중앙로 45",
+  "lat": 38.200293,
+  "lng": 128.581375,
+  "sid": "15010018",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15010018",
+  "guessed": false
+ },
+ {
+  "name": "동아서점",
+  "type": "명소",
+  "list": "명소",
+  "category": "쇼핑",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.03,
+  "address": "강원 속초시 수복로 108",
+  "lat": 38.2008638,
+  "lng": 128.5808805,
+  "sid": "36324409",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/36324409",
+  "guessed": false
  }
 ]

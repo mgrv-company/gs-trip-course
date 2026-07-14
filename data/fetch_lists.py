@@ -6,11 +6,15 @@ import requests
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
-# naver.me 단축링크가 resolve된 공유 폴더 해시 (2026-06-23 확인)
+# naver.me 단축링크가 resolve된 공유 폴더 해시 (2026-06-23 확인, 해변·명소는 2026-07-14 추가)
+# ⚠️ 순서 중요: dict는 삽입 순서 유지 → sid 중복 시 "첫 리스트 우선"이라 기존 4개(술집/식사/카페) 뒤에 추가해야
+#    이미 식당·카페로 분류된 곳이 해변/명소로 잘못 재분류되지 않음
 LISTS = {
     '술집': '0ee58cac96de6972cee1d29db96eb1cb',
     '식사': '7f6aac8912cdd71450d290dce9bce503',
     '카페': '805cd9a13b4064986884c509a89178aa',
+    '해변': 'c3f5835e70a6474489547ad16c5631fe',
+    '명소': 'cb13ac546124497aaf7138fd471eebaa',
 }
 API = 'https://pages.map.naver.com/save-pages/api/maps-bookmark/v3/shares/{}/bookmarks?start=0&limit=5000&sort=lastUseTime'
 HEADERS = {
