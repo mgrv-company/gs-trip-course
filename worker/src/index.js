@@ -161,8 +161,21 @@ export default {
       if (path === '/view' && req.method === 'POST') {
         const ip = req.headers.get('CF-Connecting-IP') || 'local';
         if (await overLimit(db, 'view@' + ip, VIEW_LIMIT)) return json(req, { ok: true });   // 초과 시 집계 생략(응답은 동일)
+        let b = {}; try { b = await req.json(); } catch { /* 홈(body 없음)은 그대로 진행 */ }
         const day = kstDay();
-        await db.prepare('INSERT INTO pageviews (day, n) VALUES (?, 1) ON CONFLICT(day) DO UPDATE SET n = n + 1').bind(day).run();
+        const table = b && b.page === 'course' ? 'course_views' : 'pageviews';
+        await db.prepare(`INSERT INTO ${table} (day, n) VALUES (?, 1) ON CONFLICT(day) DO UPDATE SET n = n + 1`).bind(day).run();
+        return json(req, { ok: true });
+      }
+
+      // ── 공개: 화면 UI 이벤트(탭 전환·하단 모음 열람) 집계 ──────
+      if (path === '/event' && req.method === 'POST') {
+        const ip = req.headers.get('CF-Connecting-IP') || 'local';
+        if (await overLimit(db, 'event@' + ip, IMPRESSION_LIMIT)) return json(req, { ok: true });
+        let b; try { b = await req.json(); } catch { return json(req, { ok: true }); }
+        const key = String(b.key || '');
+        if (!/^[a-z0-9:_-]{1,40}$/i.test(key)) return json(req, { ok: true });   // 허용 형식 아니면 조용히 무시
+        await db.prepare('INSERT INTO ui_events (key, n) VALUES (?, 1) ON CONFLICT(key) DO UPDATE SET n = n + 1').bind(key).run();
         return json(req, { ok: true });
       }
 
@@ -178,6 +191,8 @@ export default {
           .bind(key, name).run();
         await db.prepare('INSERT INTO click_hours (hour, n) VALUES (?, 1) ON CONFLICT(hour) DO UPDATE SET n = n + 1')
           .bind(kstHour()).run();
+        await db.prepare('INSERT INTO place_clicks_daily (day, key, name, n) VALUES (?, ?, ?, 1) ON CONFLICT(day, key) DO UPDATE SET n = n + 1, name = excluded.name')
+          .bind(kstDay(), key, name).run();
         return json(req, { ok: true });
       }
 
@@ -254,6 +269,8 @@ export default {
         const memo = String(data.memo || '').slice(0, 500).trim();
         if (!memo) return ok;                                          // (2) 입력 검증
         if (await overLimit(db, 'fb', FB_LIMIT)) return ok;            // (3) 횟수 제한
+        await db.prepare('INSERT INTO feedback (place, memo, at) VALUES (?, ?, ?)')
+          .bind(place, memo, new Date().toISOString()).run();
         const text = '📝 트립코스 피드백\n'
           + '• 가게: ' + (slackEsc(place) || '(미지정)') + '\n'
           + '• 내용: ' + slackEsc(memo) + '\n'
@@ -505,6 +522,38 @@ export default {
         const hours = Array.from({ length: 24 }, (_, h) => 0);
         for (const r of rows.results) hours[r.hour] = r.n;
         return json(req, { hours });
+      }
+
+      // 어드민: 트립코스 3종(course/course3/course-pick) 조회수 — 나만 보기
+      if (path === '/admin/course-views' && req.method === 'GET') {
+        const day = kstDay();
+        const total = await db.prepare('SELECT COALESCE(SUM(n),0) AS t FROM course_views').first();
+        const days = await db.prepare('SELECT day, n FROM course_views ORDER BY day DESC LIMIT 30').all();
+        const todayRow = days.results.find(r => r.day === day);
+        return json(req, { total: total?.t || 0, today: todayRow ? todayRow.n : 0, days: days.results });
+      }
+
+      // 어드민: 화면 UI 이벤트(탭 전환·하단 모음 열람) 순위 — 나만 보기
+      if (path === '/admin/events' && req.method === 'GET') {
+        const rows = await db.prepare('SELECT key, n FROM ui_events ORDER BY n DESC').all();
+        return json(req, { events: rows.results });
+      }
+
+      // 어드민: 이번 주(월요일~) 클릭 Top10 — "요즘 뜨는 가게" (전체 누적 Top10과 별개)
+      if (path === '/admin/clicks-weekly' && req.method === 'GET') {
+        const now = new Date(Date.now() + 9 * 3600 * 1000);
+        const monday = new Date(now); monday.setUTCDate(monday.getUTCDate() - ((monday.getUTCDay() + 6) % 7));
+        const mondayStr = monday.toISOString().slice(0, 10);
+        const rows = await db.prepare(
+          'SELECT key, name, SUM(n) AS n FROM place_clicks_daily WHERE day >= ? GROUP BY key ORDER BY n DESC LIMIT 10'
+        ).bind(mondayStr).all();
+        return json(req, { clicks: rows.results, since: mondayStr });
+      }
+
+      // 어드민: 가게 피드백(한줄 의견) 최근 목록 — 나만 보기
+      if (path === '/admin/feedback' && req.method === 'GET') {
+        const rows = await db.prepare('SELECT place, memo, at FROM feedback ORDER BY at DESC LIMIT 100').all();
+        return json(req, { feedback: rows.results });
       }
 
       // 어드민: 코멘트 삭제

@@ -340,12 +340,35 @@
         <p class="small">손님이 몇 시에 가게를 많이 클릭하는지예요. 이 기능을 넣은 시점부터 쌓여요(과거 클릭엔 시각 기록이 없었어요).</p>
         <div id="vHourChart" class="chart">불러오는 중…</div>
       </div>
+      <div class="card">
+        <h2>🗺 트립코스 3종 조회수</h2>
+        <p class="small">바다+막국수·3일 코스·강추 조합 페이지 합산 조회수예요 (어드민 제외).</p>
+        <div class="statgrid" style="grid-template-columns:repeat(2,1fr)">
+          <div class="stat"><div class="sn" id="vCourseToday">–</div><div class="sl">오늘</div></div>
+          <div class="stat hl"><div class="sn" id="vCourseTotal">–</div><div class="sl">누적</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>🔥 이번 주 뜨는 가게 <span class="badge10">Top 10</span></h2>
+        <p class="small">이번 주(월요일~) 클릭만 따로 모은 순위예요 — 전체 누적 Top10과 달리 최근 흐름을 보여줘요.</p>
+        <ol id="vClicksWeekly" class="ranklist">불러오는 중…</ol>
+      </div>
+      <div class="card">
+        <h2>🧭 화면 이용 현황</h2>
+        <p class="small">탭 전환·하단 모음 열람 횟수예요. 어떤 진입점이 실제로 쓰이는지 확인용.</p>
+        <ol id="vEvents" class="ranklist">불러오는 중…</ol>
+      </div>
+      <div class="card">
+        <h2>📝 가게 피드백</h2>
+        <p class="small">손님이 남긴 가게 피드백 최근 내역이에요 (별점 평가와 별개, 슬랙에도 동시 전송됨).</p>
+        <div id="vFeedback" class="lowlist">불러오는 중…</div>
+      </div>
     </div>
   </div>
 </div>
 
 <div id="toast"></div>
 <script src="places.js?v=7"></script>
-<script src="admin.js?v=15"></script>
+<script src="admin.js?v=16"></script>
 </body>
 </html>

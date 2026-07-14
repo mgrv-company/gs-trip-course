@@ -76,6 +76,35 @@ CREATE TABLE IF NOT EXISTS click_hours (
   n    INTEGER NOT NULL DEFAULT 0
 );
 
+-- 코스 생성기(course.html) 조회수 — 홈(pageviews)과 분리 집계, 날짜별
+CREATE TABLE IF NOT EXISTS course_views (
+  day TEXT PRIMARY KEY,
+  n   INTEGER NOT NULL DEFAULT 0
+);
+
+-- 화면 UI 이벤트(탭 전환·하단 모음 열람) 누적 카운트 — key 예: 'tab:meal', 'coll:capick'
+CREATE TABLE IF NOT EXISTS ui_events (
+  key TEXT PRIMARY KEY,
+  n   INTEGER NOT NULL DEFAULT 0
+);
+
+-- 가게별 클릭수를 날짜별로도 저장 — place_clicks(누적 총합)만으로는 "이번 주 뜨는 가게"를 알 수 없어서 추가
+CREATE TABLE IF NOT EXISTS place_clicks_daily (
+  day  TEXT NOT NULL,
+  key  TEXT NOT NULL,
+  name TEXT NOT NULL DEFAULT '',
+  n    INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (day, key)
+);
+
+-- 가게 피드백 텍스트 보관(그동안 슬랙으로만 가고 DB엔 안 남았음) — 나중에 검색·집계용
+CREATE TABLE IF NOT EXISTS feedback (
+  id    INTEGER PRIMARY KEY AUTOINCREMENT,
+  place TEXT NOT NULL DEFAULT '',
+  memo  TEXT NOT NULL DEFAULT '',
+  at    TEXT NOT NULL DEFAULT ''
+);
+
 -- 어드민 로그인 세션 (비밀번호 확인 후 발급되는 임시 열쇠)
 CREATE TABLE IF NOT EXISTS sessions (
   token      TEXT PRIMARY KEY,

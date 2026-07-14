@@ -87,6 +87,27 @@
 
 <script src="places.js?v=12"></script>
 <script>
+  // ── 조회수·클릭 집계 (트립코스 3종 공용, 어드민 본인 제외) ──
+  const ADMIN_API = 'https://gs-trip-admin.mangrove-goseong.workers.dev';
+  (function () {
+    try {
+      if (localStorage.getItem('gstAdminSession')) return;
+      const d = new Date();
+      const key = 'gsHit:course:' + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+      if (localStorage.getItem(key)) return;
+      localStorage.setItem(key, '1');
+      fetch(ADMIN_API + '/view', { method: 'POST', keepalive: true, body: JSON.stringify({ page: 'course' }) }).catch(function () {});
+    } catch (e) {}
+  })();
+  document.addEventListener('click', function (e) {
+    const a = e.target.closest('a[data-clk]');
+    if (!a) return;
+    try { if (localStorage.getItem('gstAdminSession')) return; } catch (e2) {}
+    const sid = a.getAttribute('data-sid') || '', name = a.getAttribute('data-name') || '';
+    if (!sid && !name) return;
+    fetch(ADMIN_API + '/click', { method: 'POST', keepalive: true, body: JSON.stringify({ sid: sid, name: name }) }).catch(function () {});
+  }, true);
+
   const DAY_NAMES = ['일','월','화','수','목','금','토'];
   const P = (typeof PLACES !== 'undefined' ? PLACES : []).filter(p => !p.x);   // 제외(x) 가게 차단
   const toMin = s => { const [h,m] = s.split(':').map(Number); return h*60+m; };
@@ -119,7 +140,7 @@
         <div class="nm">${p.n}${badge(p)}</div>
         <div class="ct">${p.c} · ${walk(p.d)}${rv}${h ? ' · ' + h : ''}</div>
         ${menu}${extra || ''}
-        <div class="links"><a href="${p.u || naver(p.n)}" target="_blank" rel="noopener">네이버 지도에서 보기 →</a></div>
+        <div class="links"><a href="${p.u || naver(p.n)}" target="_blank" rel="noopener" data-clk="1" data-sid="${p.s || ''}" data-name="${p.n || ''}">네이버 지도에서 보기 →</a></div>
       </div></div>`;
   }
   function landCard(name, desc) {

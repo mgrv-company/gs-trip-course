@@ -401,6 +401,45 @@ async function loadViews() {
   } catch (e) {
     $('#vHourChart').textContent = '불러오기 실패: ' + e.message;
   }
+  // 5) 트립코스 3종 조회수
+  try {
+    const cv = await api('/admin/course-views');
+    $('#vCourseToday').textContent = cv.today ?? 0;
+    $('#vCourseTotal').textContent = cv.total ?? 0;
+  } catch (e) {
+    $('#vCourseToday').textContent = '실패';
+  }
+  // 6) 이번 주 뜨는 가게 Top10
+  try {
+    const cw = (await api('/admin/clicks-weekly')).clicks || [];
+    $('#vClicksWeekly').innerHTML = cw.length
+      ? cw.map(c => '<li><span class="rname">' + esc(c.name || c.key) + '</span><span class="rval">' + c.n + '<span class="rsub">클릭</span></span></li>').join('')
+      : '<li class="empty">이번 주 클릭 기록이 아직 없어요.</li>';
+  } catch (e) {
+    $('#vClicksWeekly').textContent = '불러오기 실패: ' + e.message;
+  }
+  // 7) 화면 UI 이벤트(탭·모음) 순위
+  try {
+    const ev = (await api('/admin/events')).events || [];
+    const LABELS = { 'tab:auto': '탭: 영업중', 'tab:meal': '탭: 든든한 한끼', 'tab:cafe': '탭: 카페', 'tab:bar': '탭: 술과 함께',
+      'coll:walk': '모음: 걸어서 갈 곳', 'coll:capick': '모음: CA 강추', 'coll:time': '모음: 아침·심야', 'coll:makguksu': '모음: 막국수 모음',
+      'coll:takeout': '모음: 포장·배달', 'coll:activity': '모음: 액티비티', 'coll:beach': '모음: 해수욕장', 'coll:festival': '모음: 축제' };
+    $('#vEvents').innerHTML = ev.length
+      ? ev.map(e => '<li><span class="rname">' + esc(LABELS[e.key] || e.key) + '</span><span class="rval">' + e.n + '<span class="rsub">회</span></span></li>').join('')
+      : '<li class="empty">아직 기록이 없어요.</li>';
+  } catch (e) {
+    $('#vEvents').textContent = '불러오기 실패: ' + e.message;
+  }
+  // 8) 가게 피드백 최근 목록
+  try {
+    const fb = (await api('/admin/feedback')).feedback || [];
+    $('#vFeedback').innerHTML = fb.length
+      ? fb.map(x => '<div class="lowitem">' + (x.place ? '<b>' + esc(x.place) + '</b><br>' : '')
+          + esc(x.memo) + '<div class="lowat">' + esc((x.at || '').slice(0, 16).replace('T', ' ')) + '</div></div>').join('')
+      : '<div class="lowitem small">아직 피드백이 없어요.</div>';
+  } catch (e) {
+    $('#vFeedback').textContent = '불러오기 실패: ' + e.message;
+  }
 }
 let _ratingsAll = [];
 const _vRateCountBox = $('#vRateCountBox');

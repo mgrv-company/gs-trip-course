@@ -248,6 +248,13 @@ function queueImpressions(picks) {
   }, 1200);
 }
 
+// 화면 UI 이벤트(탭 전환·하단 모음 열람) 집계 — 손님만(어드민 제외), 어떤 진입점이 실제로 쓰이는지 확인용
+function sendEvent(key) {
+  try { if (localStorage.getItem('gstAdminSession')) return; } catch (e) { return; }
+  fetch(ADMIN_API + '/event', { method: 'POST', keepalive: true, body: JSON.stringify({ key: key }) })
+    .catch(function (e) { console.debug('event beacon 실패(무시 가능):', e && e.message); });
+}
+
 // 사진 로드 실패 시 대체 이미지 — 네이버 사진이 깨지면 차라리 다른 이미지. (CSP상 인라인 onerror 불가 → 위임 캡처)
 document.addEventListener('error', function (e) {
   const t = e.target;
@@ -329,6 +336,7 @@ $$('.seg').forEach(b => b.addEventListener('click', () => {
   curSlot = b.dataset.slot;
   curFilter = null;          // 탭 바꾸면 옵션 초기화
   recent = [];               // 순환도 새로 시작
+  sendEvent('tab:' + curSlot);
   renderChips();
   renderNow();
 }));
@@ -533,6 +541,7 @@ function renderFestivalsHTML() {
 
 // ── 섹션 오버레이 ──────────────────────────────────
 function openSection(key) {
+  sendEvent('coll:' + key);
   const titleMap = { takeout: '🍱 포장·배달 (객실에서)', activity: '🏄 액티비티', beach: '🏖 해수욕장', festival: '🎉 고성·속초 축제', walk: '🚶 걸어서 갈 곳', capick: '📌 CA 강추', time: '🎯 아침·심야' };
   $('#secTitle').textContent = (COLL[key] && COLL[key].title) || titleMap[key] || '';
   if (COLL[key]) { renderCollection(key); $('#section').classList.add('show'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
