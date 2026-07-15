@@ -20,7 +20,8 @@
   .mapwrap { position: relative; border-radius: 16px; overflow: hidden; height: 420px; background: #cfe8ee;
     border: 1px solid var(--line); touch-action: none; cursor: grab; }
   .mapwrap.dragging { cursor: grabbing; }
-  .stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  .stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; width: 688px; height: 1551px; }
+  #pinsHost { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
   .stage img { display: block; width: 688px; height: 1551px; user-select: none; -webkit-user-drag: none; }
 
   .zoomctl { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 6px; z-index: 5; }
@@ -110,7 +111,7 @@ const BEACHES = PLACES.filter(p => p.t === '해변' && !p.x && typeof p._mapPx =
 const MAP_POS = {"13491638": {"px": 66.89750140394017, "py": 67.15663296346102}, "13491425": {"px": 69.59006718916876, "py": 71.03883178212224}, "13491937": {"px": 66.63078498181542, "py": 64.99629060541663}, "21656492": {"px": 70.91941570576172, "py": 72.88992599571003}, "13491134": {"px": 65.08975676510791, "py": 63.21853149890679}, "1056026653": {"px": 71.8677407621789, "py": 73.38973543959413}, "13444347": {"px": 62.70412654503359, "py": 61.98461654922882}, "13491824": {"px": 72.51971423847628, "py": 74.85081837900664}, "13491948": {"px": 74.91592844358509, "py": 76.54131256406855}, "13491251": {"px": 58.58272278414161, "py": 59.43031612843751}, "13491067": {"px": 58.79016889024238, "py": 57.89373525910586}, "13491061": {"px": 52.06629022450867, "py": 52.899242243131525}, "36072526": {"px": 51.20356843878652, "py": 51.70055669999593}, "13491890": {"px": 87.25262136518828, "py": 84.98414841828935}, "13491770": {"px": 50.91568404666048, "py": 47.727809872311674}, "11491735": {"px": 90.79190595080749, "py": 91.37330938213556}, "1505275206": {"px": 44.35361334368402, "py": 44.8728085625061}, "13491373": {"px": 93.10344827584339, "py": 93.12191526588587}, "11491707": {"px": 31.4125748783033, "py": 36.220790282954944}, "13491505": {"px": 27.99923971423923, "py": 31.20683560550834}, "36072141": {"px": 32.38100950625217, "py": 29.80919753385117}, "11491809": {"px": 21.090014303095852, "py": 22.274870404239834}, "13491028": {"px": 17.042698437242276, "py": 19.012653840620644}, "36072157": {"px": 16.99189530922899, "py": 18.127431532501532}, "13491292": {"px": 15.027507692343084, "py": 16.313663714778645}, "13491518": {"px": 13.283266963548579, "py": 14.80444458831397}, "13491513": {"px": 6.896551724122761, "py": 6.915129136167107}};
 PLACES.forEach(p => { const m = MAP_POS[p.s]; if (m) { p._mapPx = m.px; p._mapPy = m.py; } });
 const beaches = PLACES.filter(p => p.t === '해변' && !p.x && p._mapPx != null);
-debug(beaches.length ? '' : '지도에 표시할 해변 데이터를 못 찾았어요.');
+debug('진단: PLACES ' + PLACES.length + '개 · 해변 매칭 ' + beaches.length + '개 · 이미지 크기(고정값) ' + IMG_W + 'x' + IMG_H);
 
 const wrapEl = document.getElementById('mapWrap');
 const stage = document.getElementById('stage');
@@ -174,6 +175,7 @@ function renderPins() {
     const b = beaches.find(x => x.s === el.dataset.sid);
     if (b) selectBeach(b);
   }));
+  debug('그려진 핀 ' + pinsHost.querySelectorAll('.pin').length + '개(클러스터 ' + clusters.length + ') · scale=' + scale.toFixed(2) + ' tx=' + Math.round(tx) + ' ty=' + Math.round(ty) + ' · 지도 실제크기=' + (mapImg.naturalWidth || '?') + 'x' + (mapImg.naturalHeight || '?'));
 }
 
 function beachCardHTML(b) {
