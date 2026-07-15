@@ -5,22 +5,46 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>맹그로브 고성 · 해수욕장 지도 (테스트)</title>
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'">
-<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <style>
   :root { --green: #00b453; --green-deep: #0a7a3c; --green-light: #eafdf1; --ink: #1f1e1d; --gray: #76776c; --line: #ececea; --bg: #f6f5f2; --soft: #edece9; }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', system-ui, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.55; }
-  #debugLine { font-size: 11.5px; color: #c0392b; font-weight: 700; margin-bottom: 8px; white-space: pre-wrap; }
   .topbar { position: sticky; top: 0; z-index: 20; background: var(--ink); color: #fff; display: flex; align-items: center; gap: 10px; padding: 14px 16px; }
   .topbar .wm { font-weight: 800; font-size: 16px; }
   .topbar .pg { font-size: 12.5px; color: #cfcfca; font-weight: 600; margin-left: auto; }
   .wrap { max-width: 480px; margin: 0 auto; padding: 16px 16px 40px; }
   .notice { font-size: 12px; color: #8a6a14; background: #fff3cd; border-radius: 10px; padding: 10px 13px; margin-bottom: 14px; line-height: 1.6; }
   h2 { font-size: 16px; font-weight: 800; margin-bottom: 8px; }
+  #debugLine { font-size: 11.5px; color: #c0392b; font-weight: 700; margin-bottom: 8px; white-space: pre-wrap; }
 
-  #map { width: 100%; height: 400px; border-radius: 16px; border: 1px solid var(--line); }
-  .mg-icon { background: var(--ink); border: 2px solid #fff; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,.3); }
-  .cluster-badge { position: absolute; top: -6px; right: -6px; background: #d64545; color: #fff; font-size: 9px; font-weight: 800; border-radius: 99px; width: 15px; height: 15px; display: flex; align-items: center; justify-content: center; }
+  .mapwrap { position: relative; border-radius: 16px; overflow: hidden; height: 420px; background: #cfe8ee;
+    border: 1px solid var(--line); touch-action: none; cursor: grab; }
+  .mapwrap.dragging { cursor: grabbing; }
+  .stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  .stage img { display: block; width: 688px; height: 1551px; user-select: none; -webkit-user-drag: none; }
+
+  .zoomctl { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 6px; z-index: 5; }
+  .zoomctl button { width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--line); background: #fff;
+    color: var(--ink); font-size: 16px; font-weight: 800; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+  .zoomctl button:active { background: var(--soft); }
+  .resetbtn { position: absolute; left: 10px; top: 10px; z-index: 5; background: #fff; border: 1px solid var(--line);
+    border-radius: 9px; padding: 6px 10px; font-size: 11px; font-weight: 700; color: var(--ink); cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+  .legend { position: absolute; left: 10px; bottom: 10px; z-index: 5; background: rgba(255,255,255,.92);
+    border-radius: 9px; padding: 6px 10px; font-size: 10.5px; color: var(--ink); display: flex; align-items: center;
+    gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,.1); }
+  .attrib { position: absolute; right: 6px; bottom: 4px; z-index: 5; font-size: 8.5px; color: #333; background: rgba(255,255,255,.7);
+    padding: 1px 5px; border-radius: 4px; }
+  .legend .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--ink); display: inline-block; }
+
+  .pin { position: absolute; cursor: pointer; }
+  .pin .core { border-radius: 50%; background: var(--green); border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,.3);
+    display: flex; align-items: center; justify-content: center; font-size: 11px; }
+  .pin.selected .core { border-color: var(--ink); border-width: 3px; background: var(--green-deep); }
+  .pin .badge { position: absolute; top: -5px; right: -5px; background: #d64545; color: #fff; font-size: 8.5px;
+    font-weight: 800; border-radius: 99px; min-width: 15px; height: 15px; display: flex; align-items: center; justify-content: center; padding: 0 3px; }
+  .mg-pin { position: absolute; width: 16px; height: 16px; border-radius: 50%; background: var(--ink); border: 2px solid #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,.3); transform: translate(-50%,-50%); }
 
   .infopanel { margin-top: 14px; }
   .empty-hint { text-align: center; color: var(--gray); font-size: 12.5px; padding: 20px; border: 1.5px dashed var(--line); border-radius: 14px; }
@@ -44,68 +68,112 @@
 <body>
 <div class="topbar"><span class="wm">mangrove</span><span class="pg">고성 · 해수욕장 지도 (테스트 페이지)</span></div>
 <div class="wrap">
-  <div class="notice">⚠️ 테스트 페이지예요 — 실제 홈 화면엔 아직 연결 안 됐고, 어디에도 링크 안 걸려 있어요. 여기서 확인 후 문제없으면 홈에 반영할게요.</div>
+  <div class="notice">⚠️ 테스트 페이지예요 — 실제 홈 화면엔 아직 연결 안 됐고, 어디에도 링크 안 걸려 있어요. 확인 후 문제없으면 홈에 반영할게요.<br>
+  이번엔 실시간 지도 서버 대신, 실제 OpenStreetMap 지도를 미리 이미지로 만들어 넣었어요(실시간 접속 문제 없음).</div>
   <h2>🏖 고성 해수욕장</h2>
   <div id="debugLine"></div>
-  <div id="map"></div>
-  <div class="infopanel" id="infoPanel"><div class="empty-hint">지도를 불러오는 중…</div></div>
+  <div class="mapwrap" id="mapWrap">
+    <button class="resetbtn" id="resetBtn">전체보기</button>
+    <div class="zoomctl">
+      <button id="zoomIn" aria-label="확대">+</button>
+      <button id="zoomOut" aria-label="축소">−</button>
+    </div>
+    <div class="stage" id="stage">
+      <img id="mapImg" src="assets/map/goseong-static-map.png" alt="고성·속초 해안 지도">
+      <div id="pinsHost"></div>
+    </div>
+    <div class="legend"><span class="dot"></span>맹그로브 고성</div>
+    <div class="attrib">지도 데이터 &copy; OpenStreetMap contributors</div>
+  </div>
+  <div class="infopanel" id="infoPanel"></div>
 </div>
 
 <script src="places.js?v=17"></script>
-<script src="vendor/leaflet/leaflet.js"></script>
 <script>
-function debug(msg) { const el = document.getElementById('debugLine'); if (el) el.textContent = msg; console.log('[지도 디버그]', msg); }
+function debug(msg) { const el = document.getElementById('debugLine'); if (el) el.textContent = msg; if (msg) console.log('[지도 디버그]', msg); }
 window.addEventListener('error', (e) => debug('스크립트 오류: ' + (e.error && e.error.message ? e.error.message : e.message)));
 
 try {
 
-if (typeof L === 'undefined') { debug('Leaflet 라이브러리(vendor/leaflet/leaflet.js)를 못 불러왔어요.'); throw new Error('no L'); }
 if (typeof PLACES === 'undefined') { debug('places.js를 못 불러왔어요.'); throw new Error('no PLACES'); }
 
-const MANGROVE = { lat: 38.2872314, lng: 128.5479364 };
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function driveMin(d) { return Math.round(d / 50 * 60) + 3; }
 
-const BEACHES = PLACES.filter(p => p.t === '해변' && !p.x && p.lat && p.lng);
-debug('해변 ' + BEACHES.length + '곳 로드됨 · 타일 불러오는 중…');
+// 이미지(정적 지도)의 실제 픽셀 크기 — assets/map/goseong-static-map.png 생성 시 확정된 값
+const IMG_W = 688, IMG_H = 1551;
+// 각 지점의 이미지 내 위치(%) — 지도 이미지 생성 스크립트가 계산한 값(위경도를 Web Mercator로 투영)
+const MG_POS = { px: 67.28123436428139, py: 68.32128806911587 };
 
-const map = L.map('map', { zoomControl: true }).setView([MANGROVE.lat, MANGROVE.lng], 11);
-const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap contributors',
-  maxZoom: 18,
-}).addTo(map);
-let tileOkCount = 0, tileErrCount = 0;
-tileLayer.on('load', () => debug(tileErrCount ? ('타일 일부 실패(' + tileErrCount + '건) — 네트워크 상태를 확인해보세요') : ''));
-tileLayer.on('tileerror', (e) => { tileErrCount++; debug('타일 로딩 실패 ' + tileErrCount + '건 (마지막: ' + (e.error && e.error.message || 'CSP/네트워크 차단 의심') + ')'); });
-tileLayer.on('tileload', () => { tileOkCount++; if (tileOkCount === 1) debug(''); });
+const BEACHES = PLACES.filter(p => p.t === '해변' && !p.x && typeof p._mapPx === 'number');
+// places.js엔 지도용 %좌표가 없으므로, 정적 지도 생성 당시 계산한 값을 이름(sid)으로 매핑해 붙임
+const MAP_POS = {"13491638": {"px": 66.89750140394017, "py": 67.15663296346102}, "13491425": {"px": 69.59006718916876, "py": 71.03883178212224}, "13491937": {"px": 66.63078498181542, "py": 64.99629060541663}, "21656492": {"px": 70.91941570576172, "py": 72.88992599571003}, "13491134": {"px": 65.08975676510791, "py": 63.21853149890679}, "1056026653": {"px": 71.8677407621789, "py": 73.38973543959413}, "13444347": {"px": 62.70412654503359, "py": 61.98461654922882}, "13491824": {"px": 72.51971423847628, "py": 74.85081837900664}, "13491948": {"px": 74.91592844358509, "py": 76.54131256406855}, "13491251": {"px": 58.58272278414161, "py": 59.43031612843751}, "13491067": {"px": 58.79016889024238, "py": 57.89373525910586}, "13491061": {"px": 52.06629022450867, "py": 52.899242243131525}, "36072526": {"px": 51.20356843878652, "py": 51.70055669999593}, "13491890": {"px": 87.25262136518828, "py": 84.98414841828935}, "13491770": {"px": 50.91568404666048, "py": 47.727809872311674}, "11491735": {"px": 90.79190595080749, "py": 91.37330938213556}, "1505275206": {"px": 44.35361334368402, "py": 44.8728085625061}, "13491373": {"px": 93.10344827584339, "py": 93.12191526588587}, "11491707": {"px": 31.4125748783033, "py": 36.220790282954944}, "13491505": {"px": 27.99923971423923, "py": 31.20683560550834}, "36072141": {"px": 32.38100950625217, "py": 29.80919753385117}, "11491809": {"px": 21.090014303095852, "py": 22.274870404239834}, "13491028": {"px": 17.042698437242276, "py": 19.012653840620644}, "36072157": {"px": 16.99189530922899, "py": 18.127431532501532}, "13491292": {"px": 15.027507692343084, "py": 16.313663714778645}, "13491518": {"px": 13.283266963548579, "py": 14.80444458831397}, "13491513": {"px": 6.896551724122761, "py": 6.915129136167107}};
+PLACES.forEach(p => { const m = MAP_POS[p.s]; if (m) { p._mapPx = m.px; p._mapPy = m.py; } });
+const beaches = PLACES.filter(p => p.t === '해변' && !p.x && p._mapPx != null);
+debug(beaches.length ? '' : '지도에 표시할 해변 데이터를 못 찾았어요.');
 
-// 맹그로브 고성 마커
-const mgIcon = L.divIcon({ className: 'mg-icon', iconSize: [16, 16] });
-L.marker([MANGROVE.lat, MANGROVE.lng], { icon: mgIcon, interactive: false })
-  .addTo(map).bindTooltip('맹그로브 고성', { permanent: true, direction: 'top', className: 'mg-tooltip', offset: [0, -8] });
+const wrapEl = document.getElementById('mapWrap');
+const stage = document.getElementById('stage');
+const pinsHost = document.getElementById('pinsHost');
 
-// 전체 범위로 초기 화면 맞추기
-const bounds = L.latLngBounds(BEACHES.map(b => [b.lat, b.lng]).concat([[MANGROVE.lat, MANGROVE.lng]]));
-map.fitBounds(bounds, { padding: [24, 24] });
+function localXY(p) { return { x: p._mapPx / 100 * IMG_W, y: p._mapPy / 100 * IMG_H }; }
+const MG_LOCAL = { x: MG_POS.px / 100 * IMG_W, y: MG_POS.py / 100 * IMG_H };
 
-let selected = null;
-let markerLayer = L.layerGroup().addTo(map);
+let scale = 1, tx = 0, ty = 0;
+function applyTransform() { stage.style.transform = `translate(${tx}px,${ty}px) scale(${scale})`; }
+function clampScale(s) { return Math.max(0.25, Math.min(3, s)); }
+
+function fitAll() {
+  const cw = wrapEl.clientWidth, ch = wrapEl.clientHeight;
+  scale = clampScale(Math.min(cw / IMG_W, ch / IMG_H) * 0.94);
+  tx = (cw - IMG_W * scale) / 2;
+  ty = (ch - IMG_H * scale) / 2;
+  applyTransform();
+}
+function centerOnMangrove() {
+  const cw = wrapEl.clientWidth, ch = wrapEl.clientHeight;
+  scale = clampScale(1.15);
+  tx = cw / 2 - MG_LOCAL.x * scale;
+  ty = ch / 2 - MG_LOCAL.y * scale;
+  applyTransform();
+}
 
 function computeClusters() {
-  const sorted = BEACHES.slice().sort((a, b) => (b.rv ? b.rv[1] : 0) - (a.rv ? a.rv[1] : 0));
-  const THRESH = 34; // 화면 px
+  const sorted = beaches.slice().sort((a, b) => (b.rv ? b.rv[1] : 0) - (a.rv ? a.rv[1] : 0));
+  const THRESH = 30;
   const placed = [];
   for (const b of sorted) {
-    const pt = map.latLngToContainerPoint([b.lat, b.lng]);
+    const l = localXY(b);
+    const sx = tx + l.x * scale, sy = ty + l.y * scale;
     let host = null;
     for (const p of placed) {
-      const d = pt.distanceTo(p._pt);
-      if (d < THRESH) { host = p; break; }
+      const dx = sx - p._sx, dy = sy - p._sy;
+      if (Math.sqrt(dx * dx + dy * dy) < THRESH) { host = p; break; }
     }
     if (host) host._members.push(b);
-    else { b._pt = pt; b._members = [b]; placed.push(b); }
+    else { b._sx = sx; b._sy = sy; b._members = [b]; placed.push(b); }
   }
   return placed;
+}
+
+let selected = null;
+function renderPins() {
+  const clusters = computeClusters();
+  pinsHost.innerHTML = clusters.map(b => {
+    const l = localXY(b);
+    const n = b.rv ? b.rv[1] : 0;
+    const size = Math.max(20, Math.min(34, 20 + Math.log10(n + 1) * 6)) / scale;
+    const isSel = selected === b;
+    const badge = b._members.length > 1 ? `<div class="badge">+${b._members.length - 1}</div>` : '';
+    return `<div class="pin${isSel ? ' selected' : ''}" data-sid="${esc(b.s)}" style="left:${l.x}px;top:${l.y}px;transform:translate(-50%,-50%)">`
+      + `<div class="core" style="width:${size}px;height:${size}px;font-size:${size * 0.5}px">🏖</div>${badge}</div>`;
+  }).join('')
+  + `<div class="mg-pin" style="left:${MG_LOCAL.x}px;top:${MG_LOCAL.y}px"></div>`;
+  pinsHost.querySelectorAll('.pin').forEach(el => el.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const b = beaches.find(x => x.s === el.dataset.sid);
+    if (b) selectBeach(b);
+  }));
 }
 
 function beachCardHTML(b) {
@@ -117,15 +185,16 @@ function beachCardHTML(b) {
     <div class="links"><a href="${esc(b.u)}" target="_blank" rel="noopener">네이버 지도에서 보기 →</a></div>
   </div>`;
 }
+function findCluster(b) { return computeClusters().find(c => c._members.includes(b)) || { _members: [b] }; }
 
-function selectBeach(b, cluster) {
+function selectBeach(b) {
   selected = b;
-  renderMarkers();
+  renderPins();
   const panel = document.getElementById('infoPanel');
+  const cluster = findCluster(b);
   let html = `<div class="beachcard">${beachCardHTML(b)}`;
-  const members = (cluster || b._members || [b]);
-  const others = members.filter(m => m !== b).sort((x, y) => (y.rv ? y.rv[1] : 0) - (x.rv ? x.rv[1] : 0));
-  if (others.length) {
+  if (cluster._members.length > 1) {
+    const others = cluster._members.filter(m => m !== b).sort((x, y) => (y.rv ? y.rv[1] : 0) - (x.rv ? x.rv[1] : 0));
     html += `<div class="bd nearby"><div class="lbl">📍 이 근처에 ${others.length}곳 더 있어요</div><div class="chips">`
       + others.map(o => `<span class="chip" data-sid="${esc(o.s)}">${esc(o.n)}${o.rv ? ' · ★' + esc(o.rv[0]) : ''}</span>`).join('')
       + `</div></div>`;
@@ -133,32 +202,83 @@ function selectBeach(b, cluster) {
   html += `</div>`;
   panel.innerHTML = html;
   panel.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
-    const target = members.find(m => m.s === c.dataset.sid);
-    if (target) selectBeach(target, members);
+    const target = beaches.find(m => m.s === c.dataset.sid);
+    if (target) selectBeach(target);
   }));
 }
 
-function renderMarkers() {
-  markerLayer.clearLayers();
-  const clusters = computeClusters();
-  clusters.forEach(b => {
-    const n = (b.rv ? b.rv[1] : 0);
-    const size = Math.max(20, Math.min(34, 20 + Math.log10(n + 1) * 6));
-    const isSel = selected === b;
-    const html = `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${isSel ? '#0a7a3c' : '#00b453'};border:${isSel ? 3 : 2}px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);position:relative;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;">🏖${b._members.length > 1 ? `<span class="cluster-badge">+${b._members.length - 1}</span>` : ''}</div>`;
-    const icon = L.divIcon({ className: '', html, iconSize: [size, size] });
-    const marker = L.marker([b.lat, b.lng], { icon }).addTo(markerLayer);
-    marker.on('click', () => selectBeach(b, b._members));
-  });
+let dragging = false, dragStart = null, dragOrigin = null;
+wrapEl.addEventListener('pointerdown', (e) => {
+  if (e.target.closest('.zoomctl') || e.target.closest('.resetbtn') || e.target.closest('.pin')) return;
+  dragging = true; wrapEl.classList.add('dragging');
+  dragStart = { x: e.clientX, y: e.clientY }; dragOrigin = { tx, ty };
+  wrapEl.setPointerCapture(e.pointerId);
+});
+wrapEl.addEventListener('pointermove', (e) => {
+  if (!dragging) return;
+  tx = dragOrigin.tx + (e.clientX - dragStart.x);
+  ty = dragOrigin.ty + (e.clientY - dragStart.y);
+  applyTransform();
+});
+function endDrag() { dragging = false; wrapEl.classList.remove('dragging'); }
+wrapEl.addEventListener('pointerup', endDrag);
+wrapEl.addEventListener('pointercancel', endDrag);
+
+function zoomAt(clientX, clientY, factor) {
+  const rect = wrapEl.getBoundingClientRect();
+  const mx = clientX - rect.left, my = clientY - rect.top;
+  const localX = (mx - tx) / scale, localY = (my - ty) / scale;
+  scale = clampScale(scale * factor);
+  tx = mx - localX * scale;
+  ty = my - localY * scale;
+  applyTransform();
+  renderPins();
 }
+wrapEl.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.18 : 1 / 1.18);
+}, { passive: false });
+document.getElementById('zoomIn').addEventListener('click', () => {
+  const r = wrapEl.getBoundingClientRect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, 1.35);
+});
+document.getElementById('zoomOut').addEventListener('click', () => {
+  const r = wrapEl.getBoundingClientRect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, 1 / 1.35);
+});
+document.getElementById('resetBtn').addEventListener('click', () => { centerOnMangrove(); renderPins(); });
 
-map.on('zoomend moveend', renderMarkers);
-renderMarkers();
+let pinchStartDist = null, pinchStartScale = 1;
+wrapEl.addEventListener('touchstart', (e) => {
+  if (e.touches.length === 2) {
+    pinchStartDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    pinchStartScale = scale; dragging = false;
+  }
+}, { passive: true });
+wrapEl.addEventListener('touchmove', (e) => {
+  if (e.touches.length === 2 && pinchStartDist) {
+    const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2, cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+    const rect = wrapEl.getBoundingClientRect();
+    const mx = cx - rect.left, my = cy - rect.top;
+    const localX = (mx - tx) / scale, localY = (my - ty) / scale;
+    scale = clampScale(pinchStartScale * (d / pinchStartDist));
+    tx = mx - localX * scale; ty = my - localY * scale;
+    applyTransform(); renderPins();
+  }
+}, { passive: true });
 
-// 초기 선택: 리뷰 가장 많은 곳
-const top = BEACHES.slice().sort((a, b) => (b.rv ? b.rv[1] : 0) - (a.rv ? a.rv[1] : 0))[0];
-if (top) selectBeach(top, [top]);
-else document.getElementById('infoPanel').innerHTML = '<div class="empty-hint">해변 데이터를 찾지 못했어요.</div>';
+const mapImg = document.getElementById('mapImg');
+function start() {
+  centerOnMangrove();
+  renderPins();
+  const top = beaches.slice().sort((a, b) => (b.rv ? b.rv[1] : 0) - (a.rv ? a.rv[1] : 0))[0];
+  if (top) selectBeach(top);
+  else document.getElementById('infoPanel').innerHTML = '<div class="empty-hint">해변 데이터를 찾지 못했어요.</div>';
+}
+if (mapImg.complete) start();
+else {
+  mapImg.addEventListener('load', start);
+  mapImg.addEventListener('error', () => debug('지도 이미지(assets/map/goseong-static-map.png)를 못 불러왔어요.'));
+}
 
 } catch (err) {
   debug('오류: ' + (err && err.message ? err.message : String(err)));
