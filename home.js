@@ -735,27 +735,12 @@ document.addEventListener('keydown', function (e) {
   const sEl = document.getElementById('introSub');
   if (sEl) sEl.textContent = '고성 날씨 불러오는 중…';
 
-  // 지금 고성 날씨 — Open-Meteo(무료·API키 없음·CORS 허용). CSP connect-src에 api.open-meteo.com 허용.
-  function wmo(code) {
-    if (code === 0) return ['맑음', '☀️'];
-    if (code === 1) return ['대체로 맑음', '🌤'];
-    if (code === 2) return ['구름 조금', '⛅'];
-    if (code === 3) return ['흐림', '☁️'];
-    if (code === 45 || code === 48) return ['안개', '🌫'];
-    if (code >= 51 && code <= 57) return ['이슬비', '🌦'];
-    if (code >= 61 && code <= 67) return ['비', '🌧'];
-    if (code >= 71 && code <= 77) return ['눈', '🌨'];
-    if (code >= 80 && code <= 82) return ['소나기', '🌦'];
-    if (code === 85 || code === 86) return ['소낙눈', '🌨'];
-    if (code >= 95) return ['천둥번개', '⛈'];
-    return ['', '🌡'];
-  }
-  fetch('https://api.open-meteo.com/v1/forecast?latitude=38.28&longitude=128.52&current=temperature_2m,weather_code,wind_speed_10m&wind_speed_unit=ms&timezone=Asia%2FSeoul')
+  // 지금 고성 기온 — Open-Meteo(무료·API키 없음·CORS 허용). CSP connect-src에 api.open-meteo.com 허용.
+  fetch('https://api.open-meteo.com/v1/forecast?latitude=38.28&longitude=128.52&current=temperature_2m&timezone=Asia%2FSeoul')
     .then(function (r) { if (!r.ok) throw 0; return r.json(); })
     .then(function (j) {
-      const c = j.current, t = Math.round(c.temperature_2m), w = wmo(c.weather_code);
-      const wind = c.wind_speed_10m >= 9 ? ' · 바람 많이 불어요 💨' : '';
-      if (sEl) sEl.textContent = '지금 고성 ' + t + '°C · ' + w[0] + ' ' + w[1] + wind;
+      const t = Math.round(j.current.temperature_2m);
+      if (sEl) sEl.textContent = '현재 ' + t + '°';
     })
     .catch(function () { if (sEl) sEl.textContent = '오늘도 즐거운 고성 여행 되세요'; });
 
