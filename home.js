@@ -30,10 +30,10 @@ const SETTINGS_API = ADMIN_API + '/public/settings';
 const COPY = {
   'hero.title': '지금 어디로 갈까요?',
   'hero.sub': '커뮤니티 매니저가 추천하는 가게들',
-  'beachmini.title': '🏖 고성 해수욕장',
-  'beachmini.sub': '맹그로브 기준 가까운 순 · 리뷰 많은 곳엔 HOT 표시',
-  'attrmini.title': '🗺 즐길 곳',
-  'attrmini.sub': '영업시간·별점 없이 맹그로브 기준 이동시간만 표시',
+  'beachmini.title': '해수욕장',
+  'beachmini.sub': '맹그로브에서 가까운 순서대로 추천해요.',
+  'attrmini.title': '즐길 곳',
+  'attrmini.sub': '고성에서 즐길 거리와 볼 거리를 모아 소개해요.',
   'seg.auto': '영업중',
   'seg.meal': '든든한 한 끼',
   'seg.cafe': '느낌 좋은 카페',
@@ -214,8 +214,8 @@ function renderAttractionSection(sub) {
   const byDist = arr => arr.slice().sort((a, b) => (a.d == null ? 9e9 : a.d) - (b.d == null ? 9e9 : b.d));
   const list = byDist(PLACES.filter(p => p.t === '명소' && !p.x && (sub === 'natural' ? p.nat === 1 : p.nat !== 1)));
   const tabs = `<div class="chips" style="margin:0 0 10px">
-    <span class="chip${sub === 'natural' ? ' on' : ''}" data-attrsub="natural">🌲 자연명소</span>
-    <span class="chip${sub === 'nonnatural' ? ' on' : ''}" data-attrsub="nonnatural">🏛 그 외 볼거리</span>
+    <span class="chip${sub === 'natural' ? ' on' : ''}" data-attrsub="natural">자연명소</span>
+    <span class="chip${sub === 'nonnatural' ? ' on' : ''}" data-attrsub="nonnatural">그 외 볼거리</span>
   </div>`;
   $('#secBody').innerHTML = tabs + (list.length ? list.map(p => attractionCardHTML(p)).join('') : '<p class="empty">해당하는 곳이 없어요.</p>');
 }
@@ -799,7 +799,7 @@ function renderBottomSections() {
   const beach = byDist(PLACES.filter(p => p.t === '해변' && !p.x));
   const beachScroll = $('#beachMiniScroll');
   if (beachScroll) {
-    beachScroll.innerHTML = beach.slice(0, 8).map(beachMiniHTML).join('') || '<p class="empty">해변 정보를 찾지 못했어요.</p>';
+    beachScroll.innerHTML = beach.map(beachMiniHTML).join('') || '<p class="empty">해변 정보를 찾지 못했어요.</p>';
     const moreBtn = $('#beachMiniMore');
     if (moreBtn) moreBtn.textContent = `전체 ${beach.length}곳 보기 →`;
   }
@@ -810,7 +810,7 @@ function renderAttrMini(sub) {
   const byDist = arr => arr.slice().sort((a, b) => (a.d == null ? 9e9 : a.d) - (b.d == null ? 9e9 : b.d));
   const list = byDist(PLACES.filter(p => p.t === '명소' && !p.x && (sub === 'natural' ? p.nat === 1 : p.nat !== 1)));
   const attrScroll = $('#attrMiniScroll');
-  if (attrScroll) attrScroll.innerHTML = list.slice(0, 8).map(attrMiniHTML).join('') || '<p class="empty">해당하는 곳이 없어요.</p>';
+  if (attrScroll) attrScroll.innerHTML = list.map(attrMiniHTML).join('') || '<p class="empty">해당하는 곳이 없어요.</p>';
   const moreBtn = $('#attrMiniMore');
   if (moreBtn) moreBtn.textContent = `전체 ${list.length}곳 보기 →`;
   $$('.attrminitab').forEach(t => t.classList.toggle('on', t.dataset.attrsub === sub));

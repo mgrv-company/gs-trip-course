@@ -548,12 +548,12 @@ const COPY_GROUPS = [
     ['hero.sub', '부제', 'input', '커뮤니티 매니저가 추천하는 가게들'],
   ]],
   ['홈 하단 · 해수욕장', [
-    ['beachmini.title', '제목', 'input', '🏖 고성 해수욕장'],
-    ['beachmini.sub', '설명', 'input', '맹그로브 기준 가까운 순 · 리뷰 많은 곳엔 HOT 표시'],
+    ['beachmini.title', '제목', 'input', '해수욕장'],
+    ['beachmini.sub', '설명', 'input', '맹그로브에서 가까운 순서대로 추천해요.'],
   ]],
   ['홈 하단 · 즐길 곳', [
-    ['attrmini.title', '제목', 'input', '🗺 즐길 곳'],
-    ['attrmini.sub', '설명', 'input', '영업시간·별점 없이 맹그로브 기준 이동시간만 표시'],
+    ['attrmini.title', '제목', 'input', '즐길 곳'],
+    ['attrmini.sub', '설명', 'input', '고성에서 즐길 거리와 볼 거리를 모아 소개해요.'],
   ]],
   ['추천 탭 이름', [
     ['seg.auto', '영업중 탭', 'input', '영업중'],
