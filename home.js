@@ -820,6 +820,13 @@ if (beachMore) beachMore.addEventListener('click', () => openSection('beach'));
 const attrMore = $('#attrMiniMore');
 if (attrMore) attrMore.addEventListener('click', () => openSection('attraction'));
 $$('.attrminitab').forEach(t => t.addEventListener('click', () => renderAttrMini(t.dataset.attrsub)));
+// 좌우 화살표 — PC(마우스) 사용자용, 카드 폭만큼씩 부드럽게 스크롤
+$$('.miniarrow').forEach(btn => btn.addEventListener('click', () => {
+  const track = document.getElementById(btn.dataset.target);
+  if (!track) return;
+  const dir = btn.classList.contains('left') ? -1 : 1;
+  track.scrollBy({ left: dir * Math.round(track.clientWidth * 0.8), behavior: 'smooth' });
+}));
 
 // 시작: 스냅샷으로 즉시 그리고, 최신 편집이 도착하면 한 번 갱신
 renderContext();

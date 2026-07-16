@@ -171,7 +171,21 @@
   .attrminitab { border: 1.5px solid var(--line); background: #fff; border-radius: 99px; padding: 6px 13px;
     font-size: 12px; font-weight: 700; color: var(--ink); cursor: pointer; }
   .attrminitab.on { border-color: var(--green); background: var(--green-light); color: var(--green-deep); }
+  .miniscroll-wrap { position: relative; }
   .miniscroll { display: flex; gap: 11px; overflow-x: auto; padding-bottom: 6px; margin: 0 -16px; padding-left: 16px; padding-right: 16px; -webkit-overflow-scrolling: touch; }
+  /* 좌우 화살표: 마우스로 정밀 클릭 가능한 기기(PC)에서만 노출 — 모바일은 스와이프로 충분해 안 띄움 */
+  .miniarrow { display: none; }
+  @media (hover: hover) and (pointer: fine) {
+    .miniarrow {
+      display: flex; align-items: center; justify-content: center;
+      position: absolute; top: 42px; width: 30px; height: 30px; border-radius: 50%;
+      border: 1px solid var(--line); background: rgba(255,255,255,.94); color: var(--ink);
+      font-size: 18px; font-weight: 800; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.14); z-index: 3;
+    }
+    .miniarrow.left { left: -6px; }
+    .miniarrow.right { right: -6px; }
+    .miniarrow:hover { background: #fff; }
+  }
   .miniscroll::-webkit-scrollbar { display: none; }
   .minicard { flex: 0 0 auto; width: 140px; }
   .minicard-imgwrap { position: relative; }
@@ -352,7 +366,11 @@
   <div class="minisec">
     <div class="minisec-head"><h3 data-copy="beachmini.title">해수욕장</h3></div>
     <div class="minisec-sub" data-copy="beachmini.sub">맹그로브에서 가까운 순서대로 추천해요.</div>
-    <div class="miniscroll" id="beachMiniScroll"></div>
+    <div class="miniscroll-wrap">
+      <button class="miniarrow left" data-target="beachMiniScroll" aria-label="이전">‹</button>
+      <div class="miniscroll" id="beachMiniScroll"></div>
+      <button class="miniarrow right" data-target="beachMiniScroll" aria-label="다음">›</button>
+    </div>
     <div class="morebtn" id="beachMiniMore">전체보기 →</div>
   </div>
   <div class="minisec">
@@ -362,7 +380,11 @@
       <div class="attrminitab on" data-attrsub="natural">자연명소</div>
       <div class="attrminitab" data-attrsub="nonnatural">그 외 볼거리</div>
     </div>
-    <div class="miniscroll" id="attrMiniScroll"></div>
+    <div class="miniscroll-wrap">
+      <button class="miniarrow left" data-target="attrMiniScroll" aria-label="이전">‹</button>
+      <div class="miniscroll" id="attrMiniScroll"></div>
+      <button class="miniarrow right" data-target="attrMiniScroll" aria-label="다음">›</button>
+    </div>
     <div class="morebtn" id="attrMiniMore">전체보기 →</div>
   </div>
 
@@ -443,7 +465,7 @@
 
 <script src="places.js?v=7"></script>
 <script src="tour.js?v=1"></script>
-<script src="home.js?v=50"></script>
+<script src="home.js?v=51"></script>
 <!-- PC 배경 순환 스크립트는 home.js 끝으로 이동 (CSP 강화: 인라인 스크립트 금지) -->
 </body>
 </html>
