@@ -176,11 +176,14 @@ function beachCardHTML(p) {
   const driveMin = Math.round((p.d || 0) / 50 * 60) + 3;
   const memo = p.note || p.mr;
   const cacmt = memo ? `<div class="cacmt">💬 ${esc(memo)}</div>` : '';
+  // 구역(z)은 거리 버킷이라 실제 행정구역과 다를 수 있어(멀면 다 '속초'로 뭉뚱그려짐) 주소 문자열로 판단
+  const region = (p.a || '').includes('속초시') ? '속초' : '고성';
+  const hot = p.rv && p.rv[1] >= 100 ? '<span class="b hot">🔥 HOT</span>' : '';
   return `<div class="card">
     ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="">` : ''}
     <div class="body">
-      <div class="rk"><span class="nm">${esc(p.n)}</span></div>
-      <div class="ct"><span class="num-mono">🚗 맹그로브에서 차로 ${driveMin}분</span>${rv}</div>
+      <div class="rk"><span class="nm">${esc(p.n)}</span>${hot ? ` <span class="badges">${hot}</span>` : ''}</div>
+      <div class="ct">${esc(region)} · <span class="num-mono">🚗 맹그로브에서 차로 ${driveMin}분</span>${rv}</div>
       ${cacmt}
       <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">네이버 지도에서 보기 →</a>` : ''}</div>
     </div>
