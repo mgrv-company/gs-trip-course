@@ -2,6 +2,9 @@
 -- 적용: npx wrangler d1 execute gs_trip --remote --file=worker/schema.sql
 
 -- 가게별 편집(제외/예약/강추/포장/노션/메모) — 키는 sid (이름 아님: 상호 바뀌어도 안 끊김)
+-- ⚠️ natural 컬럼은 2026-07-16 ALTER TABLE로 기존 배포 DB에 추가함(CREATE TABLE IF NOT EXISTS는
+--    이미 있는 테이블엔 컬럼을 못 더해서, 신규 설치 대비용으로만 여기 반영). natural: NULL=자동분류
+--    따름, 0/1=명소 자연명소 여부 수동 지정(어드민 토글이 최우선)
 CREATE TABLE IF NOT EXISTS overrides (
   sid        TEXT PRIMARY KEY,
   name       TEXT NOT NULL DEFAULT '',      -- 표시·대조용 (매칭 키 아님)
@@ -10,6 +13,7 @@ CREATE TABLE IF NOT EXISTS overrides (
   pick       INTEGER NOT NULL DEFAULT 0,
   takeout    INTEGER NOT NULL DEFAULT 0,
   notion     INTEGER NOT NULL DEFAULT 0,
+  natural    INTEGER,
   note       TEXT NOT NULL DEFAULT '',
   updated_at TEXT NOT NULL DEFAULT ''
 );

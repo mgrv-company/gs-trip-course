@@ -93,6 +93,7 @@ function slimOverride(r) {
   if (r.pick) o.p = 1;
   if (r.takeout) o.to = 1;
   if (r.notion) o.nt = 1;
+  if (r.natural != null) o.nat = r.natural;   // 0도 유효한 값(비자연명소 수동지정)이라 != null로 검사
   if (r.note) o.note = r.note;
   return o;
 }
@@ -134,6 +135,7 @@ export default {
             if (r.pick) o.pick = true;
             if (r.takeout) o.takeout = true;
             if (r.notion) o.notion = true;
+            if (r.natural != null) o.natural = !!r.natural;
             if (r.note) o.note = r.note;
             if (Object.keys(o).length) { o.sid = r.sid; legacy[r.name] = o; }
           }
@@ -359,19 +361,21 @@ export default {
         if (!b.sid) return json(req, { error: 'sid 누락' }, 400);
         const flags = ['exclude', 'reserve', 'pick', 'takeout', 'notion'].map(k => (b[k] ? 1 : 0));
         const note = String(b.note || '').slice(0, 300);
-        const empty = flags.every(f => !f) && !note;
+        // natural: 3상태(null=자동분류 따름/true=자연명소/false=그 외로 수동지정) — 다른 플래그와 달리 0도 유효값
+        const natural = b.natural === true ? 1 : b.natural === false ? 0 : null;
+        const empty = flags.every(f => !f) && !note && natural === null;
         if (empty) {
           await db.prepare('DELETE FROM overrides WHERE sid = ?').bind(String(b.sid)).run();
         } else {
           await db.prepare(`
-            INSERT INTO overrides (sid, name, exclude, reserve, pick, takeout, notion, note, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO overrides (sid, name, exclude, reserve, pick, takeout, notion, natural, note, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(sid) DO UPDATE SET
               name=excluded.name, exclude=excluded.exclude, reserve=excluded.reserve,
               pick=excluded.pick, takeout=excluded.takeout, notion=excluded.notion,
-              note=excluded.note, updated_at=excluded.updated_at
+              natural=excluded.natural, note=excluded.note, updated_at=excluded.updated_at
           `).bind(String(b.sid), String(b.name || '').slice(0, 100),
-                  ...flags, note, new Date().toISOString()).run();
+                  ...flags, natural, note, new Date().toISOString()).run();
         }
         pubCache = {};   // 편집됐으니 공개 캐시 즉시 무효화 (즉시 반영 유지)
         return json(req, { ok: true });

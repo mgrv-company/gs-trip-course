@@ -164,6 +164,30 @@
   .navlabel { font-size: 13.5px; font-weight: 800; margin: 26px 2px 0; }
   .navlabel + .nav { margin-top: 9px; }
 
+  .minisec { margin-top: 26px; }
+  .minisec-head h3 { font-size: 15.5px; font-weight: 800; }
+  .minisec-sub { font-size: 11.5px; color: var(--gray); margin: 2px 0 10px; }
+  .subtabs { display: flex; gap: 7px; margin-bottom: 10px; }
+  .attrminitab { border: 1.5px solid var(--line); background: #fff; border-radius: 99px; padding: 6px 13px;
+    font-size: 12px; font-weight: 700; color: var(--ink); cursor: pointer; }
+  .attrminitab.on { border-color: var(--green); background: var(--green-light); color: var(--green-deep); }
+  .miniscroll { display: flex; gap: 11px; overflow-x: auto; padding-bottom: 6px; margin: 0 -16px; padding-left: 16px; padding-right: 16px; -webkit-overflow-scrolling: touch; }
+  .miniscroll::-webkit-scrollbar { display: none; }
+  .minicard { flex: 0 0 auto; width: 140px; }
+  .minicard-imgwrap { position: relative; }
+  .minicard .ph { width: 140px; height: 100px; object-fit: cover; border-radius: 13px; display: block; background: var(--soft); }
+  .minicard .noph { width: 140px; height: 100px; border-radius: 13px; background: var(--soft); display: flex;
+    align-items: center; justify-content: center; font-size: 24px; color: var(--gray); }
+  .minicard-badges { position: absolute; top: 7px; left: 7px; }
+  .minicard .hot { background: #fde8e8; color: #c0392b; font-size: 9.5px; font-weight: 800; padding: 2px 6px; border-radius: 99px; }
+  .minicard-body { padding-top: 7px; }
+  .minicard .nm { font-size: 12.5px; font-weight: 800; line-height: 1.35; }
+  .minicard .meta { font-size: 11px; color: var(--gray); margin-top: 3px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .minicard .meta .rv { color: var(--ink); font-weight: 700; }
+  .minicard .meta .region { color: var(--green-deep); font-weight: 700; }
+  .morebtn { text-align: center; margin-top: 10px; padding: 10px; border: 1.5px solid var(--line); border-radius: 12px;
+    font-size: 12.5px; font-weight: 700; color: var(--ink); background: #fff; cursor: pointer; }
+
   #section { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 30; overflow-y: auto; }
   #section.show { display: block; }
   #section .shead { position: sticky; top: 0; background: var(--ink); color: #fff; display: flex; align-items: center; gap: 10px; padding: 14px 16px; }
@@ -324,13 +348,29 @@
   <div id="nowList"></div>
   <div class="notice">📍 위 리스트는 <b style="color:#1f1e1d; text-decoration:underline; font-weight:800">네이버 지도</b>에 기반한 정보로 안내됩니다. 가게 사정에 따라 변동이 있을 수 있으니, 방문 전 유선으로 확인해보시길 추천해요.</div>
 
+  <!-- 홈 하단 미니섹션: 해수욕장 · 즐길 곳 (나비게이션 버튼 없이 바로 몇 개 노출) -->
+  <div class="minisec">
+    <div class="minisec-head"><h3 data-copy="beachmini.title">🏖 고성 해수욕장</h3></div>
+    <div class="minisec-sub" data-copy="beachmini.sub">맹그로브 기준 가까운 순 · 리뷰 많은 곳엔 HOT 표시</div>
+    <div class="miniscroll" id="beachMiniScroll"></div>
+    <div class="morebtn" id="beachMiniMore">전체보기 →</div>
+  </div>
+  <div class="minisec">
+    <div class="minisec-head"><h3 data-copy="attrmini.title">🗺 즐길 곳</h3></div>
+    <div class="minisec-sub" data-copy="attrmini.sub">영업시간·별점 없이 맹그로브 기준 이동시간만 표시</div>
+    <div class="subtabs">
+      <div class="attrminitab on" data-attrsub="natural">🌲 자연명소</div>
+      <div class="attrminitab" data-attrsub="nonnatural">🏛 그 외 볼거리</div>
+    </div>
+    <div class="miniscroll" id="attrMiniScroll"></div>
+    <div class="morebtn" id="attrMiniMore">전체보기 →</div>
+  </div>
+
   <!-- 하단 섹션 임시 숨김 (완성도 보강 후 노출). 다시 켜려면 아래 div의 style="display:none" 만 제거 -->
   <div id="hiddenSections" style="display:none">
   <div class="navlabel">📌 추천 콘텐츠</div>
   <div class="nav">
     <div class="navbtn" data-sec="makguksu"><span class="ic">🍜</span>고성 막국수<span class="sub">막국수 모음</span></div>
-    <div class="navbtn" data-sec="beach"><span class="ic">🏖</span>고성 해수욕장<span class="sub">해변 모음</span></div>
-    <div class="navbtn" data-sec="attraction"><span class="ic">🗺</span>즐길 곳<span class="sub">명소 모음</span></div>
     <div class="navbtn" data-sec="pick"><span class="ic">✨</span>강추 코스<span class="sub">조합·반나절</span></div>
     <div class="navbtn" data-sec="course3"><span class="ic">🗺</span>고성 3일<span class="sub">첫 방문 코스</span></div>
     <div class="navbtn" data-sec="course"><span class="ic">🌊</span>바다+막국수<span class="sub">반나절 코스</span></div>
@@ -403,7 +443,7 @@
 
 <script src="places.js?v=7"></script>
 <script src="tour.js?v=1"></script>
-<script src="home.js?v=46"></script>
+<script src="home.js?v=47"></script>
 <!-- PC 배경 순환 스크립트는 home.js 끝으로 이동 (CSP 강화: 인라인 스크립트 금지) -->
 </body>
 </html>

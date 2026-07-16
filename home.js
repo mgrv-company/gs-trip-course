@@ -30,6 +30,10 @@ const SETTINGS_API = ADMIN_API + '/public/settings';
 const COPY = {
   'hero.title': '지금 어디로 갈까요?',
   'hero.sub': '커뮤니티 매니저가 추천하는 가게들',
+  'beachmini.title': '🏖 고성 해수욕장',
+  'beachmini.sub': '맹그로브 기준 가까운 순 · 리뷰 많은 곳엔 HOT 표시',
+  'attrmini.title': '🗺 즐길 곳',
+  'attrmini.sub': '영업시간·별점 없이 맹그로브 기준 이동시간만 표시',
   'seg.auto': '영업중',
   'seg.meal': '든든한 한 끼',
   'seg.cafe': '느낌 좋은 카페',
@@ -188,6 +192,32 @@ function beachCardHTML(p) {
       <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">네이버 지도에서 보기 →</a>` : ''}</div>
     </div>
   </div>`;
+}
+
+// 즐길 곳(명소) 전용 — 영업시간·별점 없이 맹그로브 기준 도보/차량 이동시간만
+function moveTextSimple(p) {
+  if (p.d <= 1.2) return '🚶 ' + Math.max(3, Math.round(p.d * 15)) + '분';
+  return '🚗 ' + (Math.round(p.d / 50 * 60) + 3) + '분';
+}
+function attractionCardHTML(p) {
+  return `<div class="card">
+    ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="">` : ''}
+    <div class="body">
+      <div class="rk"><span class="nm">${esc(p.n)}</span></div>
+      <div class="ct"><span class="num-mono">${moveTextSimple(p)}</span></div>
+      <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">네이버 지도에서 보기 →</a>` : ''}</div>
+    </div>
+  </div>`;
+}
+// 즐길 곳 전체보기 — 자연명소/그 외 탭 (nat: 1=자연명소, 0/미기재=그 외)
+function renderAttractionSection(sub) {
+  const byDist = arr => arr.slice().sort((a, b) => (a.d == null ? 9e9 : a.d) - (b.d == null ? 9e9 : b.d));
+  const list = byDist(PLACES.filter(p => p.t === '명소' && !p.x && (sub === 'natural' ? p.nat === 1 : p.nat !== 1)));
+  const tabs = `<div class="chips" style="margin:0 0 10px">
+    <span class="chip${sub === 'natural' ? ' on' : ''}" data-attrsub="natural">🌲 자연명소</span>
+    <span class="chip${sub === 'nonnatural' ? ' on' : ''}" data-attrsub="nonnatural">🏛 그 외 볼거리</span>
+  </div>`;
+  $('#secBody').innerHTML = tabs + (list.length ? list.map(p => attractionCardHTML(p)).join('') : '<p class="empty">해당하는 곳이 없어요.</p>');
 }
 
 // 관광정보(TourAPI) 카드 — 영업시간/메뉴 없이 이름·거리·주소·전화·지도
@@ -577,8 +607,10 @@ function openSection(key) {
     const list = byDist(PLACES.filter(p => p.t === '해변' && !p.x));
     html = list.length ? list.map(p => beachCardHTML(p)).join('') : '<p class="empty">해변 정보를 찾지 못했어요.</p>';
   } else if (key === 'attraction') {
-    const list = byDist(PLACES.filter(p => p.t === '명소' && !p.x));
-    html = list.length ? list.map(p => cardHTML(p)).join('') : '<p class="empty">즐길 곳 정보를 찾지 못했어요.</p>';
+    renderAttractionSection('natural');
+    $('#section').classList.add('show');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
   } else if (key === 'festival') {
     html = renderFestivalsHTML();
   } else {
@@ -599,6 +631,8 @@ $('#secClose').addEventListener('click', () => $('#section').classList.remove('s
 $('#secBody').addEventListener('click', e => {
   const c = e.target.closest('[data-coll]');
   if (c) renderCollection(c.dataset.coll, c.dataset.sub);
+  const a = e.target.closest('[data-attrsub]');
+  if (a) renderAttractionSection(a.dataset.attrsub);
 });
 
 // ── 백엔드 편집 오버레이 ─────────────────────────────
@@ -616,6 +650,7 @@ function applyOverrideTo(pl, o) {
   pl.nt = o.nt ? 1 : 0;
   pl.to = o.to ? 1 : 0;
   pl.r = (o.r || pl.ra) ? 1 : 0;   // 자동감지(ra) 예약은 유지, 수동 예약만 편집을 따름
+  if (o.nat != null) pl.nat = o.nat ? 1 : 0;   // 자연명소 수동 지정(어드민) — 없으면 주간 빌드 기본값 유지
   pl.note = o.note || '';
 }
 async function applyLiveEdits() {
@@ -737,12 +772,62 @@ document.addEventListener('keydown', function (e) {
   intro.addEventListener('click', function () { clearTimeout(timer); dismiss(); });   // 탭하면 즉시 스킵
 })();
 
+// ── 홈 하단 미니섹션 (해수욕장 · 즐길 곳) — 나비게이션 버튼 없이 바로 몇 개 노출 ──
+function beachMiniHTML(p) {
+  const region = (p.a || '').includes('속초시') ? '속초' : '고성';
+  const hot = p.rv && p.rv[1] >= 100 ? '<span class="hot">🔥 HOT</span>' : '';
+  const rv = p.rv ? `<span class="rv">★${esc(p.rv[0])}</span>` : '';
+  const driveMin = Math.round((p.d || 0) / 50 * 60) + 3;
+  const img = p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="">` : '<div class="noph">🏖</div>';
+  return `<div class="minicard" data-sid="${esc(p.s || '')}">
+    <div class="minicard-imgwrap">${img}${hot ? `<div class="minicard-badges">${hot}</div>` : ''}</div>
+    <div class="minicard-body"><div class="nm">${esc(p.n)}</div>
+    <div class="meta"><span class="region">${esc(region)}</span>${rv}<span>🚗${driveMin}분</span></div></div>
+  </div>`;
+}
+function attrMiniHTML(p) {
+  const img = p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="">` : '<div class="noph">🗺</div>';
+  return `<div class="minicard" data-sid="${esc(p.s || '')}">
+    <div class="minicard-imgwrap">${img}</div>
+    <div class="minicard-body"><div class="nm">${esc(p.n)}</div>
+    <div class="meta"><span>${moveTextSimple(p)}</span></div></div>
+  </div>`;
+}
+let miniAttrSub = 'natural';
+function renderBottomSections() {
+  const byDist = arr => arr.slice().sort((a, b) => (a.d == null ? 9e9 : a.d) - (b.d == null ? 9e9 : b.d));
+  const beach = byDist(PLACES.filter(p => p.t === '해변' && !p.x));
+  const beachScroll = $('#beachMiniScroll');
+  if (beachScroll) {
+    beachScroll.innerHTML = beach.slice(0, 8).map(beachMiniHTML).join('') || '<p class="empty">해변 정보를 찾지 못했어요.</p>';
+    const moreBtn = $('#beachMiniMore');
+    if (moreBtn) moreBtn.textContent = `전체 ${beach.length}곳 보기 →`;
+  }
+  renderAttrMini(miniAttrSub);
+}
+function renderAttrMini(sub) {
+  miniAttrSub = sub;
+  const byDist = arr => arr.slice().sort((a, b) => (a.d == null ? 9e9 : a.d) - (b.d == null ? 9e9 : b.d));
+  const list = byDist(PLACES.filter(p => p.t === '명소' && !p.x && (sub === 'natural' ? p.nat === 1 : p.nat !== 1)));
+  const attrScroll = $('#attrMiniScroll');
+  if (attrScroll) attrScroll.innerHTML = list.slice(0, 8).map(attrMiniHTML).join('') || '<p class="empty">해당하는 곳이 없어요.</p>';
+  const moreBtn = $('#attrMiniMore');
+  if (moreBtn) moreBtn.textContent = `전체 ${list.length}곳 보기 →`;
+  $$('.attrminitab').forEach(t => t.classList.toggle('on', t.dataset.attrsub === sub));
+}
+const beachMore = $('#beachMiniMore');
+if (beachMore) beachMore.addEventListener('click', () => openSection('beach'));
+const attrMore = $('#attrMiniMore');
+if (attrMore) attrMore.addEventListener('click', () => openSection('attraction'));
+$$('.attrminitab').forEach(t => t.addEventListener('click', () => renderAttrMini(t.dataset.attrsub)));
+
 // 시작: 스냅샷으로 즉시 그리고, 최신 편집이 도착하면 한 번 갱신
 renderContext();
 renderChips();
 renderNow();
+renderBottomSections();
 applySettings().then(ok => { if (ok) renderNow(); });   // 문구 반영 후 슬롯 라벨·설명 갱신
-applyLiveEdits().then(ok => { if (ok) { recent = []; renderChips(); renderNow(); } });
+applyLiveEdits().then(ok => { if (ok) { recent = []; renderChips(); renderNow(); renderBottomSections(); } });
 // (2026-06-30) 60초 주기 갱신은 제거(보는 중에 추천이 저절로 바뀌어 거슬림).
 // 대신 탭/앱으로 '다시 돌아왔을 때'에만 최신화 → 보고 있는 동안엔 안 바뀌고, 닫힌 가게가 영업중으로 남는 문제는 해결.
 // (원래 60초 로직과 동일: context는 항상, auto 슬롯일 때만 chips·now 재계산 + 편집 최신화)
@@ -751,6 +836,7 @@ document.addEventListener('visibilitychange', () => {
   renderContext();
   applyLiveEdits().finally(() => {
     if (curSlot === 'auto') { renderChips(); renderNow(); }
+    renderBottomSections();
   });
 });
 

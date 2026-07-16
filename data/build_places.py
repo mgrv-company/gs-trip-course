@@ -69,6 +69,27 @@ CUISINE_RULES = [
 CUISINE_TO_FOOD = {'분식': ['분식'], '일식': ['일식'], '베트남 음식': ['아시안'], '태국 음식': ['아시안'], '중식': ['아시안'],
                    '양식': ['양식'], '해산물': ['해산물'], '고기 요리': ['고기'], '한식': ['한식']}
 
+# 즐길 곳(명소) 자연명소 여부 — 2026-07-16 최초 수집 57곳은 사람이 직접 분류(정확), 이후 신규 추가되는
+# 곳은 이름 키워드로 자동 추정(대략치, 어드민에서 sid별로 덮어쓸 수 있음 → overrides의 natural 필드가 최우선)
+NATURAL_SIDS = {
+    '15150899', '32323711', '15152149', '1079776622', '1145784497', '15149516', '13491847',
+    '15150294', '15152219', '1191674307', '13491910', '32637628', '1752191241', '21576070',
+    '15087440', '32323680', '20758200', '528686921', '13490953', '13490979', '1178398796',
+    '1968566480', '1607084028', '12283047', '13491004', '4345129037', '15147369', '36039905',
+    '1090525328', '31482287', '13491281', '1714349376',
+}
+NATURAL_KEYWORDS = re.compile(r'산림욕장|휴양림|둘레길|국립공원|자연|계곡|호수|폭포|해변|약수|자생식물원')
+NONNATURAL_KEYWORDS = re.compile(r'서점|책방|미술관|박물관|영화관|사찰|별장|출렁다리|등대|유적|휴게소|마을|전망대|전망타워|사$|정$')
+
+def classify_natural(sid, name):
+    if sid in NATURAL_SIDS:
+        return True
+    if NONNATURAL_KEYWORDS.search(name):
+        return False
+    if NATURAL_KEYWORDS.search(name):
+        return True
+    return False  # 애매하면 '그 외'로 — 어드민에서 확인 후 자연명소로 올리는 게 반대보다 안전
+
 def infer_cuisine(menu_items):
     text = ' '.join(mi['name'] for mi in menu_items)
     best, best_n = None, 0
@@ -134,6 +155,10 @@ for x in places:
     }
     if h:
         item['h'] = h
+
+    # 즐길 곳(명소) 자연명소 여부 — 어드민 overrides의 natural 필드가 최우선(아래에서 덮어씀)
+    if x['type'] == '명소':
+        item['nat'] = 1 if classify_natural(str(x['sid']), x['name']) else 0
 
     # 리스트 API에 썸네일이 없던 가게는 플레이스 홈 대표 사진으로 보충
     if not item['img'] and photos.get(str(x['sid'])):
@@ -201,6 +226,9 @@ for x in places:
         if ov.get('notion'):
             item['nt'] = 1  # 노션 가이드 수록 → 강추 코스 조합 풀
             stat['노션 수록'] += 1
+        if ov.get('natural') is not None:
+            item['nat'] = 1 if ov['natural'] else 0  # 어드민이 자연명소 분류를 직접 수정한 경우 최우선
+            stat['자연명소 수동수정'] += 1
     slim.append(item)
 
 # 오타 방지: 매칭 안 된 피드백 이름 경고

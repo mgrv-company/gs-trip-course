@@ -100,7 +100,8 @@ async function loadAll() {
   ov = {}; updAt = {};
   for (const r of data.overrides) {
     ov[r.sid] = { exclude: !!r.exclude, reserve: !!r.reserve, pick: !!r.pick,
-                  takeout: !!r.takeout, notion: !!r.notion, note: r.note || '', name: r.name };
+                  takeout: !!r.takeout, notion: !!r.notion, natural: r.natural == null ? null : !!r.natural,
+                  note: r.note || '', name: r.name };
     updAt[r.sid] = r.updated_at || '';
   }
   const seen = new Set();
@@ -116,7 +117,7 @@ async function loadAll() {
   for (const p of (typeof PLACES !== 'undefined' ? PLACES : [])) {
     if (!p.s || seen.has(p.s)) continue;
     items.push({ sid: p.s, name: p.n, type: p.t, cat: p.c || '', zone: p.z || '', man: p.s.charAt(0) === 'm',
-                 img: p.img || '', rv: p.rv || null, h: p.h || null, d: p.d != null ? p.d : null });
+                 img: p.img || '', rv: p.rv || null, h: p.h || null, d: p.d != null ? p.d : null, nat: p.nat });
     seen.add(p.s);
   }
   // 3) 스냅샷에 없는 편집 행(=제외돼서 스냅샷에서 빠진 가게) — 이름 살려 표시, 복구 가능
@@ -188,6 +189,7 @@ function itemHTML(it) {
       <span class="tog${o.pick ? ' on-pick' : ''}" data-act="pick">📌 강추</span>
       <span class="tog${o.reserve ? ' on-rsv' : ''}" data-act="reserve">☎ 예약필수</span>
       <span class="tog${o.takeout ? ' on-to' : ''}" data-act="takeout">🍱 포장·배달</span>
+      ${it.type === '명소' ? `<span class="tog${(o.natural != null ? o.natural : it.nat) ? ' on-pick' : ''}" data-act="natural">${(o.natural != null ? o.natural : it.nat) ? '🌲 자연명소' : '🏛 그 외'}</span>` : ''}
       <span class="tog${o.exclude ? ' on-exc' : ''}" data-act="exclude">${o.exclude ? '↩ 복구' : '✕ 제외'}</span>
       <span class="tog" data-act="note">📝 메모</span>
       ${it.man ? '<span class="tog del" data-act="delman">🗑 삭제</span>' : ''}
@@ -247,7 +249,9 @@ function rowPayload(sid) {
   const o = ov[sid] || {};
   return { sid, name: (it && it.name) || o.name || '',
            exclude: !!o.exclude, reserve: !!o.reserve, pick: !!o.pick,
-           takeout: !!o.takeout, notion: !!o.notion, note: o.note || '' };
+           takeout: !!o.takeout, notion: !!o.notion,
+           natural: o.natural === undefined ? null : o.natural,
+           note: o.note || '' };
 }
 async function saveOverride(sid, el) {
   if (el) el.classList.add('busy');
@@ -279,6 +283,13 @@ $('#list').addEventListener('click', async e => {
     render();
     const okSave = await saveOverride(sid);
     if (!okSave) { ov[sid][act] = before; render(); }   // 실패 시 되돌림
+  } else if (act === 'natural') {
+    const before = ov[sid].natural;                        // null=자동분류 따름, true/false=수동지정
+    const effective = before != null ? before : it.nat;     // 지금 화면에 보이는 상태 기준으로 반전
+    ov[sid].natural = !effective;
+    render();
+    const okSave = await saveOverride(sid);
+    if (!okSave) { ov[sid].natural = before; render(); }
   } else if (act === 'note') {
     openNote = openNote === sid ? null : sid;
     render();
@@ -535,6 +546,14 @@ const COPY_GROUPS = [
   ['상단 (히어로)', [
     ['hero.title', '제목', 'input', '지금 어디로 갈까요?'],
     ['hero.sub', '부제', 'input', '커뮤니티 매니저가 추천하는 가게들'],
+  ]],
+  ['홈 하단 · 해수욕장', [
+    ['beachmini.title', '제목', 'input', '🏖 고성 해수욕장'],
+    ['beachmini.sub', '설명', 'input', '맹그로브 기준 가까운 순 · 리뷰 많은 곳엔 HOT 표시'],
+  ]],
+  ['홈 하단 · 즐길 곳', [
+    ['attrmini.title', '제목', 'input', '🗺 즐길 곳'],
+    ['attrmini.sub', '설명', 'input', '영업시간·별점 없이 맹그로브 기준 이동시간만 표시'],
   ]],
   ['추천 탭 이름', [
     ['seg.auto', '영업중 탭', 'input', '영업중'],
