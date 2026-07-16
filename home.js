@@ -170,6 +170,23 @@ function cardHTML(p, idx) {
   </div>`;
 }
 
+// 해수욕장 전용 카드 — 입장료·영업시간·웨이팅은 의미 없어서 빼고, 평점·맹그로브 기준 차량 이동시간만 표시
+function beachCardHTML(p) {
+  const rv = p.rv ? `<span class="rv num-mono">★ ${esc(p.rv[0])} (${esc(p.rv[1])})</span>` : '';
+  const driveMin = Math.round((p.d || 0) / 50 * 60) + 3;
+  const memo = p.note || p.mr;
+  const cacmt = memo ? `<div class="cacmt">💬 ${esc(memo)}</div>` : '';
+  return `<div class="card">
+    ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="">` : ''}
+    <div class="body">
+      <div class="rk"><span class="nm">${esc(p.n)}</span></div>
+      <div class="ct"><span class="num-mono">🚗 맹그로브에서 차로 ${driveMin}분</span>${rv}</div>
+      ${cacmt}
+      <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">네이버 지도에서 보기 →</a>` : ''}</div>
+    </div>
+  </div>`;
+}
+
 // 관광정보(TourAPI) 카드 — 영업시간/메뉴 없이 이름·거리·주소·전화·지도
 function tourCardHTML(p) {
   const lines = [];
@@ -555,7 +572,7 @@ function openSection(key) {
     html = tourNote + TOUR.activities.map(tourCardHTML).join('');
   } else if (key === 'beach') {
     const list = byDist(PLACES.filter(p => p.t === '해변' && !p.x));
-    html = list.length ? list.map(p => cardHTML(p)).join('') : '<p class="empty">해변 정보를 찾지 못했어요.</p>';
+    html = list.length ? list.map(p => beachCardHTML(p)).join('') : '<p class="empty">해변 정보를 찾지 못했어요.</p>';
   } else if (key === 'attraction') {
     const list = byDist(PLACES.filter(p => p.t === '명소' && !p.x));
     html = list.length ? list.map(p => cardHTML(p)).join('') : '<p class="empty">즐길 곳 정보를 찾지 못했어요.</p>';
