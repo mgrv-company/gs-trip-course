@@ -15,6 +15,13 @@ try:
 except FileNotFoundError:
     photos = {}
 
+def blog_og_image(blog_url):
+    """자연명소·관광지 등 플레이스 자체엔 사진이 없어도 블로그 리뷰 글의 대표 이미지(og:image)는 있는 경우가 많음."""
+    req = urllib.request.Request(blog_url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'})
+    html = urllib.request.urlopen(req, timeout=15).read().decode('utf-8', 'ignore')
+    m = re.search(r'<meta property="og:image" content="([^"]+)"', html)
+    return m.group(1) if m else ''
+
 def fetch(sid):
     url = f'https://m.place.naver.com/place/{sid}/home'
     req = urllib.request.Request(url, headers={'User-Agent': UA, 'Accept-Language': 'ko'})
@@ -24,15 +31,29 @@ def fetch(sid):
     if not m:
         return ''
     state = json.loads(m.group(1))
-    # 1순위: placeDetail의 대표 imageUrl / 2순위: 업체 등록 사진 첫 장
+    # 1순위: placeDetail의 대표 imageUrl
     for k, v in state.items():
         if k.startswith('ROOT_QUERY') and isinstance(v, dict):
             for kk, vv in v.items():
                 if kk.startswith('placeDetail') and isinstance(vv, dict) and vv.get('imageUrl'):
                     return vv['imageUrl']
-    for k, v in state.items():
-        if k.startswith('PlaceDetailTopPhotoItem:business') and isinstance(v, dict) and v.get('origin'):
-            return v['origin']
+    # 2순위: 등록 사진(PlaceDetailTopPhotoItem) — 접두사가 business 외에 cp_/clip_ 등도 있어 전체 검사,
+    # 영상 클립(clip)보다 실제 사진(cp 등)을 우선하고 표시순서(no) 순으로 정렬
+    items = [v for k, v in state.items() if k.startswith('PlaceDetailTopPhotoItem:') and isinstance(v, dict) and v.get('origin')]
+    if items:
+        items.sort(key=lambda x: (x.get('type') == 'clip', x.get('no', 999)))
+        return items[0]['origin']
+    # 3순위: 자연명소 등 플레이스 자체 등록사진이 없으면 블로그 리뷰(FsasReview)의 대표 이미지로 대체
+    reviews = [v for k, v in state.items() if k.startswith('FsasReview:') and v.get('type') == 'blog' and v.get('url')]
+    reviews.sort(key=lambda x: int(x.get('rank', 99)))
+    for r in reviews[:4]:
+        try:
+            img = blog_og_image(r['url'])
+            if img:
+                return img
+        except Exception:
+            pass
+        time.sleep(1.5)
     return ''
 
 todo = [s for s in targets if s not in photos]
