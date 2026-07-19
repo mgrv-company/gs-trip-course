@@ -7019,5 +7019,100 @@
   "thumb": "",
   "naver": "https://map.naver.com/p/entry/place/36324409",
   "guessed": false
+ },
+ {
+  "name": "피자링",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 19.47,
+  "address": "강원 고성군 거탄진로 129",
+  "lat": 38.4465098,
+  "lng": 128.455125,
+  "sid": "15063128",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15063128",
+  "guessed": false
+ },
+ {
+  "name": "장홍김밥",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.96,
+  "address": "강원특별자치도 속초시 중앙로147번길 16 1층 53호 장홍김밥",
+  "lat": 38.2041476,
+  "lng": 128.5904268,
+  "sid": "1389473370",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1389473370",
+  "guessed": false
+ },
+ {
+  "name": "청초수물회 속초본점",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.21,
+  "address": "강원 속초시 엑스포로 12-36",
+  "lat": 38.1921462,
+  "lng": 128.5905385,
+  "sid": "12028621",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/12028621",
+  "guessed": false
+ },
+ {
+  "name": "세발서점",
+  "type": "명소",
+  "list": "명소",
+  "category": "쇼핑",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.24,
+  "address": "강원 속초시 장안로3길 6",
+  "lat": 38.2115512,
+  "lng": 128.5915023,
+  "sid": "2018708760",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2018708760",
+  "guessed": false
+ },
+ {
+  "name": "완벽한 날들",
+  "type": "명소",
+  "list": "명소",
+  "category": "쇼핑",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.32,
+  "address": "강원 속초시 수복로259번길 7",
+  "lat": 38.2105502,
+  "lng": 128.5911366,
+  "sid": "350389931",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/350389931",
+  "guessed": false
  }
 ]
