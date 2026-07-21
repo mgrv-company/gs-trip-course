@@ -512,6 +512,7 @@ if (starsEl) {
       $('#stars').style.display = 'none';
       $('#rateForm').style.display = 'none';
       $('#rateDone').style.display = '';
+      try { localStorage.setItem('gsRatingPopupDone', '1'); } catch (e) {}   // 하단 카드로 이미 평가함 → 별점 팝업 재노출 방지
     } catch (e) {
       const re = $('#rateErr');
       if (re) { re.textContent = '전송에 실패했어요. 잠시 후 다시 시도해주세요.'; re.classList.add('show'); }
