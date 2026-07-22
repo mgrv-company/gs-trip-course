@@ -181,13 +181,14 @@ function beachCardHTML(p) {
   const memo = p.note || p.mr;
   const cacmt = memo ? `<div class="cacmt">💬 ${esc(memo)}</div>` : '';
   // 구역(z)은 거리 버킷이라 실제 행정구역과 다를 수 있어(멀면 다 '속초'로 뭉뚱그려짐) 주소 문자열로 판단
-  const region = (p.a || '').includes('속초시') ? '속초' : '고성';
+  // 대부분(27곳 중 24곳)이 고성이라 고성은 라벨 생략하고, 속초(3곳)만 구분 표시
+  const region = (p.a || '').includes('속초시') ? '속초' : '';
   const hot = p.rv && p.rv[1] >= 100 ? '<span class="b hot">🔥 HOT</span>' : '';
   return `<div class="card">
     ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : ''}
     <div class="body">
       <div class="rk"><span class="nm">${esc(p.n)}</span>${hot ? ` <span class="badges">${hot}</span>` : ''}</div>
-      <div class="ct">${esc(region)} · <span class="num-mono">🚗 맹그로브에서 차로 ${driveMin}분</span>${rv}</div>
+      <div class="ct">${region ? esc(region) + ' · ' : ''}<span class="num-mono">🚗 맹그로브에서 차로 ${driveMin}분</span>${rv}</div>
       ${cacmt}
       <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">네이버 지도에서 보기 →</a>` : ''}</div>
     </div>
@@ -775,7 +776,8 @@ document.addEventListener('keydown', function (e) {
 
 // ── 홈 하단 미니섹션 (해수욕장 · 즐길 곳) — 나비게이션 버튼 없이 바로 몇 개 노출 ──
 function beachMiniHTML(p) {
-  const region = (p.a || '').includes('속초시') ? '속초' : '고성';
+  // 대부분(27곳 중 24곳)이 고성이라 고성은 라벨 생략하고, 속초(3곳)만 구분 표시
+  const region = (p.a || '').includes('속초시') ? '속초' : '';
   const hot = p.rv && p.rv[1] >= 100 ? ' <span class="hot">🔥 HOT</span>' : '';
   const rv = p.rv ? `<span class="rv">★${esc(p.rv[0])}</span>` : '';
   const driveMin = Math.round((p.d || 0) / 50 * 60) + 3;
@@ -783,7 +785,7 @@ function beachMiniHTML(p) {
   return `<div class="minicard" data-sid="${esc(p.s || '')}">
     <div class="minicard-imgwrap">${img}</div>
     <div class="minicard-body"><div class="nm">${esc(p.n)}${hot}</div>
-    <div class="meta"><span class="region">${esc(region)}</span>${rv}<span>🚗${driveMin}분</span></div></div>
+    <div class="meta">${region ? `<span class="region">${esc(region)}</span>` : ''}${rv}<span>🚗${driveMin}분</span></div></div>
   </div>`;
 }
 function attrMiniHTML(p) {
