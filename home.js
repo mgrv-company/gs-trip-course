@@ -162,7 +162,7 @@ function cardHTML(p, idx) {
   const rv = p.rv ? `<span class="rv num-mono">★ ${esc(p.rv[0])} (${esc(p.rv[1])})</span>` : '';
   const num = idx ? `<span class="num">${idx}</span>` : '';
   return `<div class="card">
-    ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="">` : ''}
+    ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : ''}
     <div class="body">
       <div class="rk">${num}<span class="nm">${esc(p.n)}</span>${badges.length ? ` <span class="badges">${badges.join('')}</span>` : ''}</div>
       <div class="ct">${esc(p.c)} · <span class="num-mono">${moveText(p)}</span> ${rv}</div>
@@ -184,7 +184,7 @@ function beachCardHTML(p) {
   const region = (p.a || '').includes('속초시') ? '속초' : '고성';
   const hot = p.rv && p.rv[1] >= 100 ? '<span class="b hot">🔥 HOT</span>' : '';
   return `<div class="card">
-    ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="">` : ''}
+    ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : ''}
     <div class="body">
       <div class="rk"><span class="nm">${esc(p.n)}</span>${hot ? ` <span class="badges">${hot}</span>` : ''}</div>
       <div class="ct">${esc(region)} · <span class="num-mono">🚗 맹그로브에서 차로 ${driveMin}분</span>${rv}</div>
@@ -201,7 +201,7 @@ function moveTextSimple(p) {
 }
 function attractionCardHTML(p) {
   return `<div class="card">
-    ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="">` : ''}
+    ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : ''}
     <div class="body">
       <div class="rk"><span class="nm">${esc(p.n)}</span></div>
       <div class="ct"><span class="num-mono">${moveTextSimple(p)}</span></div>
@@ -226,7 +226,7 @@ function tourCardHTML(p) {
   if (p.addr) lines.push('📍 ' + esc(p.addr));
   if (p.tel) lines.push('☎ ' + esc(p.tel));
   return `<div class="card">
-    ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="">` : ''}
+    ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : ''}
     <div class="body">
       <div class="rk"><span class="nm">${esc(p.n)}</span></div>
       <div class="ct">${p.d != null ? moveText({ d: p.d }) : ''}</div>
@@ -779,7 +779,7 @@ function beachMiniHTML(p) {
   const hot = p.rv && p.rv[1] >= 100 ? ' <span class="hot">🔥 HOT</span>' : '';
   const rv = p.rv ? `<span class="rv">★${esc(p.rv[0])}</span>` : '';
   const driveMin = Math.round((p.d || 0) / 50 * 60) + 3;
-  const img = p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="">` : '<div class="noph">🏖</div>';
+  const img = p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : '<div class="noph">🏖</div>';
   return `<div class="minicard" data-sid="${esc(p.s || '')}">
     <div class="minicard-imgwrap">${img}</div>
     <div class="minicard-body"><div class="nm">${esc(p.n)}${hot}</div>
@@ -787,7 +787,7 @@ function beachMiniHTML(p) {
   </div>`;
 }
 function attrMiniHTML(p) {
-  const img = p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="">` : '<div class="noph">🗺</div>';
+  const img = p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : '<div class="noph">🗺</div>';
   return `<div class="minicard" data-sid="${esc(p.s || '')}">
     <div class="minicard-imgwrap">${img}</div>
     <div class="minicard-body"><div class="nm">${esc(p.n)}</div>
