@@ -15,7 +15,7 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; background: var(--bg); color: var(--ink); line-height: 1.55; -webkit-font-smoothing: antialiased; }
   .topbar { position: sticky; top: 0; z-index: 20; background: var(--ink); color: #fff; display: flex; align-items: center; gap: 10px; padding: 14px 16px; }
-  .topbar .wm { font-weight: 800; font-size: 16px; letter-spacing: -0.3px; }
+  .topbar .wm { font-weight: 800; font-size: 16px; letter-spacing: -0.3px; color: #fff; text-decoration: none; }
   .topbar .pg { font-size: 12.5px; color: #cfcfca; font-weight: 600; margin-left: auto; }
   .wrap { max-width: 480px; margin: 0 auto; padding: 18px 16px 50px; }
   .hero { border-radius: 18px; overflow: hidden; position: relative; height: 170px; background: var(--soft); }
@@ -46,10 +46,13 @@
   .stop .lk { font-size: 12px; color: var(--ink); text-decoration: none; border: 1px solid var(--line); border-radius: 8px; padding: 4px 9px; display: inline-block; margin-top: 6px; font-weight: 600; }
   footer { text-align: center; margin-top: 30px; font-size: 12px; color: var(--gray); }
   footer a { color: var(--green-deep); font-weight: 600; }
+  footer .homebtn { display: inline-block; background: var(--ink); color: #fff; font-weight: 700; font-size: 13.5px; text-decoration: none; padding: 12px 22px; border-radius: 12px; margin-bottom: 10px; }
+  footer .homebtn:active { opacity: .85; }
+  footer .addr { font-size: 12px; color: var(--gray); }
 </style>
 </head>
 <body>
-<div class="topbar"><span class="wm">mangrove</span><span class="pg">고성 · 트립 코스</span></div>
+<div class="topbar"><a class="wm" href="index.html">mangrove</a><span class="pg">고성 · 트립 코스</span></div>
 <div class="wrap">
   <div class="hero">
     <img src="assets/goseong-hero-7.webp" alt="고성">
@@ -60,7 +63,10 @@
   <div class="toprow"><span class="t">오늘의 추천 코스</span><button class="reroll" id="reroll">🔄 다른 조합</button></div>
   <div id="courses"></div>
 
-  <footer>맹그로브 고성 · <a href="index.html">← 지금 갈만한 곳으로</a></footer>
+  <footer>
+    <a class="homebtn" href="index.html">← 홈으로 돌아가기</a>
+    <div class="addr">맹그로브 고성</div>
+  </footer>
 </div>
 
 <script src="places.js?v=16"></script>

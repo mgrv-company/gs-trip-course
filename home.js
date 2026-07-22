@@ -148,7 +148,7 @@ function cardHTML(p, idx) {
   if (p.r) badges.push('<span class="b rsv">☎ 예약</span>');
   const open = openNow(p, new Date());
   if (open === true) badges.push('<span class="b open">● 영업중</span>');
-  else if (open === null) badges.push('<span class="b chk">확인필요</span>');
+  else if (open === null) badges.push('<span class="b chk">시간 미상</span>');
   // 메뉴: 조용한 한 줄
   const menu = (p.m && p.m.length) ? `<div class="info">🍽 ${p.m.map(esc).join(' · ')}</div>` : '';
   // 영업시간·대기: 조용한 chip (영업시간 숫자는 tabular mono)
@@ -241,7 +241,7 @@ function tourCardHTML(p) {
 function placeCardHTML(p, isPick) {
   const open = openNow(p, new Date());
   const rec = p.ca ? '<span class="rec-tag">추천</span>' : '';
-  const openTxt = open === true ? '<span class="op">● 영업중</span> · ' : (open === null ? '<span class="op chk">확인필요</span> · ' : '');
+  const openTxt = open === true ? '<span class="op">● 영업중</span> · ' : (open === null ? '<span class="op chk">시간 미상</span> · ' : '');
   const wait = p.w === 2 ? ' · <span class="wt">웨이팅 잦음</span>' : '';
   // 1줄: 영업상태 + 거리 + 영업시간 (지금·어디로 가는지)
   const line1 = `<div class="hmeta">${openTxt}<span class="num-mono">${moveText(p)}</span> · <span class="num-mono">${esc(hoursNowText(p))}</span>${wait}</div>`;
@@ -266,7 +266,7 @@ function heroCardHTML(p) { return placeCardHTML(p, true); }
 // 미니 행 — 추천 2위 이하. 접혀 있다가 클릭하면 1위와 '동일한 카드'로 펼쳐짐.
 function miniRowHTML(p) {
   const open = openNow(p, new Date());
-  const openBadge = open === true ? '<span class="op sm">영업중</span>' : (open === null ? '<span class="op sm chk">확인필요</span>' : '');
+  const openBadge = open === true ? '<span class="op sm">영업중</span>' : (open === null ? '<span class="op sm chk">시간 미상</span>' : '');
   const rec = p.ca ? '<span class="rec-tag sm">추천</span>' : '';
   const rv = p.rv ? `<span class="num-mono">★ ${esc(p.rv[0])}</span> · ` : '';
   const wait = p.w === 2 ? ' · <span class="wt">웨이팅</span>' : '';

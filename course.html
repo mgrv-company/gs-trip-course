@@ -15,7 +15,7 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; background: var(--bg); color: var(--ink); line-height: 1.55; -webkit-font-smoothing: antialiased; }
   .topbar { position: sticky; top: 0; z-index: 20; background: var(--ink); color: #fff; display: flex; align-items: center; gap: 10px; padding: 14px 16px; }
-  .topbar .wm { font-weight: 800; font-size: 16px; letter-spacing: -0.3px; }
+  .topbar .wm { font-weight: 800; font-size: 16px; letter-spacing: -0.3px; color: #fff; text-decoration: none; }
   .topbar .pg { font-size: 12.5px; color: #cfcfca; font-weight: 600; margin-left: auto; }
   .wrap { max-width: 480px; margin: 0 auto; padding: 18px 16px 50px; }
 
@@ -50,10 +50,13 @@
   .b.off { background: #fde8e8; color: #b03a3a; }
   footer { text-align: center; margin-top: 34px; font-size: 12px; color: var(--gray); }
   footer a { color: var(--green-deep); font-weight: 600; }
+  footer .homebtn { display: inline-block; background: var(--ink); color: #fff; font-weight: 700; font-size: 13.5px; text-decoration: none; padding: 12px 22px; border-radius: 12px; margin-bottom: 10px; }
+  footer .homebtn:active { opacity: .85; }
+  footer .addr { font-size: 12px; color: var(--gray); }
 </style>
 </head>
 <body>
-<div class="topbar"><span class="wm">mangrove</span><span class="pg">고성 · 트립 코스</span></div>
+<div class="topbar"><a class="wm" href="index.html">mangrove</a><span class="pg">고성 · 트립 코스</span></div>
 <div class="wrap">
   <div class="hero">
     <img src="assets/goseong-hero-3.webp" alt="고성 바다">
@@ -82,7 +85,10 @@
     <div id="last"></div>
   </div>
 
-  <footer>맹그로브 고성 · <a href="index.html">← 지금 갈만한 곳으로</a></footer>
+  <footer>
+    <a class="homebtn" href="index.html">← 홈으로 돌아가기</a>
+    <div class="addr">맹그로브 고성</div>
+  </footer>
 </div>
 
 <script src="places.js?v=12"></script>
@@ -152,8 +158,8 @@
   // 1. 해변
   document.getElementById('beach').innerHTML = landCard('교암해변', '맹그로브 바로 앞 한적한 바다. 체크인 전후 가볍게 산책하기 좋아요.');
 
-  // 2. 막국수 — 도보·근거리 우선, 정렬 토글
-  const mks = P.filter(p => !p.to && (p.n.includes('막국수') || (p.m||[]).some(m => m.includes('막국수'))));
+  // 2. 막국수 — 도보·근거리 우선, 정렬 토글 (오늘 휴무인 곳은 제외)
+  const mks = P.filter(p => !p.to && openState(p) !== false && (p.n.includes('막국수') || (p.m||[]).some(m => m.includes('막국수'))));
   function renderMk(sort) {
     const list = mks.slice().sort((a,b) =>
       sort === 'dist' ? (a.d??99) - (b.d??99)
@@ -167,9 +173,9 @@
   }));
   renderMk('review');
 
-  // 3. 카페 — 도보권, 영업중 우선 (휴무여도 대체 보이게 최대 3곳)
-  const cafes = P.filter(p => p.t === '카페' && !p.to && (p.z === '도보' || p.d <= 1.5))
-    .sort((a,b) => (openState(b) === true ? 1 : 0) - (openState(a) === true ? 1 : 0) || (a.d??99) - (b.d??99))
+  // 3. 카페 — 도보권, 오늘 휴무인 곳은 제외하고 가까운 순 최대 3곳
+  const cafes = P.filter(p => p.t === '카페' && !p.to && openState(p) !== false && (p.z === '도보' || p.d <= 1.5))
+    .sort((a,b) => (a.d??99) - (b.d??99))
     .slice(0, 3);
   document.getElementById('cafe').innerHTML = cafes.map(p => placeCard(p)).join('') ||
     '<div class="card"><div class="body"><div class="info">근처 카페 정보를 찾지 못했어요.</div></div></div>';
