@@ -133,9 +133,11 @@ def norm_hours(raw):
         desc = (d.get('desc') or '')
         if d.get('start') and d.get('end'):
             out[day] = f"{d['start']}-{d['end']}"
-        elif '휴무' in desc or '휴업' in desc:
+        else:
+            # 네이버가 그 요일 항목 자체는 내려줬는데 시작/끝 시간이 없다면, "정기휴무" 문구가
+            # 안 붙어있어도 사실상 그 요일엔 안 여는 것으로 처리 (미상 취급하면 휴무인 가게가
+            # "영업시간 미정"으로 그대로 추천되는 문제가 있었음 — 2026-07-22)
             out[day] = None
-        # start/end 없고 휴무 표기도 없으면 미기재 → 키 자체를 생략 (앱에서 '확인 필요')
     return out or None
 
 # 어드민 백엔드(D1) export 형식은 각 항목에 sid가 실려 있음 → sid 우선 대조 (가게 이름이 바뀌어도 편집 유지)
