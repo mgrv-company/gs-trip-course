@@ -20,7 +20,14 @@ def blog_og_image(blog_url):
     req = urllib.request.Request(blog_url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'})
     html = urllib.request.urlopen(req, timeout=15).read().decode('utf-8', 'ignore')
     m = re.search(r'<meta property="og:image" content="([^"]+)"', html)
-    return m.group(1) if m else ''
+    if not m:
+        return ''
+    img = m.group(1)
+    # 오래된(2023년 이전) 블로그 글은 og:image가 blogfiles.naver.net·ldb.phinf.naver.net 등 http 전용 구형 도메인이라
+    # https로 서비스되는 우리 페이지에서 mixed-content로 막혀 깨짐(https 미지원 확인됨) → 없는 것으로 처리해 다음 후보로 넘어감
+    if img.startswith('http://'):
+        return ''
+    return img
 
 def fetch(sid):
     url = f'https://m.place.naver.com/place/{sid}/home'
@@ -31,22 +38,25 @@ def fetch(sid):
     if not m:
         return ''
     state = json.loads(m.group(1))
-    # 1순위: placeDetail의 대표 imageUrl
+    # https만 채택 (http 전용 구형 CDN은 https 페이지에서 mixed-content로 깨짐 — 2026-07-22 확인)
+    # 1순위: placeDetail의 대표 imageUrl (http면 스킵하고 2순위로)
     for k, v in state.items():
         if k.startswith('ROOT_QUERY') and isinstance(v, dict):
             for kk, vv in v.items():
-                if kk.startswith('placeDetail') and isinstance(vv, dict) and vv.get('imageUrl'):
+                if kk.startswith('placeDetail') and isinstance(vv, dict) and vv.get('imageUrl') and vv['imageUrl'].startswith('https://'):
                     return vv['imageUrl']
     # 2순위: 등록 사진(PlaceDetailTopPhotoItem) — 접두사가 business 외에 cp_/clip_ 등도 있어 전체 검사,
-    # 영상 클립(clip)보다 실제 사진(cp 등)을 우선하고 표시순서(no) 순으로 정렬
+    # 영상 클립(clip)보다 실제 사진(cp 등)을 우선하고 표시순서(no) 순으로 정렬. https 후보 중 첫 번째만 채택
     items = [v for k, v in state.items() if k.startswith('PlaceDetailTopPhotoItem:') and isinstance(v, dict) and v.get('origin')]
     if items:
         items.sort(key=lambda x: (x.get('type') == 'clip', x.get('no', 999)))
-        return items[0]['origin']
+        https_items = [it for it in items if it['origin'].startswith('https://')]
+        if https_items:
+            return https_items[0]['origin']
     # 3순위: 자연명소 등 플레이스 자체 등록사진이 없으면 블로그 리뷰(FsasReview)의 대표 이미지로 대체
     reviews = [v for k, v in state.items() if k.startswith('FsasReview:') and v.get('type') == 'blog' and v.get('url')]
     reviews.sort(key=lambda x: int(x.get('rank', 99)))
-    for r in reviews[:4]:
+    for r in reviews[:8]:  # http 후보 스킵으로 소진될 수 있어 4→8로 확대
         try:
             img = blog_og_image(r['url'])
             if img:
