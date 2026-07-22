@@ -776,13 +776,13 @@ document.addEventListener('keydown', function (e) {
 // ── 홈 하단 미니섹션 (해수욕장 · 즐길 곳) — 나비게이션 버튼 없이 바로 몇 개 노출 ──
 function beachMiniHTML(p) {
   const region = (p.a || '').includes('속초시') ? '속초' : '고성';
-  const hot = p.rv && p.rv[1] >= 100 ? '<span class="hot">🔥 HOT</span>' : '';
+  const hot = p.rv && p.rv[1] >= 100 ? ' <span class="hot">🔥 HOT</span>' : '';
   const rv = p.rv ? `<span class="rv">★${esc(p.rv[0])}</span>` : '';
   const driveMin = Math.round((p.d || 0) / 50 * 60) + 3;
   const img = p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="">` : '<div class="noph">🏖</div>';
   return `<div class="minicard" data-sid="${esc(p.s || '')}">
-    <div class="minicard-imgwrap">${img}${hot ? `<div class="minicard-badges">${hot}</div>` : ''}</div>
-    <div class="minicard-body"><div class="nm">${esc(p.n)}</div>
+    <div class="minicard-imgwrap">${img}</div>
+    <div class="minicard-body"><div class="nm">${esc(p.n)}${hot}</div>
     <div class="meta"><span class="region">${esc(region)}</span>${rv}<span>🚗${driveMin}분</span></div></div>
   </div>`;
 }
