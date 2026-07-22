@@ -7114,5 +7114,138 @@
   "thumb": "",
   "naver": "https://map.naver.com/p/entry/place/350389931",
   "guessed": false
+ },
+ {
+  "name": "부미식당",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 2.28,
+  "address": "강원 고성군 동해대로 5616",
+  "lat": 38.3059083,
+  "lng": 128.5371625,
+  "sid": "15068033",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15068033",
+  "guessed": false
+ },
+ {
+  "name": "스타벅스 영랑호리조트점",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 8.6,
+  "address": "강원 속초시 영랑호반길 170",
+  "lat": 38.2134537,
+  "lng": 128.5774103,
+  "sid": "1591614346",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1591614346",
+  "guessed": false
+ },
+ {
+  "name": "보드니아 로스터리 커피하우스",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 7.78,
+  "address": "강원 속초시 영랑호반길 569",
+  "lat": 38.2230101,
+  "lng": 128.5832768,
+  "sid": "32333108",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/32333108",
+  "guessed": false
+ },
+ {
+  "name": "파스쿠찌 속초영랑호점",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 7.89,
+  "address": "강원 속초시 영랑호반길 575",
+  "lat": 38.2222981,
+  "lng": 128.5843491,
+  "sid": "1368735988",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1368735988",
+  "guessed": false
+ },
+ {
+  "name": "키사",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.58,
+  "address": "강원 속초시 중앙동 503-165 키사",
+  "lat": 38.2069808,
+  "lng": 128.5877755,
+  "sid": "2052580652",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2052580652",
+  "guessed": false
+ },
+ {
+  "name": "산요가",
+  "type": "명소",
+  "list": "명소",
+  "category": "여가",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 8.17,
+  "address": "강원 속초시 영랑호반길 619",
+  "lat": 38.2208191,
+  "lng": 128.588014,
+  "sid": "1517495815",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1517495815",
+  "guessed": false
+ },
+ {
+  "name": "속초수목농원",
+  "type": "명소",
+  "list": "명소",
+  "category": "일반",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 7.81,
+  "address": "강원 속초시 영랑호반길 421-1",
+  "lat": 38.2195708,
+  "lng": 128.5719276,
+  "sid": "1744654650",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1744654650",
+  "guessed": false
  }
 ]
