@@ -43,16 +43,16 @@ const COPY = {
   'slotsub.cafe': '카페부터 베이커리, 젤라또까지 다양하게 추천해요.',
   'slotsub.bar': '노포부터 이자카야까지, 술 한 잔 하기 좋은 곳을 추천해요.',
   'feedback.title': '다녀온 가게, 어떠셨어요?',
-  'feedback.body': '소중한 의견을 모아 더욱 유용한 서비스로 만들게요.\n솔직하게 기재해주시면 큰 도움이 됩니다.',
+  'feedback.body': '소중한 의견을 모아 더욱 유용한 서비스로 만들게요.\n솔직하게 적어주시면 큰 도움이 돼요.',
   'feedback.btnFb': '✍️ 추천받은 가게 피드백 남기기',
   'feedback.btnSuggest': '📌 리스트에 없었던 가게 추천하기',
   'rating.title': '이 추천 서비스는 어떠셨어요?',
   'rating.body': "원하는 별점을 누르고, 아래 '별점 추가하기' 버튼을 눌러주세요.",
-  'rating.placeholder': '어떤 부분이 도움이 되었는지 적어주세요. 혹은 필요한 정보가 있다면 기재해주셔도 좋습니다.',
+  'rating.placeholder': '어떤 부분이 도움이 되었는지 적어주세요. 혹은 필요한 정보가 있다면 적어주셔도 좋아요.',
   'rating.btn': '별점 추가하기',
   'rating.done': '🙌 감사합니다! 더 좋은 추천으로 보답할게요.',
   'fb.title': '가게 피드백',
-  'fb.desc': '좋았어요·아쉬웠어요·문 닫았더라고요 — 뭐든 좋아요. 남겨주신 의견은 커뮤니티 매니저에게 바로 전달됩니다. 30초면 충분해요!',
+  'fb.desc': '좋았어요·아쉬웠어요·문 닫았더라고요 — 뭐든 좋아요. 남겨주신 의견은 커뮤니티 매니저에게 바로 전달돼요. 30초면 충분해요!',
   'fb.place': '가게 이름 (기억나는 만큼만)',
   'fb.memo': '예: 여기 진짜 좋았어요! / 웨이팅 1시간이었어요 / 문 닫았던데요',
   'fb.done': '🙌 고맙습니다! 의견이 전달됐어요.',
@@ -60,7 +60,7 @@ const COPY = {
   'sg.desc': '추천 리스트에 없는데 좋았던 가게가 있나요? 알려주시면 커뮤니티 매니저가 다녀와 보고 리스트에 올릴게요.',
   'sg.place': '가게 이름 (필수)',
   'sg.memo': '어떤 점이 좋았나요? 위치·메뉴 등 아는 만큼만 적어주세요 (선택)',
-  'sg.name': '성함 (선택)',
+  'sg.name': '이름 (선택)',
   'sg.done': '고맙습니다! 다녀와 보고 리스트에 올려볼게요.',
 };
 
@@ -217,7 +217,7 @@ function renderAttractionSection(sub) {
     <span class="chip${sub === 'natural' ? ' on' : ''}" data-attrsub="natural">자연명소</span>
     <span class="chip${sub === 'nonnatural' ? ' on' : ''}" data-attrsub="nonnatural">그 외 볼거리</span>
   </div>`;
-  $('#secBody').innerHTML = tabs + (list.length ? list.map(p => attractionCardHTML(p)).join('') : '<p class="empty">해당하는 곳이 없어요.</p>');
+  $('#secBody').innerHTML = tabs + (list.length ? list.map(p => attractionCardHTML(p)).join('') : '<p class="empty">해당하는 곳이 없어요. 다른 탭을 눌러보세요.</p>');
 }
 
 // 관광정보(TourAPI) 카드 — 영업시간/메뉴 없이 이름·거리·주소·전화·지도
@@ -562,7 +562,7 @@ function renderCollection(key, sub) {
   const chips = c.subs ? '<div class="chips" style="margin:0 0 8px">' +
     c.subs.map(([v, l]) => `<span class="chip${v === sub ? ' on' : ''}" role="button" tabindex="0" data-coll="${key}" data-sub="${v}">${l}</span>`).join('') + '</div>' : '';
   const noteHtml = c.note ? `<div class="notice" style="margin:0 0 6px">${c.note}</div>` : '';
-  $('#secBody').innerHTML = chips + noteHtml + (list.length ? list.map(p => cardHTML(p)).join('') : '<p class="empty">해당하는 곳이 없어요.</p>');
+  $('#secBody').innerHTML = chips + noteHtml + (list.length ? list.map(p => cardHTML(p)).join('') : '<p class="empty">해당하는 곳이 없어요. 다른 탭이나 조건을 바꿔보세요.</p>');
 }
 
 // ── 고성·속초 대표 축제 (큐레이션, 매년 시기 약간 변동 → 검색 링크로) ──
@@ -578,7 +578,7 @@ const FESTIVALS = [
 function renderFestivalsHTML() {
   const mo = new Date().getMonth() + 1;
   const sorted = FESTIVALS.slice().sort((a, b) => (b.m.includes(mo) ? 1 : 0) - (a.m.includes(mo) ? 1 : 0));
-  const note = '<div class="notice" style="margin:0 0 8px">🎉 고성·속초 대표 축제예요. 매년 시기가 조금씩 달라지니 정확한 일정은 링크에서 확인하세요.</div>';
+  const note = '<div class="notice" style="margin:0 0 8px">🎉 고성·속초 대표 축제예요. 매년 시기가 조금씩 달라지니 정확한 일정은 링크에서 확인해보시길 추천해요.</div>';
   return note + sorted.map(f => {
     const now = f.m.includes(mo);
     const url = 'https://search.naver.com/search.naver?query=' + encodeURIComponent(f.n + ' 일정');
@@ -597,16 +597,16 @@ function openSection(key) {
   $('#secTitle').textContent = (COLL[key] && COLL[key].title) || titleMap[key] || '';
   if (COLL[key]) { renderCollection(key); $('#section').classList.add('show'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
   let html = '';
-  const tourNote = '<div class="notice" style="margin-top:0;margin-bottom:6px">📍 한국관광공사 정보 기반이에요. 방문 전 운영 여부를 확인해보세요.</div>';
+  const tourNote = '<div class="notice" style="margin-top:0;margin-bottom:6px">📍 한국관광공사 정보 기반이에요. 방문 전 운영 여부를 확인해보시길 추천해요.</div>';
   const byDist = arr => arr.slice().sort((a, b) => (a.d == null ? 9e9 : a.d) - (b.d == null ? 9e9 : b.d));
   if (key === 'takeout') {
     const list = PLACES.filter(p => p.to && !p.x);
-    html = list.length ? list.map(p => cardHTML(p)).join('') : '<p class="empty">등록된 포장·배달 가게가 없어요.</p>';
+    html = list.length ? list.map(p => cardHTML(p)).join('') : '<p class="empty">등록된 포장·배달 가게가 없어요. 곧 추가할게요.</p>';
   } else if (key === 'activity' && typeof TOUR !== 'undefined') {
     html = tourNote + TOUR.activities.map(tourCardHTML).join('');
   } else if (key === 'beach') {
     const list = byDist(PLACES.filter(p => p.t === '해변' && !p.x));
-    html = list.length ? list.map(p => beachCardHTML(p)).join('') : '<p class="empty">해변 정보를 찾지 못했어요.</p>';
+    html = list.length ? list.map(p => beachCardHTML(p)).join('') : '<p class="empty">해변 정보를 찾지 못했어요. 잠시 후 다시 확인해주세요.</p>';
   } else if (key === 'attraction') {
     renderAttractionSection('natural');
     $('#section').classList.add('show');
@@ -800,7 +800,7 @@ function renderBottomSections() {
   const beach = byDist(PLACES.filter(p => p.t === '해변' && !p.x));
   const beachScroll = $('#beachMiniScroll');
   if (beachScroll) {
-    beachScroll.innerHTML = beach.map(beachMiniHTML).join('') || '<p class="empty">해변 정보를 찾지 못했어요.</p>';
+    beachScroll.innerHTML = beach.map(beachMiniHTML).join('') || '<p class="empty">해변 정보를 찾지 못했어요. 잠시 후 다시 확인해주세요.</p>';
     const moreBtn = $('#beachMiniMore');
     if (moreBtn) moreBtn.textContent = `전체 ${beach.length}곳 보기 →`;
   }
@@ -811,7 +811,7 @@ function renderAttrMini(sub) {
   const byDist = arr => arr.slice().sort((a, b) => (a.d == null ? 9e9 : a.d) - (b.d == null ? 9e9 : b.d));
   const list = byDist(PLACES.filter(p => p.t === '명소' && !p.x && (sub === 'natural' ? p.nat === 1 : p.nat !== 1)));
   const attrScroll = $('#attrMiniScroll');
-  if (attrScroll) attrScroll.innerHTML = list.map(attrMiniHTML).join('') || '<p class="empty">해당하는 곳이 없어요.</p>';
+  if (attrScroll) attrScroll.innerHTML = list.map(attrMiniHTML).join('') || '<p class="empty">해당하는 곳이 없어요. 다른 탭을 눌러보세요.</p>';
   const moreBtn = $('#attrMiniMore');
   if (moreBtn) moreBtn.textContent = `전체 ${list.length}곳 보기 →`;
   $$('.attrminitab').forEach(t => t.classList.toggle('on', t.dataset.attrsub === sub));

@@ -53,7 +53,7 @@
           ${[1, 2, 3, 4, 5].map(v => `<button class="star" data-v="${v}" aria-label="${v}점">⭐</button>`).join('')}
         </div>
         <div id="rpForm" style="display:none">
-          <textarea id="rpMemo" maxlength="300" placeholder="어떤 부분이 도움이 되었는지 적어주세요. 혹은 필요한 정보가 있다면 기재해주셔도 좋습니다."></textarea>
+          <textarea id="rpMemo" maxlength="300" placeholder="어떤 부분이 도움이 되었는지 적어주세요. 혹은 필요한 정보가 있다면 적어주셔도 좋아요."></textarea>
           <div class="fberr" id="rpErr" role="alert"></div>
           <button class="fbbtn" id="rpSend">별점 추가하기</button>
         </div>

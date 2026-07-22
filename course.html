@@ -165,7 +165,7 @@
       sort === 'dist' ? (a.d??99) - (b.d??99)
         : ((b.rv ? b.rv[1] : 0) - (a.rv ? a.rv[1] : 0)));
     document.getElementById('mk').innerHTML = list.slice(0, 5).map(p => placeCard(p)).join('') ||
-      '<div class="card"><div class="body"><div class="info">막국수집을 찾지 못했어요.</div></div></div>';
+      '<div class="card"><div class="body"><div class="info">막국수집을 찾지 못했어요. 홈의 \'고성 막국수\' 모음에서 확인해보세요.</div></div></div>';
   }
   document.querySelectorAll('.sort button').forEach(b => b.addEventListener('click', () => {
     document.querySelectorAll('.sort button').forEach(x => x.classList.remove('on'));
@@ -178,11 +178,11 @@
     .sort((a,b) => (a.d??99) - (b.d??99))
     .slice(0, 3);
   document.getElementById('cafe').innerHTML = cafes.map(p => placeCard(p)).join('') ||
-    '<div class="card"><div class="body"><div class="info">근처 카페 정보를 찾지 못했어요.</div></div></div>';
+    '<div class="card"><div class="body"><div class="info">근처 카페 정보를 찾지 못했어요. 홈의 카페 탭에서 다른 곳을 찾아보세요.</div></div></div>';
 
   // 4. 마무리
   document.getElementById('last').innerHTML = landCard('천학정', '바다 절벽 위 정자. 일몰·바다 전망으로 코스를 마무리해요.');
 </script>
-<script src="rating-popup.js?v=1"></script>
+<script src="rating-popup.js?v=2"></script>
 </body>
 </html>
