@@ -127,7 +127,9 @@ def norm_hours(raw):
         if d.get('start') and d.get('end'):
             for day in DAYS:
                 out[day] = f"{d['start']}-{d['end']}"
-    for day, d in days_raw.items():
+    for raw_day, d in days_raw.items():
+        # 네이버가 이번 주 근접 요일은 "화(7/7)"처럼 날짜를 붙여 내려주기도 함 → 앞 글자만 요일로 사용
+        day = raw_day[0] if raw_day and raw_day[0] in DAYS else raw_day
         if day not in DAYS:
             continue
         desc = (d.get('desc') or '')
