@@ -6,9 +6,6 @@
 import sys, io, json, subprocess, os, time
 import requests
 
-sys.path.insert(0, r'C:\Users\Public')
-from gs_digest_lib import enqueue_digest  # 실행 결과는 여기로 → 고성 통합 다이제스트(08:00·13:00·17:00)에 합쳐 전송
-
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -28,19 +25,20 @@ def run(script_args):
     return r
 
 def conflicted_files():
-    r = subprocess.run(['git', 'diff', '--name-only', '--diff-filter=U'], capture_output=True, text=True)
+    r = subprocess.run(['git', 'diff', '--name-only', '--diff-filter=U'], capture_output=True, text=True, encoding='utf-8')
     return [f for f in r.stdout.strip().split('\n') if f]
 
 def notify_slack(text):
+    # (2026-07-21) 통합 다이제스트 폐지 — 실행 완료 시 즉시 개별 알림으로 되돌림.
     hook = cfg.get('slack_webhook')
     if not hook:
         print('⚠️ slack_webhook 미설정 → 알림 생략')
         return
     try:
-        enqueue_digest('트립코스 주간갱신', '🔔', text)
-        print('통합 다이제스트 큐에 적재됨 (08:00/13:00/17:00 중 다음 창에서 전송)')
+        r = requests.post(hook, json={'text': text}, timeout=15)
+        print('슬랙 전송됨' if r.status_code == 200 else f'슬랙 전송 실패: {r.status_code}')
     except Exception as e:
-        print('다이제스트 큐 적재 실패:', e)
+        print('슬랙 전송 실패:', e)
 
 try:
     # 1) 네이버 리스트 재수집 → places_region_new.json
@@ -136,12 +134,12 @@ try:
                     'data/overrides.json', 'data/manual_places.json', 'places.js', 'tour.js'])
     ts = time.strftime('%Y-%m-%d')
     msg = f'data: 주간 자동 갱신 {ts} (신규 {added}·제거 {len(removed)}·총 {total})'
-    cm = subprocess.run(['git', 'commit', '-m', msg], capture_output=True, text=True)
+    cm = subprocess.run(['git', 'commit', '-m', msg], capture_output=True, text=True, encoding='utf-8')
     print(cm.stdout.strip(), cm.stderr.strip())
     if cm.returncode != 0 and 'nothing to commit' not in cm.stdout:
         raise RuntimeError(f'git commit 실패: {cm.stdout.strip()} {cm.stderr.strip()}')
 
-    pl = subprocess.run(['git', 'pull', '--rebase', 'origin', 'main'], capture_output=True, text=True)
+    pl = subprocess.run(['git', 'pull', '--rebase', 'origin', 'main'], capture_output=True, text=True, encoding='utf-8')
     print(pl.stdout.strip(), pl.stderr.strip())
     if pl.returncode != 0:
         conflicts = conflicted_files()
@@ -163,7 +161,7 @@ try:
             extra = f' (충돌 파일: {conflicts})' if conflicts else ''
             raise RuntimeError(f'git pull --rebase 실패: {pl.stdout.strip()} {pl.stderr.strip()}{extra}')
 
-    pu = subprocess.run(['git', 'push', 'origin', 'main'], capture_output=True, text=True)
+    pu = subprocess.run(['git', 'push', 'origin', 'main'], capture_output=True, text=True, encoding='utf-8')
     print(pu.stdout.strip(), pu.stderr.strip())
     if pu.returncode != 0:
         raise RuntimeError(f'git push 실패: {pu.stdout.strip()} {pu.stderr.strip()}')
