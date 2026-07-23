@@ -40,6 +40,17 @@ def notify_slack(text):
     except Exception as e:
         print('슬랙 전송 실패:', e)
 
+# 중복 실행 방지 락 — 이미 실행 중인데 수동으로 또 돌리면(또는 스케줄 겹침) data/*.json을
+# 동시에 건드려 중간상태가 섞이고 git이 꼬임(2026-07-22 실제 발생: 370→410 오염, push 실패)
+LOCKFILE = 'data/.refresh.lock'
+if os.path.exists(LOCKFILE):
+    age = time.time() - os.path.getmtime(LOCKFILE)
+    if age < 1800:   # 30분 — 정상 실행 시간보다 넉넉히 여유
+        print(f'⚠️ 다른 refresh_all.py가 실행 중인 것으로 보입니다(락 {int(age)}초 전 생성) — 중복 실행 방지로 종료')
+        sys.exit(1)
+    print(f'⚠️ 오래된 락 파일 발견({int(age)}초 전, 비정상 종료 추정) — 무시하고 진행')
+open(LOCKFILE, 'w').write(str(os.getpid()))
+
 try:
     # 1) 네이버 리스트 재수집 → places_region_new.json
     run(['data/fetch_lists.py'])
@@ -187,4 +198,9 @@ except Exception as e:
     except Exception:
         pass
     print('⚠️ 주간 갱신 실패:', e)
+    try: os.remove(LOCKFILE)
+    except FileNotFoundError: pass
     sys.exit(1)
+
+try: os.remove(LOCKFILE)
+except FileNotFoundError: pass
