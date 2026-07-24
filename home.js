@@ -100,15 +100,15 @@ const TYPE_OF = { meal: '식사', cafe: '카페', bar: '술집' };
 // 한 가게를 식사·카페·술집 등 여러 섹션에 동시 노출시키기 위한 것 (어드민 '추가 노출' 편집).
 function inType(p, t) { return p.t === t || (Array.isArray(p.t2) && p.t2.includes(t)); }
 
-function zoneRank(z) { return z === '도보' ? 3 : z === '고성' ? 1.5 : 0; }
+// 도보권만 살짝 우대, 차로 거리(고성/속초)는 점수 차 없이 동일 취급 (차 15분 이내는 다 비슷)
+function zoneRank(z) { return z === '도보' ? 1.5 : 0; }
 function scoreNow(p, now) {
   let s = Math.random() * 2.5;        // 변동 폭 키움 (매번 다르게)
-  s += zoneRank(p.z) * 0.7;           // 거리 가중은 약하게 (고정 방지)
-  if (p.ca) s += 2.5;
+  s += zoneRank(p.z) * 0.7;           // 도보권 +1.05, 나머지 0
+  if (p.ca) s += 1.8;                 // CA 강추 — 비중 낮춤(반복 완화)
   if (p.rv) { const [r, c] = p.rv; s += Math.max(-1, Math.min(1.4, (r - 4.2) * 2)); s += Math.min(1.2, Math.log10(c + 1) * 0.5); }
   const peak = (now.getHours() >= 12 && now.getHours() < 13) || (now.getHours() >= 18 && now.getHours() < 20);
-  if (peak && p.w === 2) s -= 1.3;
-  if (p.w === 0) s += 0.3;
+  if (peak && p.w === 2) s -= 1.3;    // 피크시간 웨이팅 잦은 곳만 감점 (웨이팅 없음 가산은 없음)
   return s;
 }
 
