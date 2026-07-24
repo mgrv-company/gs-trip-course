@@ -233,6 +233,13 @@ for x in places:
         if ov.get('natural') is not None:
             item['nat'] = 1 if ov['natural'] else 0  # 어드민이 자연명소 분류를 직접 수정한 경우 최우선
             stat['자연명소 수동수정'] += 1
+        if ov.get('also'):
+            # 추가 노출: 원래 type 외에 뜰 섹션들. 자기 자신 type·중복은 제거.
+            extra = [t for t in ov['also'] if t and t != x['type']]
+            extra = list(dict.fromkeys(extra))  # 순서 유지 중복 제거
+            if extra:
+                item['t2'] = extra
+                stat['추가 노출'] += 1
     slim.append(item)
 
 # 오타 방지: 매칭 안 된 피드백 이름 경고

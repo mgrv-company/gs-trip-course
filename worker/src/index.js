@@ -95,7 +95,18 @@ function slimOverride(r) {
   if (r.notion) o.nt = 1;
   if (r.natural != null) o.nat = r.natural;   // 0도 유효한 값(비자연명소 수동지정)이라 != null로 검사
   if (r.note) o.note = r.note;
+  const a2 = parseAlso(r.also);
+  if (a2.length) o.a2 = a2;   // 추가 노출 섹션 (원래 type 외에 뜰 곳)
   return o;
+}
+
+// also 컬럼(JSON 배열 문자열) → 문자열 배열. 깨졌거나 비었으면 빈 배열.
+function parseAlso(raw) {
+  if (!raw) return [];
+  try {
+    const a = JSON.parse(raw);
+    return Array.isArray(a) ? a.filter(t => typeof t === 'string' && t) : [];
+  } catch (e) { return []; }
 }
 
 export default {
@@ -137,6 +148,8 @@ export default {
             if (r.notion) o.notion = true;
             if (r.natural != null) o.natural = !!r.natural;
             if (r.note) o.note = r.note;
+            const a2 = parseAlso(r.also);
+            if (a2.length) o.also = a2;
             if (Object.keys(o).length) { o.sid = r.sid; legacy[r.name] = o; }
           }
           data = { overrides: legacy, manual_places: man.results.map(r => JSON.parse(r.json)) };
@@ -363,19 +376,24 @@ export default {
         const note = String(b.note || '').slice(0, 300);
         // natural: 3상태(null=자동분류 따름/true=자연명소/false=그 외로 수동지정) — 다른 플래그와 달리 0도 유효값
         const natural = b.natural === true ? 1 : b.natural === false ? 0 : null;
-        const empty = flags.every(f => !f) && !note && natural === null;
+        // also: 추가 노출 섹션 목록. 허용된 type만 남기고 중복 제거 후 JSON 문자열로 저장.
+        const ALSO_TYPES = ['식사', '카페', '술집', '명소', '해변'];
+        const alsoArr = Array.isArray(b.also)
+          ? [...new Set(b.also.filter(t => ALSO_TYPES.includes(t)))] : [];
+        const also = alsoArr.length ? JSON.stringify(alsoArr) : '';
+        const empty = flags.every(f => !f) && !note && natural === null && !also;
         if (empty) {
           await db.prepare('DELETE FROM overrides WHERE sid = ?').bind(String(b.sid)).run();
         } else {
           await db.prepare(`
-            INSERT INTO overrides (sid, name, exclude, reserve, pick, takeout, notion, natural, note, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO overrides (sid, name, exclude, reserve, pick, takeout, notion, natural, note, also, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(sid) DO UPDATE SET
               name=excluded.name, exclude=excluded.exclude, reserve=excluded.reserve,
               pick=excluded.pick, takeout=excluded.takeout, notion=excluded.notion,
-              natural=excluded.natural, note=excluded.note, updated_at=excluded.updated_at
+              natural=excluded.natural, note=excluded.note, also=excluded.also, updated_at=excluded.updated_at
           `).bind(String(b.sid), String(b.name || '').slice(0, 100),
-                  ...flags, natural, note, new Date().toISOString()).run();
+                  ...flags, natural, note, also, new Date().toISOString()).run();
         }
         pubCache = {};   // 편집됐으니 공개 캐시 즉시 무효화 (즉시 반영 유지)
         return json(req, { ok: true });

@@ -96,6 +96,9 @@ function autoSlot(now) {
 }
 const SLOT_LABEL = { meal: '🍚 지금은 밥때', cafe: '☕ 카페 타임', bar: '🍻 한잔하기 좋은 시간' };
 const TYPE_OF = { meal: '식사', cafe: '카페', bar: '술집' };
+// 가게가 해당 섹션(type)에 속하는지 — 원래 type(t) 또는 추가 노출(t2) 목록에 있으면 참.
+// 한 가게를 식사·카페·술집 등 여러 섹션에 동시 노출시키기 위한 것 (어드민 '추가 노출' 편집).
+function inType(p, t) { return p.t === t || (Array.isArray(p.t2) && p.t2.includes(t)); }
 
 function zoneRank(z) { return z === '도보' ? 3 : z === '고성' ? 1.5 : 0; }
 function scoreNow(p, now) {
@@ -213,7 +216,7 @@ function attractionCardHTML(p) {
 // 즐길 곳 전체보기 — 자연명소/그 외 탭 (nat: 1=자연명소, 0/미기재=그 외)
 function renderAttractionSection(sub) {
   const byDist = arr => arr.slice().sort((a, b) => (a.d == null ? 9e9 : a.d) - (b.d == null ? 9e9 : b.d));
-  const list = byDist(PLACES.filter(p => p.t === '명소' && !p.x && (sub === 'natural' ? p.nat === 1 : p.nat !== 1)));
+  const list = byDist(PLACES.filter(p => inType(p, '명소') && !p.x && (sub === 'natural' ? p.nat === 1 : p.nat !== 1)));
   const tabs = `<div class="chips" style="margin:0 0 10px">
     <span class="chip${sub === 'natural' ? ' on' : ''}" data-attrsub="natural">자연명소</span>
     <span class="chip${sub === 'nonnatural' ? ' on' : ''}" data-attrsub="nonnatural">그 외 볼거리</span>
@@ -344,10 +347,10 @@ function renderNow() {
   let pool;
   if (isAuto) {
     // '영업중': 한 끼·카페·술 섞어서 (제외·포장·배달 빼고, 지금 문 연 곳)
-    pool = PLACES.filter(p => TYPES.includes(p.t) && !p.x && !p.to && openNow(p, now) !== false);
+    pool = PLACES.filter(p => TYPES.some(t => inType(p, t)) && !p.x && !p.to && openNow(p, now) !== false);
   } else {
     const type = TYPE_OF[slot];
-    pool = PLACES.filter(p => p.t === type && !p.x && !p.to && openNow(p, now) !== false);
+    pool = PLACES.filter(p => inType(p, type) && !p.x && !p.to && openNow(p, now) !== false);
     if (curFilter && slot === 'meal') {
       const grp = FOOD_GROUPS.find(g => g.label === curFilter);
       const tags = grp ? grp.tags : [curFilter];
@@ -356,7 +359,7 @@ function renderNow() {
   }
   const biasType = TYPE_OF[autoSlot(now)];   // 섞되 시간대 적합 종류는 살짝 우대
   const ranked = pool
-    .map(p => ({ p, s: scoreNow(p, now) + (openNow(p, now) === true ? 1.2 : 0) + (isAuto && p.t === biasType ? 1 : 0) }))
+    .map(p => ({ p, s: scoreNow(p, now) + (openNow(p, now) === true ? 1.2 : 0) + (isAuto && inType(p, biasType) ? 1 : 0) }))
     .sort((a, b) => b.s - a.s).map(x => x.p);
   // 풀 전체를 한 바퀴 다 돌 때까지 중복 0 — 다 돌면 초기화하고 새 순환
   let fresh = ranked.filter(p => !recent.includes(p.n));
@@ -540,7 +543,7 @@ const COLL = {
   walk: {
     title: '🚶 걸어서 갈 곳', note: '맹그로브 고성 기준 거리예요.',
     subs: [['도보', '도보권'], ['고성', '차로 금방(고성)'], ['속초', '멀어도 OK(속초)']],
-    list: sub => PLACES.filter(p => !p.x && !p.to && REAL.includes(p.t) && p.z === sub),
+    list: sub => PLACES.filter(p => !p.x && !p.to && REAL.some(t => inType(p, t)) && p.z === sub),
   },
   capick: {
     title: '📌 CA 강추', note: 'CA가 직접 가본 찐 추천만 모았어요.', subs: null,
@@ -549,7 +552,7 @@ const COLL = {
   time: {
     title: '🎯 아침·심야', note: '',
     subs: [['early', '🌅 아침 되는 곳'], ['late', '🌙 심야 영업']],
-    list: sub => PLACES.filter(p => !p.x && !p.to && REAL.includes(p.t) && (sub === 'late' ? opensLate(p) : opensEarly(p))),
+    list: sub => PLACES.filter(p => !p.x && !p.to && REAL.some(t => inType(p, t)) && (sub === 'late' ? opensLate(p) : opensEarly(p))),
   },
   makguksu: {
     title: '🍜 고성 막국수 모음', note: '고성·속초의 막국수집을 모았어요. (거리순)', subs: null,
@@ -606,7 +609,7 @@ function openSection(key) {
   } else if (key === 'activity' && typeof TOUR !== 'undefined') {
     html = tourNote + TOUR.activities.map(tourCardHTML).join('');
   } else if (key === 'beach') {
-    const list = byDist(PLACES.filter(p => p.t === '해변' && !p.x));
+    const list = byDist(PLACES.filter(p => inType(p, '해변') && !p.x));
     html = list.length ? list.map(p => beachCardHTML(p)).join('') : '<p class="empty">해변 정보를 찾지 못했어요. 잠시 후 다시 확인해주세요.</p>';
   } else if (key === 'attraction') {
     renderAttractionSection('natural');
@@ -653,6 +656,7 @@ function applyOverrideTo(pl, o) {
   pl.to = o.to ? 1 : 0;
   pl.r = (o.r || pl.ra) ? 1 : 0;   // 자동감지(ra) 예약은 유지, 수동 예약만 편집을 따름
   if (o.nat != null) pl.nat = o.nat ? 1 : 0;   // 자연명소 수동 지정(어드민) — 없으면 주간 빌드 기본값 유지
+  pl.t2 = Array.isArray(o.a2) ? o.a2 : [];      // 추가 노출 섹션 — 라이브 편집이 스냅샷(t2)보다 우선
   pl.note = o.note || '';
 }
 async function applyLiveEdits() {
@@ -799,7 +803,7 @@ function attrMiniHTML(p) {
 let miniAttrSub = 'natural';
 function renderBottomSections() {
   const byDist = arr => arr.slice().sort((a, b) => (a.d == null ? 9e9 : a.d) - (b.d == null ? 9e9 : b.d));
-  const beach = byDist(PLACES.filter(p => p.t === '해변' && !p.x));
+  const beach = byDist(PLACES.filter(p => inType(p, '해변') && !p.x));
   const beachScroll = $('#beachMiniScroll');
   if (beachScroll) {
     beachScroll.innerHTML = beach.map(beachMiniHTML).join('') || '<p class="empty">해변 정보를 찾지 못했어요. 잠시 후 다시 확인해주세요.</p>';
@@ -811,7 +815,7 @@ function renderBottomSections() {
 function renderAttrMini(sub) {
   miniAttrSub = sub;
   const byDist = arr => arr.slice().sort((a, b) => (a.d == null ? 9e9 : a.d) - (b.d == null ? 9e9 : b.d));
-  const list = byDist(PLACES.filter(p => p.t === '명소' && !p.x && (sub === 'natural' ? p.nat === 1 : p.nat !== 1)));
+  const list = byDist(PLACES.filter(p => inType(p, '명소') && !p.x && (sub === 'natural' ? p.nat === 1 : p.nat !== 1)));
   const attrScroll = $('#attrMiniScroll');
   if (attrScroll) attrScroll.innerHTML = list.map(attrMiniHTML).join('') || '<p class="empty">해당하는 곳이 없어요. 다른 탭을 눌러보세요.</p>';
   const moreBtn = $('#attrMiniMore');

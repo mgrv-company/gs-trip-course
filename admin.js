@@ -16,7 +16,17 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&a
 
 let token = localStorage.getItem(SESSION_KEY) || '';
 let items = [];        // 통합 목록 [{sid, name, type, cat, zone, man, ghost, img, rv, h, d}]
-let ov = {};           // sid → {exclude,reserve,pick,takeout,notion,note}
+let ov = {};           // sid → {exclude,reserve,pick,takeout,notion,note,also}
+// 추가 노출: 한 가게를 원래 종류 외의 섹션에도 띄우기 (예: 식사인데 카페·술집에도). 후보 종류.
+const ALSO_CANDS = ['식사', '카페', '술집', '명소'];
+function parseAlso(raw) {
+  if (Array.isArray(raw)) return raw.filter(t => ALSO_CANDS.includes(t));
+  if (typeof raw === 'string' && raw) {
+    try { const a = JSON.parse(raw); return Array.isArray(a) ? a.filter(t => ALSO_CANDS.includes(t)) : []; }
+    catch (e) { return []; }
+  }
+  return [];
+}
 let updAt = {};        // sid → 마지막 수정 시각 (최근 수정 순 정렬용)
 let curFilter = 'all';
 let curType = null;    // 종류 필터 (식사/카페/술집/기타)
@@ -101,7 +111,7 @@ async function loadAll() {
   for (const r of data.overrides) {
     ov[r.sid] = { exclude: !!r.exclude, reserve: !!r.reserve, pick: !!r.pick,
                   takeout: !!r.takeout, notion: !!r.notion, natural: r.natural == null ? null : !!r.natural,
-                  note: r.note || '', name: r.name };
+                  note: r.note || '', also: parseAlso(r.also), name: r.name };
     updAt[r.sid] = r.updated_at || '';
   }
   const seen = new Set();
@@ -194,6 +204,13 @@ function itemHTML(it) {
       <span class="tog" data-act="note">📝 메모</span>
       ${it.man ? '<span class="tog del" data-act="delman">🗑 삭제</span>' : ''}
     </div>
+    <div class="togs" style="margin-top:2px">
+      <span class="small" style="align-self:center;opacity:.7">추가 노출 →</span>
+      ${ALSO_CANDS.filter(t => t !== it.type).map(t => {
+        const on = (o.also || []).includes(t);
+        return `<span class="tog${on ? ' on-pick' : ''}" data-act="also" data-type="${esc(t)}">${on ? '✓' : '➕'} ${esc(t)}</span>`;
+      }).join('')}
+    </div>
     <div class="noteedit${noteOpen ? ' show' : ''}">
       <textarea data-notefor="${esc(it.sid)}" placeholder="카드에 표시할 한두 줄 메모 (비우고 저장하면 삭제)">${noteOpen ? esc(o.note || '') : ''}</textarea>
       <div class="row">
@@ -251,7 +268,7 @@ function rowPayload(sid) {
            exclude: !!o.exclude, reserve: !!o.reserve, pick: !!o.pick,
            takeout: !!o.takeout, notion: !!o.notion,
            natural: o.natural === undefined ? null : o.natural,
-           note: o.note || '' };
+           note: o.note || '', also: Array.isArray(o.also) ? o.also : [] };
 }
 async function saveOverride(sid, el) {
   if (el) el.classList.add('busy');
@@ -275,9 +292,19 @@ $('#list').addEventListener('click', async e => {
   if (!sid) return;
   const act = b.dataset.act;
   const it = items.find(i => i.sid === sid);
-  ov[sid] = ov[sid] || { exclude: false, reserve: false, pick: false, takeout: false, notion: false, note: '' };
+  ov[sid] = ov[sid] || { exclude: false, reserve: false, pick: false, takeout: false, notion: false, note: '', also: [] };
 
-  if (act === 'pick' || act === 'reserve' || act === 'takeout' || act === 'exclude') {
+  if (act === 'also') {
+    const type = b.dataset.type;
+    const arr = Array.isArray(ov[sid].also) ? ov[sid].also.slice() : [];
+    const before = arr.slice();
+    const i = arr.indexOf(type);
+    if (i >= 0) arr.splice(i, 1); else arr.push(type);   // 있으면 빼고, 없으면 추가
+    ov[sid].also = arr;
+    render();
+    const okSave = await saveOverride(sid);
+    if (!okSave) { ov[sid].also = before; render(); }
+  } else if (act === 'pick' || act === 'reserve' || act === 'takeout' || act === 'exclude') {
     const before = ov[sid][act];
     ov[sid][act] = !before;                    // 낙관적 반영
     render();

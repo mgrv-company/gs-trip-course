@@ -5,6 +5,9 @@
 -- ⚠️ natural 컬럼은 2026-07-16 ALTER TABLE로 기존 배포 DB에 추가함(CREATE TABLE IF NOT EXISTS는
 --    이미 있는 테이블엔 컬럼을 못 더해서, 신규 설치 대비용으로만 여기 반영). natural: NULL=자동분류
 --    따름, 0/1=명소 자연명소 여부 수동 지정(어드민 토글이 최우선)
+-- ⚠️ also 컬럼은 2026-07-24 ALTER TABLE로 기존 배포 DB에 추가함(신규 설치 대비용으로만 여기 반영).
+--    한 가게를 원래 type 외에 다른 섹션(식사/카페/술집/명소)에도 노출시키는 "추가 소속" 목록을
+--    JSON 배열 문자열로 저장(예: '["카페","술집"]'). 빈 문자열=추가 소속 없음.
 CREATE TABLE IF NOT EXISTS overrides (
   sid        TEXT PRIMARY KEY,
   name       TEXT NOT NULL DEFAULT '',      -- 표시·대조용 (매칭 키 아님)
@@ -15,6 +18,7 @@ CREATE TABLE IF NOT EXISTS overrides (
   notion     INTEGER NOT NULL DEFAULT 0,
   natural    INTEGER,
   note       TEXT NOT NULL DEFAULT '',
+  also       TEXT NOT NULL DEFAULT '',      -- 추가 노출 섹션 JSON 배열 (예: '["카페","술집"]')
   updated_at TEXT NOT NULL DEFAULT ''
 );
 
