@@ -8007,5 +8007,214 @@
   "thumb": "",
   "naver": "https://map.naver.com/p/entry/place/1851160097",
   "guessed": false
+ },
+ {
+  "name": "대감집",
+  "type": "술집",
+  "list": "술집",
+  "category": "술집",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 12.16,
+  "address": "강원 속초시 조양로21번길 15",
+  "lat": 38.18561,
+  "lng": 128.5992192,
+  "sid": "1888515946",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1888515946",
+  "guessed": false
+ },
+ {
+  "name": "바다별 양조장",
+  "type": "술집",
+  "list": "술집",
+  "category": "술집",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.19,
+  "address": "강원 속초시 철새길 106",
+  "lat": 38.1921446,
+  "lng": 128.5897741,
+  "sid": "2044783313",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2044783313",
+  "guessed": false
+ },
+ {
+  "name": "아바이회국수",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.52,
+  "address": "강원 속초시 청호로 115-12",
+  "lat": 38.1999116,
+  "lng": 128.5943544,
+  "sid": "35308401",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/35308401",
+  "guessed": false
+ },
+ {
+  "name": "설악항 21호 재진이네",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 14.75,
+  "address": "강원 속초시 동해대로 3666",
+  "lat": 38.1635423,
+  "lng": 128.6090397,
+  "sid": "1244176195",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1244176195",
+  "guessed": false
+ },
+ {
+  "name": "초도반점",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 24.43,
+  "address": "강원 고성군 금강산로 124-1",
+  "lat": 38.4875525,
+  "lng": 128.4327554,
+  "sid": "1180683329",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1180683329",
+  "guessed": false
+ },
+ {
+  "name": "태양맛집",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 19.64,
+  "address": "강원 고성군 거진시장길 15-1",
+  "lat": 38.4476666,
+  "lng": 128.4537296,
+  "sid": "1790551814",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1790551814",
+  "guessed": false
+ },
+ {
+  "name": "동해반점",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 25.15,
+  "address": "강원 고성군 한나루로 52",
+  "lat": 38.4932203,
+  "lng": 128.4286438,
+  "sid": "1514787300",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1514787300",
+  "guessed": false
+ },
+ {
+  "name": "숯꾸닭",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 12.35,
+  "address": "강원 고성군 간성로 61-10",
+  "lat": 38.3789922,
+  "lng": 128.4680988,
+  "sid": "1780686304",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1780686304",
+  "guessed": false
+ },
+ {
+  "name": "세렝게티커피",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.52,
+  "address": "강원 속초시 교동로7길 8",
+  "lat": 38.20501,
+  "lng": 128.5782,
+  "sid": "1305852206",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1305852206",
+  "guessed": false
+ },
+ {
+  "name": "켄싱턴해변",
+  "type": "해변",
+  "list": "해변",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 5.25,
+  "address": "강원 고성군 동해대로 4800",
+  "lat": 38.2439596,
+  "lng": 128.572,
+  "sid": "36072529",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/36072529",
+  "guessed": false
+ },
+ {
+  "name": "설악해맞이공원",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 14.77,
+  "address": "강원 속초시 대포동 178-4",
+  "lat": 38.1632237,
+  "lng": 128.6086374,
+  "sid": "13446710",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13446710",
+  "guessed": false
  }
 ]
