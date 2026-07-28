@@ -310,14 +310,22 @@
         <div id="vChart" class="chart">불러오는 중…</div>
       </div>
       <div class="card">
-        <h2>🖱 클릭 많은 가게 <span class="badge10">Top 10</span></h2>
-        <p class="small">손님이 '네이버 지도에서 보기'를 누른 횟수 순 (어드민 제외)</p>
+        <h2>🖱 기간별 클릭 <span class="badge10">Top 10</span></h2>
+        <p class="small">고른 기간에 손님이 '네이버 지도에서 보기'를 누른 횟수·클릭율(CTR) 순이에요 (어드민 제외). 클릭수는 2026-07-14부터, 클릭율(노출 대비)은 2026-07-28부터 정확해요.</p>
+        <div class="rangebar">
+          <button type="button" class="rangebtn" data-preset="today">오늘</button>
+          <button type="button" class="rangebtn" data-preset="week">이번 주</button>
+          <button type="button" class="rangebtn" data-preset="month">이번 달</button>
+          <button type="button" class="rangebtn" data-preset="all">전체 기간</button>
+        </div>
+        <div class="rangebar">
+          <input type="date" id="rangeFrom">
+          <span class="small">~</span>
+          <input type="date" id="rangeTo">
+          <button type="button" id="rangeApply" class="btn ghost sm">조회</button>
+        </div>
+        <p class="small" id="rangeLabel"></p>
         <ol id="vTopClicks" class="ranklist">불러오는 중…</ol>
-      </div>
-      <div class="card">
-        <h2>🎯 CTR 높은 가게 <span class="badge10">Top 10</span></h2>
-        <p class="small">노출 대비 클릭 비율(CTR) 순 — <b>보여주면 실제로 눌리는 진짜 관심</b>. 노출이 쌓일수록 정확해져요.</p>
-        <ol id="vTopCTR" class="ranklist">불러오는 중…</ol>
       </div>
       <div class="card">
         <h2>⭐ 서비스 평가</h2>
@@ -351,24 +359,6 @@
           <div class="stat"><div class="sn" id="vCourseToday">–</div><div class="sl">오늘</div></div>
           <div class="stat hl"><div class="sn" id="vCourseTotal">–</div><div class="sl">누적</div></div>
         </div>
-      </div>
-      <div class="card">
-        <h2>🔥 기간별 클릭 <span class="badge10">Top 10</span></h2>
-        <p class="small">고른 기간의 클릭만 따로 모은 순위예요 — 전체 누적 Top10과 달리 최근 흐름을 보여줘요. (날짜별 집계는 2026-07-14부터 시작)</p>
-        <div class="rangebar">
-          <button type="button" class="rangebtn" data-preset="today">오늘</button>
-          <button type="button" class="rangebtn" data-preset="week">이번 주</button>
-          <button type="button" class="rangebtn" data-preset="month">이번 달</button>
-          <button type="button" class="rangebtn" data-preset="all">전체 기간</button>
-        </div>
-        <div class="rangebar">
-          <input type="date" id="rangeFrom">
-          <span class="small">~</span>
-          <input type="date" id="rangeTo">
-          <button type="button" id="rangeApply" class="btn ghost sm">조회</button>
-        </div>
-        <p class="small" id="rangeLabel"></p>
-        <ol id="vClicksWeekly" class="ranklist">불러오는 중…</ol>
       </div>
       <div class="card">
         <h2>🧭 화면 이용 현황</h2>

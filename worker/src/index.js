@@ -226,6 +226,7 @@ export default {
           seen.add(key);
           const name = String((it && it.name) || '').slice(0, 100);
           stmts.push(db.prepare('INSERT INTO place_impressions (key, name, n) VALUES (?, ?, 1) ON CONFLICT(key) DO UPDATE SET n = n + 1, name = excluded.name').bind(key, name));
+          stmts.push(db.prepare('INSERT INTO place_impressions_daily (day, key, name, n) VALUES (?, ?, ?, 1) ON CONFLICT(day, key) DO UPDATE SET n = n + 1, name = excluded.name').bind(kstDay(), key, name));
         }
         if (stmts.length) await db.batch(stmts);
         return json(req, { ok: true });
@@ -572,15 +573,19 @@ export default {
         return json(req, { clicks: rows.results, since: mondayStr });
       }
 
-      // 어드민: 기간(직접 지정) 클릭 Top10 — from~to(YYYY-MM-DD, KST 날짜 기준, 둘 다 포함)
+      // 어드민: 기간(직접 지정) 클릭수+클릭율 Top10 — from~to(YYYY-MM-DD, KST 날짜 기준, 둘 다 포함)
+      // 노출(imp)은 2026-07-28부터 날짜별로 쌓여서, 그 이전을 포함한 기간은 imp가 실제보다 적게 잡힘
       if (path === '/admin/clicks-range' && req.method === 'GET') {
         const from = url.searchParams.get('from');
         const to = url.searchParams.get('to');
         const isYmd = s => /^\d{4}-\d{2}-\d{2}$/.test(s || '');
         if (!isYmd(from) || !isYmd(to)) return json(req, { error: 'from, to 날짜(YYYY-MM-DD)가 필요해요.' }, 400);
         const rows = await db.prepare(
-          'SELECT key, name, SUM(n) AS n FROM place_clicks_daily WHERE day >= ? AND day <= ? GROUP BY key ORDER BY n DESC LIMIT 10'
-        ).bind(from, to).all();
+          'SELECT c.key AS key, c.name AS name, c.n AS n, COALESCE(i.n, 0) AS imp FROM ' +
+          '(SELECT key, name, SUM(n) AS n FROM place_clicks_daily WHERE day >= ? AND day <= ? GROUP BY key) c ' +
+          'LEFT JOIN (SELECT key, SUM(n) AS n FROM place_impressions_daily WHERE day >= ? AND day <= ? GROUP BY key) i ON i.key = c.key ' +
+          'ORDER BY c.n DESC LIMIT 10'
+        ).bind(from, to, from, to).all();
         return json(req, { clicks: rows.results, from, to });
       }
 

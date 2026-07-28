@@ -105,6 +105,15 @@ CREATE TABLE IF NOT EXISTS place_clicks_daily (
   PRIMARY KEY (day, key)
 );
 
+-- 가게별 노출수를 날짜별로도 저장 — 2026-07-28 도입, 그 이전 기간은 값이 없음(place_impressions 누적과 별개)
+CREATE TABLE IF NOT EXISTS place_impressions_daily (
+  day  TEXT NOT NULL,
+  key  TEXT NOT NULL,
+  name TEXT NOT NULL DEFAULT '',
+  n    INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (day, key)
+);
+
 -- 가게 피드백 텍스트 보관(그동안 슬랙으로만 가고 DB엔 안 남았음) — 나중에 검색·집계용
 CREATE TABLE IF NOT EXISTS feedback (
   id    INTEGER PRIMARY KEY AUTOINCREMENT,

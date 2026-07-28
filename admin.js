@@ -376,13 +376,19 @@ async function loadClicksRange(from, to) {
   $('#rangeLabel').textContent = from + ' ~ ' + to + ' 조회 중…';
   try {
     const r = await api('/admin/clicks-range?from=' + from + '&to=' + to);
-    const cw = r.clicks || [];
-    $('#vClicksWeekly').innerHTML = cw.length
-      ? cw.map(c => '<li><span class="rname">' + esc(c.name || c.key) + '</span><span class="rval">' + c.n + '<span class="rsub">클릭</span></span></li>').join('')
+    const rows = (r.clicks || []).map(c => Object.assign({ ctr: c.imp > 0 ? c.n / c.imp : null }, c));
+    $('#vTopClicks').innerHTML = rows.length
+      ? rows.map(c => '<li><span class="rname">' + esc(c.name || c.key) + '</span><span class="rval">' + c.n
+          + '<span class="rsub">클릭' + (c.ctr != null ? ' · CTR ' + Math.round(c.ctr * 100) + '% (노출 ' + c.imp + ')' : '') + '</span></span></li>').join('')
       : '<li class="empty">이 기간엔 클릭 기록이 없어요.</li>';
     $('#rangeLabel').textContent = from + ' ~ ' + to;
+    if (_dash) {
+      _dash.byClicks = rows;
+      _dash.byCTR = rows.filter(c => c.ctr != null).slice().sort((a, b) => b.ctr - a.ctr || b.imp - a.imp);
+      _dash.rangeFrom = from; _dash.rangeTo = to;
+    }
   } catch (e) {
-    $('#vClicksWeekly').textContent = '불러오기 실패: ' + e.message;
+    $('#vTopClicks').textContent = '불러오기 실패: ' + e.message;
     $('#rangeLabel').textContent = '';
   }
 }
@@ -426,21 +432,12 @@ async function loadViews() {
   } catch (e) {
     $('#vChart').textContent = '불러오기 실패: ' + e.message;
   }
-  // 2) 클릭 Top10 + CTR Top10 + 종류·구역별 분포
+  // 2) 종류·구역별 클릭 분포 (누적 전체 기준 — 기간별 Top10과 별개)
   try {
     const clicks = (await api('/admin/clicks')).clicks || [];
-    const byClicks = clicks.slice().sort((a, b) => b.n - a.n).slice(0, 10);
-    $('#vTopClicks').innerHTML = byClicks.length
-      ? byClicks.map(c => '<li><span class="rname">' + esc(c.name || c.key) + '</span><span class="rval">' + c.n + '<span class="rsub">클릭</span></span></li>').join('')
-      : '<li class="empty">아직 클릭 기록이 없어요.</li>';
-    const byCTR = clicks.filter(c => c.imp > 0).map(c => Object.assign({ ctr: c.n / c.imp }, c)).sort((a, b) => b.ctr - a.ctr || b.imp - a.imp).slice(0, 10);
-    $('#vTopCTR').innerHTML = byCTR.length
-      ? byCTR.map(c => '<li><span class="rname">' + esc(c.name || c.key) + '</span><span class="rval">' + Math.round(c.ctr * 100) + '%<span class="rsub">클릭 ' + c.n + ' · 노출 ' + c.imp + '</span></span></li>').join('')
-      : '<li class="empty">노출 데이터가 쌓이면 표시돼요.</li>';
     renderClickBreakdown(clicks);
-    if (_dash) { _dash.byClicks = byClicks; _dash.byCTR = byCTR; }
   } catch (e) {
-    $('#vTopClicks').textContent = '불러오기 실패: ' + e.message;
+    $('#vClickByType').textContent = '불러오기 실패: ' + e.message;
   }
   // 3) 서비스 별점 요약
   try {
@@ -568,8 +565,8 @@ function buildReportHTML(d) {
     + 'footer{text-align:center;font-size:11px;color:#a0a099;margin-top:24px}</style></head><body><div class="w">'
     + '<h1>맹그로브 고성 · 트립코스 리포트</h1><div class="sub">' + stamp + ' 기준 · 손님 조회수/인기 가게 (어드민 제외)</div>'
     + '<div class="card"><h2>📊 조회수</h2><div class="g"><div class="s"><div class="n">' + d.today + '</div><div class="l">오늘</div></div><div class="s"><div class="n">' + d.week + '</div><div class="l">이번 주</div></div><div class="s"><div class="n">' + d.month + '</div><div class="l">이번 달</div></div><div class="s hl"><div class="n">' + d.total + '</div><div class="l">누적</div></div></div><div class="chart">' + bars + '</div></div>'
-    + '<div class="card"><h2>🖱 클릭 많은 가게 Top 10</h2><p>네이버 지도 보기 클릭 순</p>' + rank(d.byClicks, c => c.n + ' 클릭') + '</div>'
-    + '<div class="card"><h2>🎯 CTR 높은 가게 Top 10</h2><p>노출 대비 클릭 비율 순</p>' + rank(d.byCTR, c => Math.round(c.ctr * 100) + '% (클릭 ' + c.n + ' · 노출 ' + c.imp + ')') + '</div>'
+    + '<div class="card"><h2>🖱 클릭 많은 가게 Top 10</h2><p>' + esc(d.rangeFrom || '') + ' ~ ' + esc(d.rangeTo || '') + ' · 네이버 지도 보기 클릭 순</p>' + rank(d.byClicks, c => c.n + ' 클릭') + '</div>'
+    + '<div class="card"><h2>🎯 CTR 높은 가게 Top 10</h2><p>' + esc(d.rangeFrom || '') + ' ~ ' + esc(d.rangeTo || '') + ' · 노출 대비 클릭 비율 순</p>' + rank(d.byCTR, c => Math.round(c.ctr * 100) + '% (클릭 ' + c.n + ' · 노출 ' + c.imp + ')') + '</div>'
     + buildRatingCardHTML(d.rating)
     + '<footer>맹그로브 고성 · 지금 갈만한 곳</footer></div></body></html>';
 }
