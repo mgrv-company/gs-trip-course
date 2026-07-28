@@ -572,6 +572,18 @@ export default {
         return json(req, { clicks: rows.results, since: mondayStr });
       }
 
+      // 어드민: 기간(직접 지정) 클릭 Top10 — from~to(YYYY-MM-DD, KST 날짜 기준, 둘 다 포함)
+      if (path === '/admin/clicks-range' && req.method === 'GET') {
+        const from = url.searchParams.get('from');
+        const to = url.searchParams.get('to');
+        const isYmd = s => /^\d{4}-\d{2}-\d{2}$/.test(s || '');
+        if (!isYmd(from) || !isYmd(to)) return json(req, { error: 'from, to 날짜(YYYY-MM-DD)가 필요해요.' }, 400);
+        const rows = await db.prepare(
+          'SELECT key, name, SUM(n) AS n FROM place_clicks_daily WHERE day >= ? AND day <= ? GROUP BY key ORDER BY n DESC LIMIT 10'
+        ).bind(from, to).all();
+        return json(req, { clicks: rows.results, from, to });
+      }
+
       // 어드민: 가게 피드백(한줄 의견) 최근 목록 — 나만 보기
       if (path === '/admin/feedback' && req.method === 'GET') {
         const rows = await db.prepare('SELECT place, memo, at FROM feedback ORDER BY at DESC LIMIT 100').all();

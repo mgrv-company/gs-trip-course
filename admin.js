@@ -368,6 +368,41 @@ $$('.tab').forEach(t => t.addEventListener('click', () => {
 const _ymd = d => { const p = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); };
 const _mondayOf = d => { const x = new Date(d); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return _ymd(x); };  // 이번 주 월요일
 let _dash = null;   // 공유 리포트용 최근 데이터 스냅샷
+let _rangeInit = false;   // 기간별 클릭 카드 최초 로드 여부(이번 주 기본값 세팅용)
+const CLICK_DATA_EPOCH = '2026-07-14';   // 날짜별 클릭(place_clicks_daily) 집계가 실제로 시작된 날 — '전체 기간' 버튼 기준
+
+async function loadClicksRange(from, to) {
+  if (!from || !to) return;
+  $('#rangeLabel').textContent = from + ' ~ ' + to + ' 조회 중…';
+  try {
+    const r = await api('/admin/clicks-range?from=' + from + '&to=' + to);
+    const cw = r.clicks || [];
+    $('#vClicksWeekly').innerHTML = cw.length
+      ? cw.map(c => '<li><span class="rname">' + esc(c.name || c.key) + '</span><span class="rval">' + c.n + '<span class="rsub">클릭</span></span></li>').join('')
+      : '<li class="empty">이 기간엔 클릭 기록이 없어요.</li>';
+    $('#rangeLabel').textContent = from + ' ~ ' + to;
+  } catch (e) {
+    $('#vClicksWeekly').textContent = '불러오기 실패: ' + e.message;
+    $('#rangeLabel').textContent = '';
+  }
+}
+function setRangePreset(preset) {
+  const now = new Date(), todayStr = _ymd(now);
+  let from = todayStr, to = todayStr;
+  if (preset === 'week') from = _mondayOf(now);
+  else if (preset === 'month') from = todayStr.slice(0, 7) + '-01';
+  else if (preset === 'all') from = CLICK_DATA_EPOCH;
+  $('#rangeFrom').value = from;
+  $('#rangeTo').value = to;
+  $$('.rangebtn').forEach(b => b.classList.toggle('on', b.dataset.preset === preset));
+  loadClicksRange(from, to);
+}
+$$('.rangebtn').forEach(b => b.addEventListener('click', () => setRangePreset(b.dataset.preset)));
+const _rangeApplyBtn = $('#rangeApply');
+if (_rangeApplyBtn) _rangeApplyBtn.addEventListener('click', () => {
+  $$('.rangebtn').forEach(b => b.classList.remove('on'));
+  loadClicksRange($('#rangeFrom').value, $('#rangeTo').value);
+});
 
 async function loadViews() {
   // 1) 조회수 4종 + 추이
@@ -447,15 +482,9 @@ async function loadViews() {
   } catch (e) {
     $('#vCourseToday').textContent = '실패';
   }
-  // 6) 이번 주 뜨는 가게 Top10
-  try {
-    const cw = (await api('/admin/clicks-weekly')).clicks || [];
-    $('#vClicksWeekly').innerHTML = cw.length
-      ? cw.map(c => '<li><span class="rname">' + esc(c.name || c.key) + '</span><span class="rval">' + c.n + '<span class="rsub">클릭</span></span></li>').join('')
-      : '<li class="empty">이번 주 클릭 기록이 아직 없어요.</li>';
-  } catch (e) {
-    $('#vClicksWeekly').textContent = '불러오기 실패: ' + e.message;
-  }
+  // 6) 기간별 클릭 Top10 — 기본값은 이번 주
+  if (!_rangeInit) { _rangeInit = true; setRangePreset('week'); }
+  else loadClicksRange($('#rangeFrom').value, $('#rangeTo').value);
   // 7) 화면 UI 이벤트(탭·모음) 순위
   try {
     const ev = (await api('/admin/events')).events || [];

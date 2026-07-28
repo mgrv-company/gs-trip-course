@@ -42,6 +42,10 @@
   .btn.ghost { background: #fff; border: 1.5px solid var(--line); color: var(--ink); font-weight: 600; }
   .btn.sm { padding: 7px 11px; font-size: 12.5px; border-radius: 9px; }
   .btn:disabled { opacity: .5; cursor: default; }
+  .rangebar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+  .rangebar input[type=date] { flex: 1; min-width: 0; border: 1.5px solid var(--line); border-radius: 9px; padding: 8px 9px; font-size: 13px; font-family: inherit; background: #fff; color: var(--ink); }
+  .rangebtn { border: 1.5px solid var(--line); border-radius: 9px; padding: 6px 10px; font-size: 12.5px; font-weight: 600; background: #fff; color: var(--ink); cursor: pointer; }
+  .rangebtn.on { background: var(--green); border-color: var(--green); color: #fff; }
   .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
   .small { font-size: 11.5px; color: var(--gray); margin-top: 6px; line-height: 1.6; }
   .msg { font-size: 13px; padding: 10px 12px; border-radius: 10px; margin-top: 10px; display: none; }
@@ -349,8 +353,21 @@
         </div>
       </div>
       <div class="card">
-        <h2>🔥 이번 주 뜨는 가게 <span class="badge10">Top 10</span></h2>
-        <p class="small">이번 주(월요일~) 클릭만 따로 모은 순위예요 — 전체 누적 Top10과 달리 최근 흐름을 보여줘요.</p>
+        <h2>🔥 기간별 클릭 <span class="badge10">Top 10</span></h2>
+        <p class="small">고른 기간의 클릭만 따로 모은 순위예요 — 전체 누적 Top10과 달리 최근 흐름을 보여줘요. (날짜별 집계는 2026-07-14부터 시작)</p>
+        <div class="rangebar">
+          <button type="button" class="rangebtn" data-preset="today">오늘</button>
+          <button type="button" class="rangebtn" data-preset="week">이번 주</button>
+          <button type="button" class="rangebtn" data-preset="month">이번 달</button>
+          <button type="button" class="rangebtn" data-preset="all">전체 기간</button>
+        </div>
+        <div class="rangebar">
+          <input type="date" id="rangeFrom">
+          <span class="small">~</span>
+          <input type="date" id="rangeTo">
+          <button type="button" id="rangeApply" class="btn ghost sm">조회</button>
+        </div>
+        <p class="small" id="rangeLabel"></p>
         <ol id="vClicksWeekly" class="ranklist">불러오는 중…</ol>
       </div>
       <div class="card">
@@ -369,6 +386,6 @@
 
 <div id="toast"></div>
 <script src="places.js?v=7"></script>
-<script src="admin.js?v=19"></script>
+<script src="admin.js?v=20"></script>
 </body>
 </html>
