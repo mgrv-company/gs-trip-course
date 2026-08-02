@@ -8216,5 +8216,214 @@
   "thumb": "",
   "naver": "https://map.naver.com/p/entry/place/13446710",
   "guessed": false
+ },
+ {
+  "name": "당근마차",
+  "type": "술집",
+  "list": "술집",
+  "category": "술집",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.49,
+  "address": "강원 속초시 영랑해안길 14",
+  "lat": 38.212829,
+  "lng": 128.6010742,
+  "sid": "19538261",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/19538261",
+  "guessed": false
+ },
+ {
+  "name": "영순네횟집",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 4.53,
+  "address": "강원 고성군 봉포해변길 99",
+  "lat": 38.2495571,
+  "lng": 128.5677377,
+  "sid": "15070267",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15070267",
+  "guessed": false
+ },
+ {
+  "name": "구구집",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 8.51,
+  "address": "강원 속초시 중앙로 343",
+  "lat": 38.2188511,
+  "lng": 128.5916498,
+  "sid": "34573193",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/34573193",
+  "guessed": false
+ },
+ {
+  "name": "섭죽마을",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.61,
+  "address": "강원 속초시 관광로 352",
+  "lat": 38.1920014,
+  "lng": 128.5405079,
+  "sid": "11661083",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/11661083",
+  "guessed": false
+ },
+ {
+  "name": "봉포머구리집",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 8.58,
+  "address": "강원 속초시 영랑해안길 223",
+  "lat": 38.2187932,
+  "lng": 128.5932889,
+  "sid": "20420854",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/20420854",
+  "guessed": false
+ },
+ {
+  "name": "선경분식",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.33,
+  "address": "강원 속초시 동해대로 4236",
+  "lat": 38.19727,
+  "lng": 128.57758,
+  "sid": "15011375",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15011375",
+  "guessed": false
+ },
+ {
+  "name": "작은평화",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.78,
+  "address": "강원 속초시 만천4길 31",
+  "lat": 38.2017635,
+  "lng": 128.5745371,
+  "sid": "2067712359",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2067712359",
+  "guessed": false
+ },
+ {
+  "name": "모어라이프",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 2.11,
+  "address": "강원 고성군 아야진해변길 29-2",
+  "lat": 38.2694307,
+  "lng": 128.5562101,
+  "sid": "1875209403",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1875209403",
+  "guessed": false
+ },
+ {
+  "name": "오버웨잇 속초점",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.21,
+  "address": "강원 속초시 아바이마을1길 6-6",
+  "lat": 38.2028731,
+  "lng": 128.5940799,
+  "sid": "1010771291",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1010771291",
+  "guessed": false
+ },
+ {
+  "name": "봉브레드",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.55,
+  "address": "강원 속초시 동해대로 4344-1",
+  "lat": 38.2029121,
+  "lng": 128.5684687,
+  "sid": "30841879",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/30841879",
+  "guessed": false
+ },
+ {
+  "name": "영금정",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.6,
+  "address": "강원 속초시 영금정로 43",
+  "lat": 38.2118321,
+  "lng": 128.6015368,
+  "sid": "15085338",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15085338",
+  "guessed": false
  }
 ]
