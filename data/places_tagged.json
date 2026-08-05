@@ -8425,5 +8425,43 @@
   "thumb": "",
   "naver": "https://map.naver.com/p/entry/place/15085338",
   "guessed": false
+ },
+ {
+  "name": "송지호관망타워카페",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 6.06,
+  "address": "강원 고성군 죽왕면 동해대로 6021",
+  "lat": 38.33624,
+  "lng": 128.5176,
+  "sid": "1535320204",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1535320204",
+  "guessed": false
+ },
+ {
+  "name": "포레스트 카페",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 4.01,
+  "address": "강원 고성군 죽왕면 순포로 4-21",
+  "lat": 38.31874,
+  "lng": 128.5256,
+  "sid": "1108211480",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1108211480",
+  "guessed": false
  }
 ]
