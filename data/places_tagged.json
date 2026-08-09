@@ -8463,5 +8463,62 @@
   "thumb": "",
   "naver": "https://map.naver.com/p/entry/place/1108211480",
   "guessed": false
+ },
+ {
+  "name": "미드나잇썸머",
+  "type": "술집",
+  "list": "술집",
+  "category": "술집",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 12.17,
+  "address": "강원 속초시 새마을4길 19",
+  "lat": 38.1865515,
+  "lng": 128.6024828,
+  "sid": "1676977004",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1676977004",
+  "guessed": false
+ },
+ {
+  "name": "장군시오야끼",
+  "type": "술집",
+  "list": "술집",
+  "category": "술집",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.59,
+  "address": "강원 속초시 먹거리8길 5-1",
+  "lat": 38.1943725,
+  "lng": 128.574704,
+  "sid": "20312114",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/20312114",
+  "guessed": false
+ },
+ {
+  "name": "시드누아 속초점",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.15,
+  "address": "강원 속초시 바람꽃마을1길 38",
+  "lat": 38.1969076,
+  "lng": 128.5308059,
+  "sid": "1886520527",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1886520527",
+  "guessed": false
  }
 ]
