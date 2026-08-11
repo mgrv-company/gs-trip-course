@@ -648,6 +648,10 @@ const COPY_GROUPS = [
     ['sg.name', '성함칸 안내', 'input', '이름 (선택)'],
     ['sg.done', '완료 문구', 'input', '고맙습니다! 다녀와 보고 리스트에 올려볼게요.'],
   ]],
+  ['카톡용 · 오늘의 추천 메시지 (자리표시자: {name}{category}{zone}{move}{hours}{blurb}{menu}{rating}{url} — 줄 안에 {blurb}나 {rating}만 있고 그 가게에 값이 없으면 그 줄은 자동으로 빠져요)', [
+    ['dailypick.template', '메시지 틀 (줄바꿈 그대로 카톡에 붙여넣기 돼요)', 'textarea',
+      '🍜 오늘의 고성 근처 추천\n\n{name} ({category})\n📍 {zone} · 맹그로브에서 {move}\n🕐 {hours}\n💬 {blurb}\n🍽 대표메뉴: {menu}\n⭐ {rating}\n🔗 {url}'],
+  ]],
 ];
 let settingsLoaded = false;
 // key → 기본 문구 (home.js COPY 기본값과 일치). 입력칸 채우기·저장 판단에 사용.
@@ -658,8 +662,9 @@ function renderCopyFields() {
   $('#copyFields').innerHTML = COPY_GROUPS.map(([group, fields]) => {
     const rows = fields.map(([key, label, type, def]) => {
       const ph = esc(def).replace(/\n/g, '&#10;');   // placeholder 안 줄바꿈 보존
+      const taRows = key === 'dailypick.template' ? 9 : 2;   // 긴 메시지 틀은 칸을 넉넉히
       const el = type === 'textarea'
-        ? `<textarea data-key="${key}" rows="2" placeholder="${ph}"></textarea>`
+        ? `<textarea data-key="${key}" rows="${taRows}" placeholder="${ph}"></textarea>`
         : `<input type="text" data-key="${key}" placeholder="${ph}">`;
       return `<label>${esc(label)}</label>${el}`;
     }).join('');

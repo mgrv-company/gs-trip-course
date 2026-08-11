@@ -17,6 +17,7 @@ data/*
 !data/refresh_all.py
 !data/fetch_lists.py
 !data/tag_new.py
+!data/daily_pick.py
 test/
 _private/
 .auth-profile/
