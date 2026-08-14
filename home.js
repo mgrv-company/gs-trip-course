@@ -161,7 +161,7 @@ function cardHTML(p, idx) {
   const cacmt = memo ? `<div class="cacmt">💬 ${esc(memo)}</div>` : '';
   // 대기 안내: 매니저 코멘트 아래, 색 없는 조용한 텍스트로(음영 chip 대신)
   const wt = waitText(p);
-  const waitLine = wt ? `<div class="info">${esc(wt)}</div>` : '';
+  const waitLine = wt ? `<div class="waitline">${esc(wt)}</div>` : '';
   const rv = p.rv ? `<span class="rv num-mono">★ ${esc(p.rv[0])} (${esc(p.rv[1])})</span>` : '';
   const num = idx ? `<span class="num">${idx}</span>` : '';
   return `<div class="card">
