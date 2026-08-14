@@ -7,7 +7,7 @@
 # 카드 렌더는 automation/daily-card/render.mjs(Playwright, Node) 호출 — 최초 1회
 # `cd automation/daily-card && npm install` 필요 (README 참고).
 
-import sys, io, os, re, json, math, random, subprocess, tempfile
+import sys, io, os, re, json, math, random, subprocess, tempfile, shutil
 from datetime import datetime, timedelta
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
@@ -23,7 +23,11 @@ WINTER_KEYWORDS = ['국밥', '찌개', '전골', '어묵', '라면', '만두', '
 WORKER_BASE = 'https://gs-trip-admin.mangrove-goseong.workers.dev'
 PAGES_BASE = 'https://mgrv-company.github.io/gs-trip-course'
 CARD_RENDERER = os.path.join('automation', 'daily-card', 'render.mjs')
-CARD_PREVIEW_PATH = os.path.join('output', 'daily-card', 'preview.png')
+CARD_DIR = os.path.join('output', 'daily-card')
+CARD_PREVIEW_PATH = os.path.join(CARD_DIR, 'preview.png')
+# 공개 저장소엔 최근 것만 두고, 지난 카드는 로컬(이 컴퓨터)에만 보관 — 저장소가 무한히 커지지 않게
+CARD_ARCHIVE_DIR = os.path.join(CARD_DIR, 'archive')
+CARD_KEEP_DAYS = 7
 # 어드민 '문구·디자인' 탭 dailypick.template 기본값과 반드시 일치시킬 것 (admin.js COPY_GROUPS)
 DEFAULT_TEMPLATE = ('🍜 오늘의 고성 근처 추천\n\n{name} ({category})\n📍 {zone} · 맹그로브에서 {move}\n'
                      '🕐 {hours}\n💬 {blurb}\n🍽 대표메뉴: {menu}\n⭐ {rating}\n🔗 {url}')
@@ -224,9 +228,9 @@ def git_commit_push(path, message):
     run = lambda args, **kw: subprocess.run(args, capture_output=True, text=True, encoding='utf-8', errors='replace', **kw)
     try:
         run(['git', 'add', path], check=True)
-        diff = run(['git', 'diff', '--cached', '--quiet', '--', path])
+        diff = run(['git', 'diff', '--cached', '--quiet'])  # path 한정 아님 — prune_old_cards()가 미리 스테이징한 삭제도 함께 잡아야 함
         if diff.returncode == 0:
-            print('카드 이미지 변경 없음 — 커밋 생략')
+            print('커밋할 변경 없음 — 커밋 생략')
             return True
         run(['git', 'commit', '-m', message], check=True)
         run(['git', 'push'], check=True)
@@ -234,6 +238,48 @@ def git_commit_push(path, message):
     except subprocess.CalledProcessError as e:
         print('⚠️ git 커밋/푸시 실패:', (e.stderr or str(e))[-800:])
         return False
+
+
+def archive_card_locally(card_path, date_str):
+    # 깃에서 지우기 전에(또는 그냥 매번) 이 컴퓨터에 원본을 남겨둔다 — 공개 저장소 크기와 무관하게 전부 보관
+    os.makedirs(CARD_ARCHIVE_DIR, exist_ok=True)
+    dest = os.path.join(CARD_ARCHIVE_DIR, f'{date_str}.png')
+    if os.path.exists(card_path) and not os.path.exists(dest):
+        shutil.copy2(card_path, dest)
+
+
+def prune_old_cards(keep_days=CARD_KEEP_DAYS):
+    # git이 추적 중인 output/daily-card/YYYY-MM-DD.png 중 오래된 것을 로컬 아카이브로 옮긴 뒤 git rm으로 스테이징.
+    # 실제 커밋은 이 함수를 호출한 쪽(git_commit_push)이 오늘 카드 추가와 한 커밋으로 묶어서 한다.
+    pattern = re.compile(r'^(\d{4}-\d{2}-\d{2})\.png$')
+    card_dir_git = CARD_DIR.replace(os.sep, '/')
+    try:
+        out = subprocess.run(['git', 'ls-files', card_dir_git],
+                              capture_output=True, text=True, encoding='utf-8', errors='replace', check=True).stdout
+    except subprocess.CalledProcessError as e:
+        print('⚠️ 지난 카드 목록 조회 실패:', (e.stderr or str(e))[-400:])
+        return []
+
+    dated = []
+    for line in out.splitlines():
+        m = pattern.match(os.path.basename(line))
+        if m:
+            dated.append((m.group(1), line))
+    dated.sort()  # 날짜 오름차순 → 앞쪽이 오래된 것
+
+    if len(dated) <= keep_days:
+        return []
+
+    removed = []
+    for date_str, git_path in dated[:-keep_days]:
+        archive_card_locally(git_path.replace('/', os.sep), date_str)
+        r = subprocess.run(['git', 'rm', '--quiet', git_path],
+                            capture_output=True, text=True, encoding='utf-8', errors='replace')
+        if r.returncode == 0:
+            removed.append(git_path)
+        else:
+            print(f'⚠️ {git_path} 정리 실패:', (r.stderr or '')[-300:])
+    return removed
 
 
 def pick_today(rng=None):
@@ -326,11 +372,16 @@ if __name__ == '__main__':
         sys.exit(0)
 
     date_str = now.strftime('%Y-%m-%d')
-    card_rel_path = os.path.join('output', 'daily-card', f'{date_str}.png')
+    card_rel_path = os.path.join(CARD_DIR, f'{date_str}.png')
     image_url = None
     if render_card(card_data, card_rel_path):
+        archive_card_locally(card_rel_path, date_str)  # 공개 저장소 정리와 무관하게 이 컴퓨터엔 항상 남긴다
         card_git_path = card_rel_path.replace(os.sep, '/')
-        if git_commit_push(card_git_path, f'data: 오늘의 추천 카드 {date_str} ({chosen.get("n", "")})'):
+        pruned = prune_old_cards()
+        commit_msg = f'data: 오늘의 추천 카드 {date_str} ({chosen.get("n", "")})'
+        if pruned:
+            commit_msg += f' + 지난 카드 {len(pruned)}개 정리(로컬 보관)'
+        if git_commit_push(card_git_path, commit_msg):
             image_url = f'{PAGES_BASE}/{card_git_path}'
         else:
             print('⚠️ 카드 이미지 커밋·푸시 실패 — 텍스트만 발송')

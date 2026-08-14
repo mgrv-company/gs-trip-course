@@ -28,3 +28,4 @@ worker/seed.sql
 worker/.wrangler/
 worker/node_modules/
 output/daily-card/preview.png
+output/daily-card/archive/
