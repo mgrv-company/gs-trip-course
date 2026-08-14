@@ -134,34 +134,34 @@ function moveText(p) {
 function hoursNowText(p) {
   if (!p.h) return '영업시간 미상 · 방문 전 확인';
   const range = p.h[DAY_NAMES[new Date().getDay()]];
-  if (range === null) return '오늘 휴무 ⚠️';
+  if (range === null) return '오늘 휴무';
   if (range === undefined) return '오늘 영업시간 미정 · 방문 전 확인';
   return '오늘 ' + range.replace('-', '~');
 }
 function waitText(p) {
-  if (p.w === 2) return `⏳ 웨이팅 잦음 — 평일·오픈직후 추천${p.lu ? ' · 📲 네이버 줄서기' : ''}`;
-  if (p.w === 1) return '⏳ 식사시간엔 대기 있을 수 있어요';
-  if (p.w === 0) return '🚶 보통 바로 입장';
+  if (p.w === 2) return `• 웨이팅 잦음 — 평일·오픈직후 추천${p.lu ? ' · 네이버 줄서기' : ''}`;
+  if (p.w === 1) return '• 식사시간엔 대기 있을 수 있어요';
+  if (p.w === 0) return '• 보통 바로 입장';
   return '';
 }
 
 function cardHTML(p, idx) {
   const badges = [];
-  if (p.ca) badges.push('<span class="b ca">📌 강추</span>');
-  if (p.r) badges.push('<span class="b rsv">☎ 예약</span>');
+  if (p.ca) badges.push('<span class="b ca">강추</span>');
+  if (p.r) badges.push('<span class="b rsv">예약</span>');
   const open = openNow(p, new Date());
   if (open === true) badges.push('<span class="b open">● 영업중</span>');
   else if (open === null) badges.push('<span class="b chk">시간 미상</span>');
   // 메뉴: 조용한 한 줄
   const menu = (p.m && p.m.length) ? `<div class="info">${p.m.map(esc).join(' · ')}</div>` : '';
   // 영업시간·대기: 조용한 chip (영업시간 숫자는 tabular mono)
-  const chips = [`<span class="mchip num-mono">🕐 ${esc(hoursNowText(p))}</span>`];
+  const chips = [`<span class="mchip num-mono">• ${esc(hoursNowText(p))}</span>`];
   const wt = waitText(p);
   if (wt) chips.push(`<span class="mchip${p.w === 2 ? ' warn' : ''}">${esc(wt)}</span>`);
   const chipRow = `<div class="metachips">${chips.join('')}</div>`;
   // CA·큐레이터 한 줄 코멘트: 차별점이라 승격 (있을 때만)
   const memo = p.note || p.mr;
-  const cacmt = memo ? `<div class="cacmt">💬 ${esc(memo)}</div>` : '';
+  const cacmt = memo ? `<div class="cacmt">• ${esc(memo)}</div>` : '';
   const rv = p.rv ? `<span class="rv num-mono">★ ${esc(p.rv[0])} (${esc(p.rv[1])})</span>` : '';
   const num = idx ? `<span class="num">${idx}</span>` : '';
   return `<div class="card">
