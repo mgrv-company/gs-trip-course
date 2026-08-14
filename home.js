@@ -147,7 +147,7 @@ function waitText(p) {
 
 function cardHTML(p, idx) {
   const badges = [];
-  if (p.ca) badges.push('<span class="b ca">강추</span>');
+  if (p.ca) badges.push('<span class="b ca">PICK</span>');
   if (p.r) badges.push('<span class="b rsv">예약</span>');
   const open = openNow(p, new Date());
   if (open === true) badges.push('<span class="b open">● 영업중</span>');
