@@ -153,7 +153,7 @@ function cardHTML(p, idx) {
   if (open === true) badges.push('<span class="b open">● 영업중</span>');
   else if (open === null) badges.push('<span class="b chk">시간 미상</span>');
   // 메뉴: 조용한 한 줄
-  const menu = (p.m && p.m.length) ? `<div class="info">▶ ${p.m.map(esc).join(' · ')}</div>` : '';
+  const menu = (p.m && p.m.length) ? `<div class="info">🍽 ${p.m.map(esc).join(' · ')}</div>` : '';
   // 영업시간: 조용한 chip (숫자는 tabular mono)
   const chipRow = `<div class="metachips"><span class="mchip num-mono">🕐 ${esc(hoursNowText(p))}</span></div>`;
   // CA·큐레이터 한 줄 코멘트: 차별점이라 승격 (있을 때만)
