@@ -134,31 +134,31 @@ function moveText(p) {
 function hoursNowText(p) {
   if (!p.h) return '영업시간 미상 · 방문 전 확인';
   const range = p.h[DAY_NAMES[new Date().getDay()]];
-  if (range === null) return '오늘 휴무 ⚠️';
+  if (range === null) return '오늘 휴무';
   if (range === undefined) return '오늘 영업시간 미정 · 방문 전 확인';
   return '오늘 ' + range.replace('-', '~');
 }
 function waitText(p) {
-  if (p.w === 2) return `⏳ 웨이팅 잦은 편${p.lu ? ' · 📲 네이버 줄서기' : ''}`;
-  if (p.w === 1) return '⏳ 식사시간엔 대기 있을 수 있어요';
-  if (p.w === 0) return '🚶 바로 입장 가능';
+  if (p.w === 2) return `웨이팅 잦은 편${p.lu ? ' · 네이버 줄서기' : ''}`;
+  if (p.w === 1) return '식사시간엔 대기 있을 수 있어요';
+  if (p.w === 0) return '바로 입장 가능';
   return '';
 }
 
 function cardHTML(p, idx) {
   const badges = [];
-  if (p.ca) badges.push('<span class="b ca">📌 PICK</span>');
-  if (p.r) badges.push('<span class="b rsv">☎ 예약</span>');
+  if (p.ca) badges.push('<span class="b ca">PICK</span>');
+  if (p.r) badges.push('<span class="b rsv">예약</span>');
   const open = openNow(p, new Date());
   if (open === true) badges.push('<span class="b open">● 영업중</span>');
   else if (open === null) badges.push('<span class="b chk">시간 미상</span>');
   // 메뉴: 조용한 한 줄
-  const menu = (p.m && p.m.length) ? `<div class="info">🍽 ${p.m.map(esc).join(' · ')}</div>` : '';
+  const menu = (p.m && p.m.length) ? `<div class="info">${p.m.map(esc).join(' · ')}</div>` : '';
   // 영업시간: 조용한 chip (숫자는 tabular mono)
-  const chipRow = `<div class="metachips"><span class="mchip num-mono">🕐 ${esc(hoursNowText(p))}</span></div>`;
+  const chipRow = `<div class="metachips"><span class="mchip num-mono">${esc(hoursNowText(p))}</span></div>`;
   // CA·큐레이터 한 줄 코멘트: 차별점이라 승격 (있을 때만)
   const memo = p.note || p.mr;
-  const cacmt = memo ? `<div class="cacmt">💬 ${esc(memo)}</div>` : '';
+  const cacmt = memo ? `<div class="cacmt">${esc(memo)}</div>` : '';
   // 대기 안내: 매니저 코멘트 아래, 색 없는 조용한 텍스트로(음영 chip 대신)
   const wt = waitText(p);
   const waitLine = wt ? `<div class="waitline">${esc(wt)}</div>` : '';
