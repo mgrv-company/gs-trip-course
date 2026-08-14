@@ -1,10 +1,13 @@
-# 매일 카톡용 "오늘의 추천" 1곳 자동 선정 + 본인 Slack DM 발송.
+# 매일 카톡용 "오늘의 추천" 1곳 자동 선정 + 카드 이미지 렌더 + 본인 Slack DM 발송(텍스트+이미지).
 # home.js의 scoreNow()/weightedSample()/moveText()/hoursNowText() 로직을 그대로 이식했다.
 # 실행 위치: gs-trip-course 저장소 루트 (상대경로 'places.js', 'data/.refresh_config.json' 기준)
-# 사용법: python data/daily_pick.py            (실제 선정+발송+기록)
-#         python data/daily_pick.py --preview  (발송·기록 없이 오늘 선정 결과만 출력)
+# 사용법: python data/daily_pick.py            (실제 선정+카드렌더+git커밋·푸시+발송+기록)
+#         python data/daily_pick.py --preview  (카드는 로컬에 렌더하되 커밋·푸시·발송·기록은 생략)
+#
+# 카드 렌더는 automation/daily-card/render.mjs(Playwright, Node) 호출 — 최초 1회
+# `cd automation/daily-card && npm install` 필요 (README 참고).
 
-import sys, io, os, re, json, math, random
+import sys, io, os, re, json, math, random, subprocess, tempfile
 from datetime import datetime, timedelta
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
@@ -18,6 +21,9 @@ SUMMER_KEYWORDS = ['냉면', '물회', '빙수', '콩국수', '아이스']
 WINTER_KEYWORDS = ['국밥', '찌개', '전골', '어묵', '라면', '만두', '닭곰탕', '뼈해장국', '감자탕']
 
 WORKER_BASE = 'https://gs-trip-admin.mangrove-goseong.workers.dev'
+PAGES_BASE = 'https://mgrv-company.github.io/gs-trip-course'
+CARD_RENDERER = os.path.join('automation', 'daily-card', 'render.mjs')
+CARD_PREVIEW_PATH = os.path.join('output', 'daily-card', 'preview.png')
 # 어드민 '문구·디자인' 탭 dailypick.template 기본값과 반드시 일치시킬 것 (admin.js COPY_GROUPS)
 DEFAULT_TEMPLATE = ('🍜 오늘의 고성 근처 추천\n\n{name} ({category})\n📍 {zone} · 맹그로브에서 {move}\n'
                      '🕐 {hours}\n💬 {blurb}\n🍽 대표메뉴: {menu}\n⭐ {rating}\n🔗 {url}')
@@ -172,6 +178,64 @@ def render_message(p, day_name, template):
     return '\n'.join(out_lines)
 
 
+def build_card_data(p, day_name, now):
+    # automation/daily-card/template.html의 renderCard()가 받는 필드 형태.
+    # render_message()의 fields와 값을 최대한 재사용해 텍스트/카드가 서로 어긋나지 않게 한다.
+    rv = p.get('rv')
+    menu = p.get('m') or []
+    status = today_hours_status(p, day_name)
+    return {
+        'name': p.get('n') or '',
+        'category': p.get('c') or p.get('t') or '',
+        'zone': p.get('z') or '',
+        'move': move_text(p),
+        'hours': hours_text(p, day_name),
+        'isOpen': True if status == 'open' else (False if status == 'closed' else None),
+        'rating': f"{rv[0]} ({rv[1]})" if rv else '',
+        'menu': ', '.join(menu[:2]) if menu else '',
+        'blurb': p.get('note') or p.get('mr') or '',
+        'img': p.get('img') or '',
+        'date': f"{now.month}월 {now.day}일 ({day_name})",
+    }
+
+
+def render_card(data, out_path):
+    # Node/Playwright 렌더러 호출. 실패해도 daily_pick 자체는 텍스트만으로 계속 진행할 수 있게 예외를 밖으로 던지지 않는다.
+    with tempfile.NamedTemporaryFile('w', suffix='.json', delete=False, encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False)
+        data_path = f.name
+    try:
+        r = subprocess.run(['node', CARD_RENDERER, data_path, out_path],
+                            capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=60)
+        if r.returncode != 0:
+            print('⚠️ 카드 렌더 실패:', r.stderr.strip()[-800:])
+            return False
+        print(r.stdout.strip())
+        return True
+    except Exception as e:
+        print('⚠️ 카드 렌더 실패:', e)
+        return False
+    finally:
+        try: os.remove(data_path)
+        except OSError: pass
+
+
+def git_commit_push(path, message):
+    run = lambda args, **kw: subprocess.run(args, capture_output=True, text=True, encoding='utf-8', errors='replace', **kw)
+    try:
+        run(['git', 'add', path], check=True)
+        diff = run(['git', 'diff', '--cached', '--quiet', '--', path])
+        if diff.returncode == 0:
+            print('카드 이미지 변경 없음 — 커밋 생략')
+            return True
+        run(['git', 'commit', '-m', message], check=True)
+        run(['git', 'push'], check=True)
+        return True
+    except subprocess.CalledProcessError as e:
+        print('⚠️ git 커밋/푸시 실패:', (e.stderr or str(e))[-800:])
+        return False
+
+
 def pick_today(rng=None):
     rng = rng or random.Random()
     now = datetime.now()
@@ -220,14 +284,22 @@ def notify_fallback(text):
         print('실패 알림 전송도 실패:', e)
 
 
-def send(msg):
+def send(msg, image_url=None, image_alt=''):
     hook = cfg.get('daily_pick_webhook')
     if not hook:
         print('⚠️ daily_pick_webhook 미설정 → 발송 생략 (data/.refresh_config.json에 키 추가 필요)')
         return False
+    payload = {'text': msg}
+    if image_url:
+        # incoming webhook은 파일 업로드는 못 하지만, blocks의 image 타입으로 외부 URL은 바로 보여줄 수 있다
+        # (봇 토큰·files:write 스코프 불필요 — GitHub Pages에 이미 커밋·푸시된 카드 URL을 그대로 참조)
+        payload['blocks'] = [
+            {'type': 'section', 'text': {'type': 'mrkdwn', 'text': msg}},
+            {'type': 'image', 'image_url': image_url, 'alt_text': image_alt or '오늘의 추천 카드'},
+        ]
     try:
         import requests
-        r = requests.post(hook, json={'text': msg}, timeout=15)
+        r = requests.post(hook, json=payload, timeout=15)
         if r.status_code == 200:
             print('DM 발송됨')
             return True
@@ -242,12 +314,29 @@ def send(msg):
 
 if __name__ == '__main__':
     preview = '--preview' in sys.argv
+    now = datetime.now()
+    day_name = DAY_NAMES[int(now.strftime('%w'))]
     chosen, msg, history = pick_today()
     print(msg)
+
+    card_data = build_card_data(chosen, day_name, now)
     if preview:
+        render_card(card_data, CARD_PREVIEW_PATH)
+        print(f'카드 미리보기: {CARD_PREVIEW_PATH} (커밋·발송 없음)')
         sys.exit(0)
-    if send(msg):
-        history[chosen['s']] = datetime.now().strftime('%Y-%m-%d')
+
+    date_str = now.strftime('%Y-%m-%d')
+    card_rel_path = os.path.join('output', 'daily-card', f'{date_str}.png')
+    image_url = None
+    if render_card(card_data, card_rel_path):
+        card_git_path = card_rel_path.replace(os.sep, '/')
+        if git_commit_push(card_git_path, f'data: 오늘의 추천 카드 {date_str} ({chosen.get("n", "")})'):
+            image_url = f'{PAGES_BASE}/{card_git_path}'
+        else:
+            print('⚠️ 카드 이미지 커밋·푸시 실패 — 텍스트만 발송')
+
+    if send(msg, image_url=image_url, image_alt=chosen.get('n', '')):
+        history[chosen['s']] = date_str
         save_history(history)
     else:
         sys.exit(1)  # 재시도(.sh)가 done-marker 없이 11:10에 다시 시도하도록
