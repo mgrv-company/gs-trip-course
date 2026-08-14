@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>오늘의 고성 추천 카드</title>
+<link rel="stylesheet" href="../../design/tokens.css">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #e5e5e2; } /* 카드 밖 여백 — 스크린샷 시 .card 요소만 잘라내므로 실제로는 안 보임 */
+  body { font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+
+  /* 카드 자체는 work-stay 실측 시스템을 그대로 따른다: radius 0, 헤어라인 구분,
+     퍼플 주 액션색. 앱(index.html)의 부드러운 유틸리티 톤과 달리 이 카드는
+     공유용 완성 이미지라 마케팅 페이지의 각진 언어를 그대로 가져와도 된다. */
+  .card { width: 1080px; height: 1350px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+
+  .photo-wrap { position: relative; height: 820px; flex: 0 0 auto; background: var(--ink); }
+  .photo-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photo-wrap.noimg { background: linear-gradient(160deg, var(--purple) 0%, var(--purple-deep) 100%); }
+  .photo-scrim { position: absolute; inset: 0; background: linear-gradient(to top, rgba(31,30,29,.92) 0%, rgba(31,30,29,.15) 55%, rgba(31,30,29,0) 75%); }
+
+  .eyebrow { position: absolute; left: 56px; top: 56px; display: inline-flex; align-items: center; gap: 10px; background: var(--purple); color: #fff; font-size: 26px; font-weight: 800; padding: 10px 22px; letter-spacing: -0.01em; }
+  .date { position: absolute; right: 56px; top: 66px; color: #fff; font-size: 24px; font-weight: 600; opacity: .92; font-variant-numeric: tabular-nums; }
+
+  .name-block { position: absolute; left: 56px; right: 56px; bottom: 44px; color: #fff; }
+  .name-block .nm { font-size: 64px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; text-wrap: balance; }
+  .name-block .cat { font-size: 28px; font-weight: 600; opacity: .88; margin-top: 12px; }
+
+  .body { flex: 1; padding: 40px 56px 56px; display: flex; flex-direction: column; gap: 22px; }
+
+  .metarow { display: flex; flex-wrap: wrap; gap: 14px 28px; font-size: 27px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .metarow .op { color: var(--green-deep); font-weight: 800; }
+  .metarow .sep { color: var(--gray); font-weight: 400; }
+
+  .menu-line { font-size: 27px; color: var(--gray); font-weight: 600; }
+  .menu-line b { color: var(--ink); font-weight: 700; }
+
+  .blurb { background: var(--purple-light); color: var(--purple-deep); font-size: 30px; font-weight: 700; line-height: 1.55; padding: 26px 30px; }
+
+  .foot { margin-top: auto; padding-top: 28px; border-top: 1px solid var(--ink); display: flex; align-items: center; justify-content: space-between; }
+  .foot .logo { height: 30px; }
+  .foot .tag { font-size: 22px; font-weight: 700; color: var(--gray); }
+</style>
+</head>
+<body>
+<article class="card" id="card">
+  <div class="photo-wrap noimg" id="photoWrap">
+    <img id="photoImg" alt="" style="display:none;">
+    <div class="photo-scrim"></div>
+    <div class="eyebrow">🍜 오늘의 고성 추천</div>
+    <div class="date" id="dateEl"></div>
+    <div class="name-block">
+      <div class="nm" id="nameEl"></div>
+      <div class="cat" id="catEl"></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="metarow" id="metaEl"></div>
+    <div class="menu-line" id="menuEl"></div>
+    <div class="blurb" id="blurbEl" style="display:none;"></div>
+    <div class="foot">
+      <img class="logo" src="../../assets/mangrove-goseong-logo-black.svg" onerror="this.src='../../assets/mangrove-goseong-logo.svg'; this.style.filter='invert(1)';" alt="맹그로브 고성">
+      <div class="tag">mgrv-company.github.io/gs-trip-course</div>
+    </div>
+  </div>
+</article>
+
+<script>
+// data 형태: { name, category, zone, move, hours, isOpen(bool|null), rating, menu, blurb, img, date }
+// daily_pick.py의 fields dict를 그대로 확장한 값을 받는다 (automation/daily-card/render.mjs 참고)
+function renderCard(data) {
+  data = data || {};
+  const $ = id => document.getElementById(id);
+
+  $('nameEl').textContent = data.name || '';
+  $('catEl').textContent = [data.category, data.zone].filter(Boolean).join(' · ');
+  $('dateEl').textContent = data.date || '';
+
+  const photoWrap = $('photoWrap'), photoImg = $('photoImg');
+  if (data.img) {
+    photoImg.src = data.img;
+    photoImg.style.display = 'block';
+    photoWrap.classList.remove('noimg');
+  }
+
+  const metaParts = [];
+  if (data.isOpen === true) metaParts.push('<span class="op">● 영업중</span>');
+  else if (data.isOpen === false) metaParts.push('<span class="op" style="color:var(--gray)">오늘 휴무</span>');
+  if (data.move) metaParts.push(esc(data.move));
+  if (data.hours) metaParts.push(esc(data.hours));
+  if (data.rating) metaParts.push('★ ' + esc(data.rating));
+  $('metaEl').innerHTML = metaParts.map((p, i) => (i ? '<span class="sep">·</span>' : '') + p).join(' ');
+
+  $('menuEl').textContent = data.menu ? ('🍽 ' + data.menu) : '';
+  $('menuEl').style.display = data.menu ? '' : 'none';
+
+  if (data.blurb) { $('blurbEl').textContent = data.blurb; $('blurbEl').style.display = ''; }
+
+  $('card').dataset.ready = '1';
+}
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// 브라우저에서 직접 열어 미리보기할 때만 쓰는 샘플 데이터.
+// render.mjs가 자동화 실행 시 window.__NO_AUTO__ = true 를 먼저 심어 이 자동렌더를 막는다.
+if (!window.__NO_AUTO__) {
+  renderCard({
+    name: '하마식당', category: '식사', zone: '도보', move: '🚶 14분', hours: '오늘 11:30~15:30',
+    isOpen: true, rating: '4.68 (705)', menu: '참치 후토마끼 5pcs, 마제소바',
+    blurb: '이 정도로 큰 후토마끼는 없을걸요. 속초 등대해변 근처 식사로 추천',
+    img: '', date: '8월 14일 (금)',
+  });
+}
+</script>
+</body>
+</html>
