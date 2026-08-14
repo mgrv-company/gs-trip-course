@@ -865,6 +865,16 @@ document.addEventListener('visibilitychange', () => {
   try { localStorage.setItem('gsBgIndex', String(i)); } catch (e) {}
 })();
 
+// 상단바: 히어로 사진 위에서는 투명, 스크롤하면 잉크색 배경으로 전환
+// (mangrove.city work-stay 실측 2026-08-14 — 스크롤 약 20px부터 전환됨)
+(function () {
+  var bar = document.querySelector('.topbar');
+  if (!bar) return;
+  function update() { bar.classList.toggle('solid', window.scrollY > 20); }
+  document.addEventListener('scroll', update, { passive: true });
+  update();
+})();
+
 // ── 조회수 집계 (손님만, 브라우저당 하루 1회) ─────────
 (function () {
   try {
