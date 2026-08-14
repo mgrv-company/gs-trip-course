@@ -372,7 +372,7 @@ function renderNow() {
   $('#slotLabel').textContent = isAuto ? COPY['seg.auto'] : COPY['seg.' + slot];
   $('#slotSub').textContent = isAuto ? COPY['slotsub.auto'] : COPY['slotsub.' + slot];
   $('#nowList').innerHTML = picks.length
-    ? heroCardHTML(picks[0]) + (picks.length > 1 ? '<div class="subrec">이어서 추천</div>' + picks.slice(1).map(miniRowHTML).join('') : '')
+    ? picks.map((p, i) => cardHTML(p, i + 1)).join('')
     : `<p class="empty">지금 문 연 곳을 찾지 못했어요. 종류 탭이나 옵션을 바꿔보세요.</p>`;
   if (picks.length) queueImpressions(picks);   // 보여준 가게 노출 집계(CTR용)
 }
@@ -408,25 +408,6 @@ $('#optChips').addEventListener('click', e => {
 // 다른 곳 보기 (재추첨)
 $('#shuffleBtn').addEventListener('click', renderNow);
 
-// 이어서 추천: 미니 행 클릭 → 접힘/펼침 (지도 링크 클릭은 이동 그대로). #nowList는 유지되므로 위임 1회.
-$('#nowList').addEventListener('click', function (e) {
-  if (e.target.closest('a')) return;                      // 지도 링크는 이동
-  const trigger = e.target.closest('.mrow, .mcollapse');  // 행=펼침 / 접기버튼=닫기
-  if (!trigger) return;
-  const item = trigger.closest('.mitem');
-  if (!item) return;
-  const opened = item.classList.toggle('open');
-  const row = item.querySelector('.mrow');
-  if (row) row.setAttribute('aria-expanded', opened ? 'true' : 'false');
-  if (!opened) row && row.focus();                        // 접으면 행으로 포커스 복귀
-});
-$('#nowList').addEventListener('keydown', function (e) {
-  if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
-  const row = e.target.closest('.mrow');
-  if (!row) return;
-  e.preventDefault();
-  row.click();
-});
 
 // 피드백/추천 — 같은 팝업을 모드에 따라 문구만 바꿔 사용 (페이지 안에서 전송, 이동 없음)
 let fbMode = 'fb';   // 'fb' 가게 피드백 / 'suggest' 좋았던 곳 추천
