@@ -183,11 +183,11 @@ function beachCardHTML(p) {
   const rv = p.rv ? `<span class="rv num-mono">★ ${esc(p.rv[0])} (${esc(p.rv[1])})</span>` : '';
   const driveMin = Math.round((p.d || 0) / 50 * 60) + 3;
   const memo = p.note || p.mr;
-  const cacmt = memo ? `<div class="cacmt">💬 ${esc(memo)}</div>` : '';
+  const cacmt = memo ? `<div class="cacmt">${esc(memo)}</div>` : '';
   // 구역(z)은 거리 버킷이라 실제 행정구역과 다를 수 있어(멀면 다 '속초'로 뭉뚱그려짐) 주소 문자열로 판단
   // 대부분(27곳 중 24곳)이 고성이라 고성은 라벨 생략하고, 속초(3곳)만 구분 표시
   const region = (p.a || '').includes('속초시') ? '속초' : '';
-  const hot = p.rv && p.rv[1] >= 100 ? '<span class="b hot">🔥 HOT</span>' : '';
+  const hot = p.rv && p.rv[1] >= 100 ? '<span class="b hot">HOT</span>' : '';
   return `<div class="card">
     ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : ''}
     <div class="body">
@@ -764,7 +764,7 @@ document.addEventListener('keydown', function (e) {
 function beachMiniHTML(p) {
   // 대부분(27곳 중 24곳)이 고성이라 고성은 라벨 생략하고, 속초(3곳)만 구분 표시
   const region = (p.a || '').includes('속초시') ? '속초' : '';
-  const hot = p.rv && p.rv[1] >= 100 ? ' <span class="hot">🔥 HOT</span>' : '';
+  const hot = p.rv && p.rv[1] >= 100 ? ' <span class="hot">HOT</span>' : '';
   const rv = p.rv ? `<span class="rv">★${esc(p.rv[0])}</span>` : '';
   const driveMin = Math.round((p.d || 0) / 50 * 60) + 3;
   const img = p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : '<div class="noph">🏖</div>';

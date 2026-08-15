@@ -131,7 +131,7 @@
   .feedback p { font-size: 12.5px; color: #50514a; line-height: 1.7; margin-bottom: 13px; }
   .feedback .fbsplit { border-top: 1px solid var(--line); margin: 19px 0 15px; }
   .fbbtn { width: 100%; background: var(--ink); color: #fff; border: 0; border-radius: 0; padding: 13px; font-size: 14px; font-weight: 700; cursor: pointer; }
-  .fbbtn.ghost2 { background: #fff; border: 1.5px solid var(--green); color: var(--green-deep); margin-top: 8px; }
+  .fbbtn.ghost2 { background: #fff; border: 1.5px solid var(--purple); color: var(--purple-deep); margin-top: 8px; }
   .stars { display: flex; gap: 1px; justify-content: center; }
   .star { font-size: 27px; line-height: 1; background: none; border: 0; cursor: pointer; padding: 4px 2px; filter: grayscale(1); opacity: .45; transition: filter .12s, opacity .12s, transform .12s; }
   .star.on { filter: none; opacity: 1; }
@@ -165,7 +165,7 @@
   .subtabs { display: flex; gap: 7px; margin-bottom: 10px; }
   .attrminitab { border: 1.5px solid var(--line); background: #fff; border-radius: 0; padding: 6px 13px;
     font-size: 12px; font-weight: 700; color: var(--ink); cursor: pointer; }
-  .attrminitab.on { border-color: var(--green); background: var(--green-light); color: var(--green-deep); }
+  .attrminitab.on { border-color: var(--purple); background: var(--purple); color: #fff; }
   .miniscroll-wrap { position: relative; }
   .miniscroll { display: flex; gap: 11px; overflow-x: auto; padding-bottom: 6px; margin: 0 -16px; padding-left: 16px; padding-right: 16px; -webkit-overflow-scrolling: touch; }
   /* 좌우 화살표: 마우스로 정밀 클릭 가능한 기기(PC)에서만 노출 — 모바일은 스와이프로 충분해 안 띄움 */
@@ -193,7 +193,7 @@
   .minicard .nm { font-size: 12.5px; font-weight: 800; line-height: 1.35; }
   .minicard .meta { font-size: 11px; color: var(--gray); margin-top: 3px; display: flex; gap: 6px; flex-wrap: wrap; }
   .minicard .meta .rv { color: var(--ink); font-weight: 700; }
-  .minicard .meta .region { color: var(--green-deep); font-weight: 700; }
+  .minicard .meta .region { color: var(--gray); font-weight: 700; }
   .morebtn { text-align: center; margin-top: 10px; padding: 10px; border: 1.5px solid var(--line); border-radius: 0;
     font-size: 12.5px; font-weight: 700; color: var(--ink); background: #fff; cursor: pointer; }
 
@@ -205,7 +205,7 @@
   #secBody { max-width: 480px; margin: 0 auto; padding: 14px 16px 50px; }
 
   footer { text-align: center; color: var(--gray); font-size: 11.5px; margin-top: 30px; }
-  footer a { color: var(--green-deep); font-weight: 600; }
+  footer a { color: var(--purple-deep); font-weight: 600; }
 
   /* ── 인터랙션 폴리시: 누름 피드백 · 부드러운 전환 · 포커스 링 ── */
   .seg, .chip, .navbtn { transition: background .16s ease, color .16s ease, border-color .16s ease, transform .12s ease; }
@@ -221,7 +221,7 @@
   .seg:focus-visible, .chip:focus-visible, .navbtn:focus-visible, .shuffle:focus-visible,
   .fbbtn:focus-visible, .card .links a:focus-visible, .star:focus-visible,
   #secClose:focus-visible, button:focus-visible, a:focus-visible {
-    outline: 2px solid var(--green); outline-offset: 2px; border-radius: 0;
+    outline: 2px solid var(--purple); outline-offset: 2px; border-radius: 0;
   }
   @media (prefers-reduced-motion: reduce) {
     .seg, .chip, .navbtn, .shuffle, .card .links a, .fbbtn { transition: none; }
