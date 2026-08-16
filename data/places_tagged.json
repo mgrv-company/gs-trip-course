@@ -8520,5 +8520,157 @@
   "thumb": "",
   "naver": "https://map.naver.com/p/entry/place/1886520527",
   "guessed": false
+ },
+ {
+  "name": "속초거북이",
+  "type": "술집",
+  "list": "술집",
+  "category": "술집",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 12.25,
+  "address": "강원 속초시 새마을13길 17",
+  "lat": 38.1863716,
+  "lng": 128.604376,
+  "sid": "1583927827",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1583927827",
+  "guessed": false
+ },
+ {
+  "name": "모전자전",
+  "type": "술집",
+  "list": "술집",
+  "category": "술집",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.88,
+  "address": "강원 속초시 조양로 40",
+  "lat": 38.1875241,
+  "lng": 128.596669,
+  "sid": "1362023587",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1362023587",
+  "guessed": false
+ },
+ {
+  "name": "탐닉오션",
+  "type": "술집",
+  "list": "술집",
+  "category": "술집",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 3.76,
+  "address": "강원 고성군 봉포4길 6-22",
+  "lat": 38.2551278,
+  "lng": 128.5612942,
+  "sid": "2081984693",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2081984693",
+  "guessed": false
+ },
+ {
+  "name": "도문",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 13.61,
+  "address": "강원 속초시 상도문1길 31",
+  "lat": 38.1648516,
+  "lng": 128.5527949,
+  "sid": "1933605808",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1933605808",
+  "guessed": false
+ },
+ {
+  "name": "니들",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.14,
+  "address": "강원 속초시 영랑해안1길 13",
+  "lat": 38.21482,
+  "lng": 128.59738,
+  "sid": "2047105242",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2047105242",
+  "guessed": false
+ },
+ {
+  "name": "시골빵집늘봄",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.98,
+  "address": "강원 속초시 온정로1길 11-10",
+  "lat": 38.18491,
+  "lng": 128.5908,
+  "sid": "2002573717",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2002573717",
+  "guessed": false
+ },
+ {
+  "name": "숨은 책방",
+  "type": "명소",
+  "list": "명소",
+  "category": "쇼핑",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 19.59,
+  "address": "강원 고성군 거진읍 거탄진로 187",
+  "lat": 38.44948,
+  "lng": 128.4605,
+  "sid": "2023494385",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2023494385",
+  "guessed": false
+ },
+ {
+  "name": "동그란책",
+  "type": "명소",
+  "list": "명소",
+  "category": "쇼핑",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.37,
+  "address": "강원 속초시 중앙로46번길 45",
+  "lat": 38.1982237,
+  "lng": 128.5834035,
+  "sid": "1879956641",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1879956641",
+  "guessed": false
  }
 ]
