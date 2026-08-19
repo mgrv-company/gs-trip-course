@@ -320,6 +320,9 @@ def pick_today(rng=None):
 
 
 def notify_fallback(text):
+    # 실패 알림 전용 — 추천 원문(msg)을 다시 통째로 넣지 않는다.
+    # (전에는 실패 메시지에 msg 전문을 그대로 붙여 보내서, 발송 성공 시 DM에 뜨는 진짜 추천과
+    #  내용이 겹쳐 "추천이 두 채널에 따로 온다"는 오해를 샀다 — 2026-08-19 확인된 버그)
     hook = cfg.get('slack_webhook')
     if not hook:
         return
@@ -328,6 +331,23 @@ def notify_fallback(text):
         requests.post(hook, json={'text': text}, timeout=15)
     except Exception as e:
         print('실패 알림 전송도 실패:', e)
+
+
+def wait_for_url(url, timeout=90, interval=5):
+    # GitHub Pages는 push 직후 바로 서빙되지 않을 수 있다(수십 초 전파 지연).
+    # 아직 안 뜬 image_url을 Slack blocks에 넣으면 Slack이 검증에 실패해 전체 메시지가 400으로 거부된다
+    # (2026-08-17~19 실제로 발생 — 카드는 커밋됐는데 DM 발송만 실패하던 원인).
+    import requests
+    deadline = datetime.now().timestamp() + timeout
+    while datetime.now().timestamp() < deadline:
+        try:
+            r = requests.head(url, timeout=8, allow_redirects=True)
+            if r.status_code == 200:
+                return True
+        except Exception:
+            pass
+        import time; time.sleep(interval)
+    return False
 
 
 def send(msg, image_url=None, image_alt=''):
@@ -349,12 +369,12 @@ def send(msg, image_url=None, image_alt=''):
         if r.status_code == 200:
             print('DM 발송됨')
             return True
-        print(f'DM 발송 실패: {r.status_code}')
-        notify_fallback(f'⚠️ 고성 트립코스 매일추천 발송 실패 (status={r.status_code})\n\n{msg}')
+        print(f'DM 발송 실패: {r.status_code} — {r.text[:300]}')
+        notify_fallback(f'⚠️ 고성 트립코스 매일추천 발송 실패 (status={r.status_code}) — 재시도(11:10)가 다시 시도해요.')
         return False
     except Exception as e:
         print('DM 발송 실패:', e)
-        notify_fallback(f'⚠️ 고성 트립코스 매일추천 발송 실패: {e}\n\n{msg}')
+        notify_fallback(f'⚠️ 고성 트립코스 매일추천 발송 실패: {e} — 재시도(11:10)가 다시 시도해요.')
         return False
 
 
@@ -382,7 +402,12 @@ if __name__ == '__main__':
         if pruned:
             commit_msg += f' + 지난 카드 {len(pruned)}개 정리(로컬 보관)'
         if git_commit_push(card_git_path, commit_msg):
-            image_url = f'{PAGES_BASE}/{card_git_path}'
+            candidate_url = f'{PAGES_BASE}/{card_git_path}'
+            print('GitHub Pages 반영 대기 중...')
+            if wait_for_url(candidate_url):
+                image_url = candidate_url
+            else:
+                print('⚠️ Pages에 아직 안 떠서(최대 90초 대기) 이번엔 텍스트만 발송 — 카드 자체는 커밋됐음')
         else:
             print('⚠️ 카드 이미지 커밋·푸시 실패 — 텍스트만 발송')
 
