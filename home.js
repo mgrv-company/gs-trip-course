@@ -134,34 +134,34 @@ function moveText(p) {
 function hoursNowText(p) {
   if (!p.h) return '영업시간 미상 · 방문 전 확인';
   const range = p.h[DAY_NAMES[new Date().getDay()]];
-  if (range === null) return '오늘 휴무';
+  if (range === null) return '오늘 휴무 ⚠️';
   if (range === undefined) return '오늘 영업시간 미정 · 방문 전 확인';
   return '오늘 ' + range.replace('-', '~');
 }
 function waitText(p) {
-  if (p.w === 2) return `웨이팅 잦은 편${p.lu ? ' · 네이버 줄서기' : ''}`;
-  if (p.w === 1) return '식사시간엔 대기 있을 수 있어요';
-  if (p.w === 0) return '바로 입장 가능';
+  if (p.w === 2) return `⏳ 웨이팅 잦음 — 평일·오픈직후 추천${p.lu ? ' · 📲 네이버 줄서기' : ''}`;
+  if (p.w === 1) return '⏳ 식사시간엔 대기 있을 수 있어요';
+  if (p.w === 0) return '🚶 보통 바로 입장';
   return '';
 }
 
 function cardHTML(p, idx) {
   const badges = [];
-  if (p.ca) badges.push('<span class="b ca">PICK</span>');
-  if (p.r) badges.push('<span class="b rsv">예약</span>');
+  if (p.ca) badges.push('<span class="b ca">📌 강추</span>');
+  if (p.r) badges.push('<span class="b rsv">☎ 예약</span>');
   const open = openNow(p, new Date());
   if (open === true) badges.push('<span class="b open">● 영업중</span>');
   else if (open === null) badges.push('<span class="b chk">시간 미상</span>');
   // 메뉴: 조용한 한 줄
-  const menu = (p.m && p.m.length) ? `<div class="info">${p.m.map(esc).join(' · ')}</div>` : '';
-  // 영업시간: 조용한 chip (숫자는 tabular mono)
-  const chipRow = `<div class="metachips"><span class="mchip num-mono">${esc(hoursNowText(p))}</span></div>`;
+  const menu = (p.m && p.m.length) ? `<div class="info">🍽 ${p.m.map(esc).join(' · ')}</div>` : '';
+  // 영업시간·대기: 조용한 chip (영업시간 숫자는 tabular mono)
+  const chips = [`<span class="mchip num-mono">🕐 ${esc(hoursNowText(p))}</span>`];
+  const wt = waitText(p);
+  if (wt) chips.push(`<span class="mchip${p.w === 2 ? ' warn' : ''}">${esc(wt)}</span>`);
+  const chipRow = `<div class="metachips">${chips.join('')}</div>`;
   // CA·큐레이터 한 줄 코멘트: 차별점이라 승격 (있을 때만)
   const memo = p.note || p.mr;
-  const cacmt = memo ? `<div class="cacmt">${esc(memo)}</div>` : '';
-  // 대기 안내: 매니저 코멘트 아래, 색 없는 조용한 텍스트로(음영 chip 대신)
-  const wt = waitText(p);
-  const waitLine = wt ? `<div class="waitline">${esc(wt)}</div>` : '';
+  const cacmt = memo ? `<div class="cacmt">💬 ${esc(memo)}</div>` : '';
   const rv = p.rv ? `<span class="rv num-mono">★ ${esc(p.rv[0])} (${esc(p.rv[1])})</span>` : '';
   const num = idx ? `<span class="num">${idx}</span>` : '';
   return `<div class="card">
@@ -172,7 +172,6 @@ function cardHTML(p, idx) {
       ${menu}
       ${chipRow}
       ${cacmt}
-      ${waitLine}
       <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">네이버 지도에서 보기 →</a>` : ''}</div>
     </div>
   </div>`;
@@ -183,11 +182,11 @@ function beachCardHTML(p) {
   const rv = p.rv ? `<span class="rv num-mono">★ ${esc(p.rv[0])} (${esc(p.rv[1])})</span>` : '';
   const driveMin = Math.round((p.d || 0) / 50 * 60) + 3;
   const memo = p.note || p.mr;
-  const cacmt = memo ? `<div class="cacmt">${esc(memo)}</div>` : '';
+  const cacmt = memo ? `<div class="cacmt">💬 ${esc(memo)}</div>` : '';
   // 구역(z)은 거리 버킷이라 실제 행정구역과 다를 수 있어(멀면 다 '속초'로 뭉뚱그려짐) 주소 문자열로 판단
   // 대부분(27곳 중 24곳)이 고성이라 고성은 라벨 생략하고, 속초(3곳)만 구분 표시
   const region = (p.a || '').includes('속초시') ? '속초' : '';
-  const hot = p.rv && p.rv[1] >= 100 ? '<span class="b hot">HOT</span>' : '';
+  const hot = p.rv && p.rv[1] >= 100 ? '<span class="b hot">🔥 HOT</span>' : '';
   return `<div class="card">
     ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : ''}
     <div class="body">
@@ -373,7 +372,7 @@ function renderNow() {
   $('#slotLabel').textContent = isAuto ? COPY['seg.auto'] : COPY['seg.' + slot];
   $('#slotSub').textContent = isAuto ? COPY['slotsub.auto'] : COPY['slotsub.' + slot];
   $('#nowList').innerHTML = picks.length
-    ? picks.map((p, i) => cardHTML(p, i + 1)).join('')
+    ? heroCardHTML(picks[0]) + (picks.length > 1 ? '<div class="subrec">이어서 추천</div>' + picks.slice(1).map(miniRowHTML).join('') : '')
     : `<p class="empty">지금 문 연 곳을 찾지 못했어요. 종류 탭이나 옵션을 바꿔보세요.</p>`;
   if (picks.length) queueImpressions(picks);   // 보여준 가게 노출 집계(CTR용)
 }
@@ -409,6 +408,25 @@ $('#optChips').addEventListener('click', e => {
 // 다른 곳 보기 (재추첨)
 $('#shuffleBtn').addEventListener('click', renderNow);
 
+// 이어서 추천: 미니 행 클릭 → 접힘/펼침 (지도 링크 클릭은 이동 그대로). #nowList는 유지되므로 위임 1회.
+$('#nowList').addEventListener('click', function (e) {
+  if (e.target.closest('a')) return;                      // 지도 링크는 이동
+  const trigger = e.target.closest('.mrow, .mcollapse');  // 행=펼침 / 접기버튼=닫기
+  if (!trigger) return;
+  const item = trigger.closest('.mitem');
+  if (!item) return;
+  const opened = item.classList.toggle('open');
+  const row = item.querySelector('.mrow');
+  if (row) row.setAttribute('aria-expanded', opened ? 'true' : 'false');
+  if (!opened) row && row.focus();                        // 접으면 행으로 포커스 복귀
+});
+$('#nowList').addEventListener('keydown', function (e) {
+  if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+  const row = e.target.closest('.mrow');
+  if (!row) return;
+  e.preventDefault();
+  row.click();
+});
 
 // 피드백/추천 — 같은 팝업을 모드에 따라 문구만 바꿔 사용 (페이지 안에서 전송, 이동 없음)
 let fbMode = 'fb';   // 'fb' 가게 피드백 / 'suggest' 좋았던 곳 추천
@@ -764,7 +782,7 @@ document.addEventListener('keydown', function (e) {
 function beachMiniHTML(p) {
   // 대부분(27곳 중 24곳)이 고성이라 고성은 라벨 생략하고, 속초(3곳)만 구분 표시
   const region = (p.a || '').includes('속초시') ? '속초' : '';
-  const hot = p.rv && p.rv[1] >= 100 ? ' <span class="hot">HOT</span>' : '';
+  const hot = p.rv && p.rv[1] >= 100 ? ' <span class="hot">🔥 HOT</span>' : '';
   const rv = p.rv ? `<span class="rv">★${esc(p.rv[0])}</span>` : '';
   const driveMin = Math.round((p.d || 0) / 50 * 60) + 3;
   const img = p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : '<div class="noph">🏖</div>';
@@ -845,16 +863,6 @@ document.addEventListener('visibilitychange', () => {
   var i = isNaN(prev) ? 0 : (prev + 1) % n;
   slides[i].classList.add('is-active');
   try { localStorage.setItem('gsBgIndex', String(i)); } catch (e) {}
-})();
-
-// 상단바: 히어로 사진 위에서는 투명, 스크롤하면 잉크색 배경으로 전환
-// (mangrove.city work-stay 실측 2026-08-14 — 스크롤 약 20px부터 전환됨)
-(function () {
-  var bar = document.querySelector('.topbar');
-  if (!bar) return;
-  function update() { bar.classList.toggle('solid', window.scrollY > 20); }
-  document.addEventListener('scroll', update, { passive: true });
-  update();
 })();
 
 // ── 조회수 집계 (손님만, 브라우저당 하루 1회) ─────────

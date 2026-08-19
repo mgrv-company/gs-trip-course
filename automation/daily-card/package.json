@@ -1,9 +1,0 @@
-{
-  "name": "gs-trip-course-daily-card",
-  "private": true,
-  "type": "module",
-  "description": "오늘의 추천 카드 이미지 렌더러 (data/daily_pick.py가 호출)",
-  "dependencies": {
-    "playwright": "^1.47.0"
-  }
-}
