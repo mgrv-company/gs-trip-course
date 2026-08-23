@@ -8672,5 +8672,43 @@
   "thumb": "",
   "naver": "https://map.naver.com/p/entry/place/1879956641",
   "guessed": false
+ },
+ {
+  "name": "속초전야",
+  "type": "술집",
+  "list": "술집",
+  "category": "술집",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 8.99,
+  "address": "강원 속초시 영랑로 31",
+  "lat": 38.2147672,
+  "lng": 128.5935125,
+  "sid": "2046691828",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2046691828",
+  "guessed": false
+ },
+ {
+  "name": "적심",
+  "type": "술집",
+  "list": "술집",
+  "category": "술집",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.22,
+  "address": "강원 속초시 중앙로 267-1",
+  "lat": 38.2134397,
+  "lng": 128.5961021,
+  "sid": "2061758325",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2061758325",
+  "guessed": false
  }
 ]
