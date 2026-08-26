@@ -8710,5 +8710,24 @@
   "thumb": "",
   "naver": "https://map.naver.com/p/entry/place/2061758325",
   "guessed": false
+ },
+ {
+  "name": "신선대",
+  "type": "명소",
+  "list": "명소",
+  "category": "여행",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 18.09,
+  "address": "강원 속초시 설악산로 1085-3",
+  "lat": 38.1379157,
+  "lng": 128.4658151,
+  "sid": "15101419",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15101419",
+  "guessed": false
  }
 ]
