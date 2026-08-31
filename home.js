@@ -165,7 +165,7 @@ function cardHTML(p, idx) {
   const num = idx ? `<span class="num">${idx}</span>` : '';
   // 메타 한 줄로 통합: 카테고리 · 거리 · 평점 · 영업시간(칩 대신 텍스트) — 흩어진 회색 정보를 한 밴드로
   const metaLine = `<div class="ct">${esc(p.c)} · <span class="num-mono">${moveText(p)}</span>${rv ? ' ' + rv : ''} · <span class="num-mono">${esc(hoursNowText(p))}</span></div>`;
-  const shareBtn = p.u ? `<button type="button" class="sharebtn" data-share-name="${esc(p.n)}" data-share-url="${esc(p.u)}">↗ 공유</button>` : '';
+  const shareBtn = p.u ? `<button type="button" class="sharebtn" data-share-name="${esc(p.n)}" data-share-url="${esc(p.u)}">공유</button>` : '';
   return `<div class="card">
     ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : ''}
     <div class="body">
