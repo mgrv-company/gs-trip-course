@@ -159,10 +159,11 @@ function cardHTML(p, idx) {
   const num = idx ? `<span class="num">${idx}</span>` : '';
   // 판단 흐름을 따라 위계 분리 — "지금 갈 수 있나"(판단) → "뭘 시킬까"(실행, 카테고리는 옅은 배경 태그로 보조)
   // 별점은 신뢰도 검증용이라 정보 행 대신 지도 링크 버튼에 괄호로 붙여서 한 줄로 흡수한다.
-  const line1 = `<div class="ct">${esc(hoursNowText(p))} · <span class="num-mono">${moveText(p)}</span>${wt ? ' · ' + esc(wt) : ''}</div>`;
+  const hoursTag = `<span class="cattag">${esc(hoursNowText(p).replace(/^오늘\s*/, ''))}</span>`;
+  const line1 = `<div class="ct">${hoursTag} · <span class="num-mono">${moveText(p)}</span>${wt ? ' · ' + esc(wt) : ''}</div>`;
   const menuTxt = (p.m && p.m.length) ? p.m.map(esc).join(' · ') : '';
   const catTag = p.c ? `<span class="cattag">${esc(p.c)}</span>` : '';
-  const line3body = menuTxt ? `${menuTxt} ${catTag}` : catTag;
+  const line3body = menuTxt ? `${catTag} ${menuTxt}` : catTag;
   const line3 = line3body ? `<div class="ct3">${line3body}</div>` : '';
   const rvSuffix = p.rv ? ` <span class="num-mono">(★${esc(p.rv[0])})</span>` : '';
   const shareBtn = p.u ? `<button type="button" class="sharebtn" data-share-name="${esc(p.n)}" data-share-url="${esc(p.u)}">공유</button>` : '';
