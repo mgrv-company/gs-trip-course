@@ -159,10 +159,13 @@ function cardHTML(p, idx) {
   const wt = waitText(p);
   const rv = p.rv ? `<span class="rv num-mono">★ ${esc(p.rv[0])} (${esc(p.rv[1])})</span>` : '';
   const num = idx ? `<span class="num">${idx}</span>` : '';
-  // 판단 흐름을 따라 3행으로 위계 분리 — "지금 갈 수 있나"(판단) → "내 취향인가"(탐색) → "뭘 시킬까"(실행)
+  // 판단 흐름을 따라 3행으로 위계 분리 — "지금 갈 수 있나"(판단) → "내 취향인가"(탐색) → "뭘 시킬까+믿을만한가"(실행)
+  // 별점은 취향보다 신뢰도 검증에 가까워서 카테고리(2행)가 아니라 메뉴/가격 옆(3행)에 둔다.
   const line1 = `<div class="ct">${esc(hoursNowText(p))} · <span class="num-mono">${moveText(p)}</span>${wt ? ' · ' + esc(wt) : ''}</div>`;
-  const line2 = `<div class="ct2">${esc(p.c)}${rv ? ' ' + rv : ''}</div>`;
-  const line3 = (p.m && p.m.length) ? `<div class="ct3">${p.m.map(esc).join(' · ')}</div>` : '';
+  const line2 = `<div class="ct2">${esc(p.c)}</div>`;
+  const menuTxt = (p.m && p.m.length) ? p.m.map(esc).join(' · ') : '';
+  const line3body = [menuTxt, rv].filter(Boolean).join(' ');
+  const line3 = line3body ? `<div class="ct3">${line3body}</div>` : '';
   const shareBtn = p.u ? `<button type="button" class="sharebtn" data-share-name="${esc(p.n)}" data-share-url="${esc(p.u)}">공유</button>` : '';
   return `<div class="card">
     ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : ''}
