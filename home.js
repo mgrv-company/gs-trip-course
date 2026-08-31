@@ -8,7 +8,8 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&a
 // 이미지 URL http→https 승격 (CSP img-src가 http 차단 → 사진 누락 방지)
 const httpsUp = u => String(u == null ? '' : u).replace(/^http:\/\//i, 'https://');
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
-const LIMIT = 3;                 // 추천 개수
+const LIMIT = 3;                 // '영업중'(자동 믹스) 탭 추천 개수
+const LIMIT_CATEGORY = 10;       // 한끼/카페/술집처럼 카테고리를 고른 탭은 더 많이 보여줌
 // 든든한 한 끼 옵션 — 통합 카테고리 (라벨 → 포함 식성 태그)
 const FOOD_GROUPS = [
   { label: '한식', tags: ['한식', '면', '분식'] },
@@ -154,8 +155,6 @@ function cardHTML(p, idx) {
   else if (open === null) badges.push('<span class="b chk">시간 미상</span>');
   // 메뉴: 조용한 한 줄
   const menu = (p.m && p.m.length) ? `<div class="info">▶ ${p.m.map(esc).join(' · ')}</div>` : '';
-  // 영업시간: 조용한 chip (숫자는 tabular mono)
-  const chipRow = `<div class="metachips"><span class="mchip num-mono">${esc(hoursNowText(p))}</span></div>`;
   // CA·큐레이터 한 줄 코멘트: 차별점이라 승격 (있을 때만)
   const memo = p.note || p.mr;
   const cacmt = memo ? `<div class="cacmt">💬 ${esc(memo)}</div>` : '';
@@ -164,16 +163,18 @@ function cardHTML(p, idx) {
   const waitLine = wt ? `<div class="waitline">${esc(wt)}</div>` : '';
   const rv = p.rv ? `<span class="rv num-mono">★ ${esc(p.rv[0])} (${esc(p.rv[1])})</span>` : '';
   const num = idx ? `<span class="num">${idx}</span>` : '';
+  // 메타 한 줄로 통합: 카테고리 · 거리 · 평점 · 영업시간(칩 대신 텍스트) — 흩어진 회색 정보를 한 밴드로
+  const metaLine = `<div class="ct">${esc(p.c)} · <span class="num-mono">${moveText(p)}</span>${rv ? ' ' + rv : ''} · <span class="num-mono">${esc(hoursNowText(p))}</span></div>`;
+  const shareBtn = p.u ? `<button type="button" class="sharebtn" data-share-name="${esc(p.n)}" data-share-url="${esc(p.u)}">↗ 공유</button>` : '';
   return `<div class="card">
     ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : ''}
     <div class="body">
       <div class="rk">${num}<span class="nm">${esc(p.n)}</span>${badges.length ? ` <span class="badges">${badges.join('')}</span>` : ''}</div>
-      <div class="ct">${esc(p.c)} · <span class="num-mono">${moveText(p)}</span> ${rv}</div>
+      ${metaLine}
       ${menu}
-      ${chipRow}
       ${cacmt}
       ${waitLine}
-      <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">네이버 지도에서 보기 →</a>` : ''}</div>
+      <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">네이버 지도에서 보기 →</a>` : ''}${shareBtn}</div>
     </div>
   </div>`;
 }
@@ -367,11 +368,12 @@ function renderNow() {
   const ranked = pool
     .map(p => ({ p, s: scoreNow(p, now) + (openNow(p, now) === true ? 1.2 : 0) + (isAuto && inType(p, biasType) ? 1 : 0) }))
     .sort((a, b) => b.s - a.s).map(x => x.p);
+  const limit = isAuto ? LIMIT : LIMIT_CATEGORY;
   // 풀 전체를 한 바퀴 다 돌 때까지 중복 0 — 다 돌면 초기화하고 새 순환
   let fresh = ranked.filter(p => !recent.includes(p.n));
-  if (fresh.length < LIMIT) { recent = []; fresh = ranked; }
-  const topPool = fresh.slice(0, Math.min(fresh.length, Math.max(LIMIT + 5, 12)));
-  const picks = weightedSample(topPool, LIMIT)
+  if (fresh.length < limit) { recent = []; fresh = ranked; }
+  const topPool = fresh.slice(0, Math.min(fresh.length, Math.max(limit + 5, 12)));
+  const picks = weightedSample(topPool, limit)
     .sort((a, b) => (openNow(b, now) === true ? 1 : 0) - (openNow(a, now) === true ? 1 : 0));
   recent = recent.concat(picks.map(p => p.n));   // 누적: 한 바퀴 다 돌 때까지 계속 제외
 
@@ -886,6 +888,29 @@ document.addEventListener('click', function (e) {
   fetch(ADMIN_API + '/click', { method: 'POST', keepalive: true, body: JSON.stringify({ sid: sid, name: name }) })
     .catch(function (err) { console.debug('click beacon 실패(무시 가능):', err && err.message); });
 }, true);
+
+// ── 마음에 든 가게 공유 — Web Share API, 없으면 링크 복사로 대체 ──
+document.addEventListener('click', async function (e) {
+  const btn = e.target.closest('.sharebtn');
+  if (!btn) return;
+  const name = btn.getAttribute('data-share-name') || '';
+  const url = btn.getAttribute('data-share-url') || '';
+  if (!url) return;
+  const shareData = { title: name, text: `${name} — 맹그로브 고성에서 추천해요`, url };
+  try {
+    if (navigator.share) { await navigator.share(shareData); return; }
+    throw new Error('no-share-api');
+  } catch (err) {
+    if (err && err.name === 'AbortError') return;   // 공유 시트를 취소한 경우 — 조용히 무시
+    try {
+      await navigator.clipboard.writeText(url);
+      const prev = btn.textContent;
+      btn.textContent = '복사됨';
+      btn.classList.add('done');
+      setTimeout(() => { btn.textContent = prev; btn.classList.remove('done'); }, 1600);
+    } catch (copyErr) { console.debug('공유/복사 실패:', copyErr && copyErr.message); }
+  }
+});
 
 // ── 디자인 코멘트 모드 (어드민 전용) ─────────────────
 // 어드민 로그인(같은 도메인이라 토큰 공유) 상태면, 메인 페이지에서 요소를 클릭해 메모를 남길 수 있음.
