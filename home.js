@@ -141,7 +141,7 @@ function hoursNowText(p) {
 }
 function waitText(p) {
   if (p.w === 2) return `웨이팅 잦음${p.lu ? ' · 줄서기 가능' : ''}`;
-  if (p.w === 1) return '대기 있을 수 있음';
+  if (p.w === 1) return '웨이팅할 수도 있어요';
   if (p.w === 0) return '바로 입장 가능';
   return '';
 }
