@@ -67,10 +67,11 @@
   .ctxrow { display: flex; align-items: center; gap: 8px; margin: 16px 2px 0; }
   .ctxrow .t { font-size: 12.5px; color: var(--gray); }
 
-  .segs { display: flex; gap: 7px; margin-top: 14px; }
-  .seg { flex: 1; text-align: center; min-height: 44px; display: flex; align-items: center; justify-content: center; padding: 6px 4px; border: 1px solid var(--line); background: #fff; border-radius: 0; font-size: 13px; line-height: 1.2; font-weight: 600; cursor: pointer; user-select: none; color: #4a4945; word-break: keep-all; }
+  .segs { display: flex; gap: 0; margin-top: 14px; border: 1px solid var(--line); }
+  .seg { flex: 1; text-align: center; min-height: 44px; display: flex; align-items: center; justify-content: center; padding: 6px 4px; border: 0; border-right: 1px solid var(--line); background: #fff; border-radius: 0; font-size: 13px; line-height: 1.2; font-weight: 600; cursor: pointer; user-select: none; color: #4a4945; word-break: keep-all; }
+  .seg:last-child { border-right: 0; }
   @media (max-width: 400px) { .seg { font-size: 12px; padding: 6px 2px; letter-spacing: -0.2px; } }
-  .seg.on { border-color: var(--ink); background: var(--ink); color: #fff; }
+  .seg.on { background: var(--ink); color: #fff; }
   .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
   .chip { border: 1.5px solid var(--line); background: #fff; border-radius: 0; padding: 6px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; user-select: none; color: var(--ink); }
   .chip.on { border-color: var(--purple); background: var(--purple); color: #fff; }
@@ -81,7 +82,8 @@
   .shuffle { flex: 0 0 auto; border: 1.5px solid var(--line); background: #fff; color: var(--ink); font-weight: 700; font-size: 12.5px; border-radius: 0; padding: 8px 12px; cursor: pointer; }
   .shuffle:active { background: var(--soft); }
 
-  .card { background: #fff; border: 1px solid var(--line); border-radius: 0; margin-top: 14px; display: flex; gap: 13px; padding: 14px; align-items: flex-start; }
+  #nowList { border-top: 1px solid var(--line); margin-top: 12px; }
+  .card { background: #fff; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; margin-top: 0; display: flex; gap: 13px; padding: 16px 0; align-items: flex-start; }
   .card .ph { width: 110px; height: 110px; border-radius: 0; object-fit: cover; display: block; flex: 0 0 auto; }
   .card .body { flex: 1; min-width: 0; padding: 0; }
   .card .rk { display: flex; align-items: center; gap: 8px; row-gap: 5px; flex-wrap: wrap; }
@@ -165,10 +167,11 @@
   .minisec { margin-top: 26px; }
   .minisec-head h3 { font-size: 15.5px; font-weight: 800; }
   .minisec-sub { font-size: 11.5px; color: var(--gray); margin: 2px 0 10px; }
-  .subtabs { display: flex; gap: 7px; margin-bottom: 10px; }
-  .attrminitab { border: 1.5px solid var(--line); background: #fff; border-radius: 0; padding: 6px 13px;
+  .subtabs { display: inline-flex; gap: 0; margin-bottom: 10px; border: 1.5px solid var(--line); }
+  .attrminitab { border: 0; border-right: 1.5px solid var(--line); background: #fff; border-radius: 0; padding: 6px 13px;
     font-size: 12px; font-weight: 700; color: var(--ink); cursor: pointer; }
-  .attrminitab.on { border-color: var(--purple); background: var(--purple); color: #fff; }
+  .attrminitab:last-child { border-right: 0; }
+  .attrminitab.on { background: var(--purple); color: #fff; }
   .miniscroll-wrap { position: relative; }
   .miniscroll { display: flex; gap: 11px; overflow-x: auto; padding-bottom: 6px; margin: 0 -16px; padding-left: 16px; padding-right: 16px; -webkit-overflow-scrolling: touch; }
   /* 좌우 화살표: 마우스로 정밀 클릭 가능한 기기(PC)에서만 노출 — 모바일은 스와이프로 충분해 안 띄움 */
