@@ -159,18 +159,18 @@ function cardHTML(p, idx) {
   const wt = waitText(p);
   const rv = p.rv ? `<span class="rv num-mono">★ ${esc(p.rv[0])} (${esc(p.rv[1])})</span>` : '';
   const num = idx ? `<span class="num">${idx}</span>` : '';
-  // 정보 위계 재정리: 1행 = 언제 갈 수 있는가(영업시간·소요시간·바로 입장 가능 여부),
-  // 2행 = 무엇을 파는 곳인가(카테고리·메뉴·평점)
-  const whenLine = `<div class="ct">${esc(hoursNowText(p))} · <span class="num-mono">${moveText(p)}</span>${wt ? ' · ' + esc(wt) : ''}</div>`;
-  const menuTxt = (p.m && p.m.length) ? ` · ${p.m.map(esc).join(' · ')}` : '';
-  const whatLine = `<div class="ct2">${esc(p.c)}${menuTxt}${rv ? ' ' + rv : ''}</div>`;
+  // 판단 흐름을 따라 3행으로 위계 분리 — "지금 갈 수 있나"(판단) → "내 취향인가"(탐색) → "뭘 시킬까"(실행)
+  const line1 = `<div class="ct">${esc(hoursNowText(p))} · <span class="num-mono">${moveText(p)}</span>${wt ? ' · ' + esc(wt) : ''}</div>`;
+  const line2 = `<div class="ct2">${esc(p.c)}${rv ? ' ' + rv : ''}</div>`;
+  const line3 = (p.m && p.m.length) ? `<div class="ct3">${p.m.map(esc).join(' · ')}</div>` : '';
   const shareBtn = p.u ? `<button type="button" class="sharebtn" data-share-name="${esc(p.n)}" data-share-url="${esc(p.u)}">공유</button>` : '';
   return `<div class="card">
     ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : ''}
     <div class="body">
       <div class="rk">${num}<span class="nm">${esc(p.n)}</span>${badges.length ? ` <span class="badges">${badges.join('')}</span>` : ''}</div>
-      ${whenLine}
-      ${whatLine}
+      ${line1}
+      ${line2}
+      ${line3}
       ${cacmt}
       <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">네이버 지도에서 보기 →</a>` : ''}${shareBtn}</div>
     </div>
