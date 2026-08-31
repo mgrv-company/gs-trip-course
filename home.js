@@ -154,7 +154,7 @@ function cardHTML(p, idx) {
   if (open === true) badges.push('<span class="b open">● 영업중</span>');
   else if (open === null) badges.push('<span class="b chk">시간 미상</span>');
   // 메뉴: 조용한 한 줄
-  const menu = (p.m && p.m.length) ? `<div class="info">▶ ${p.m.map(esc).join(' · ')}</div>` : '';
+  const menu = (p.m && p.m.length) ? `<div class="info"><span class="lbl">메뉴</span>${p.m.map(esc).join(' · ')}</div>` : '';
   // CA·큐레이터 한 줄 코멘트: 차별점이라 승격 (있을 때만)
   const memo = p.note || p.mr;
   const cacmt = memo ? `<div class="cacmt">💬 ${esc(memo)}</div>` : '';
