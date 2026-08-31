@@ -153,27 +153,25 @@ function cardHTML(p, idx) {
   const open = openNow(p, new Date());
   if (open === true) badges.push('<span class="b open">● 영업중</span>');
   else if (open === null) badges.push('<span class="b chk">시간 미상</span>');
-  // 메뉴: 조용한 한 줄
-  const menu = (p.m && p.m.length) ? `<div class="info"><span class="lbl">메뉴</span>${p.m.map(esc).join(' · ')}</div>` : '';
   // CA·큐레이터 한 줄 코멘트: 차별점이라 승격 (있을 때만)
   const memo = p.note || p.mr;
   const cacmt = memo ? `<div class="cacmt">💬 ${esc(memo)}</div>` : '';
-  // 대기 안내: 매니저 코멘트 아래, 색 없는 조용한 텍스트로(음영 chip 대신)
   const wt = waitText(p);
-  const waitLine = wt ? `<div class="waitline">${esc(wt)}</div>` : '';
   const rv = p.rv ? `<span class="rv num-mono">★ ${esc(p.rv[0])} (${esc(p.rv[1])})</span>` : '';
   const num = idx ? `<span class="num">${idx}</span>` : '';
-  // 메타 한 줄로 통합: 카테고리 · 거리 · 평점 · 영업시간(칩 대신 텍스트) — 흩어진 회색 정보를 한 밴드로
-  const metaLine = `<div class="ct">${esc(p.c)} · <span class="num-mono">${moveText(p)}</span>${rv ? ' ' + rv : ''} · <span class="num-mono">${esc(hoursNowText(p))}</span></div>`;
+  // 정보 위계 재정리: 1행 = 언제 갈 수 있는가(영업시간·소요시간·바로 입장 가능 여부),
+  // 2행 = 무엇을 파는 곳인가(카테고리·메뉴·평점)
+  const whenLine = `<div class="ct">${esc(hoursNowText(p))} · <span class="num-mono">${moveText(p)}</span>${wt ? ' · ' + esc(wt) : ''}</div>`;
+  const menuTxt = (p.m && p.m.length) ? ` · ${p.m.map(esc).join(' · ')}` : '';
+  const whatLine = `<div class="ct2">${esc(p.c)}${menuTxt}${rv ? ' ' + rv : ''}</div>`;
   const shareBtn = p.u ? `<button type="button" class="sharebtn" data-share-name="${esc(p.n)}" data-share-url="${esc(p.u)}">공유</button>` : '';
   return `<div class="card">
     ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : ''}
     <div class="body">
       <div class="rk">${num}<span class="nm">${esc(p.n)}</span>${badges.length ? ` <span class="badges">${badges.join('')}</span>` : ''}</div>
-      ${metaLine}
-      ${menu}
+      ${whenLine}
+      ${whatLine}
       ${cacmt}
-      ${waitLine}
       <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">네이버 지도에서 보기 →</a>` : ''}${shareBtn}</div>
     </div>
   </div>`;
