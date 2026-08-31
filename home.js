@@ -155,7 +155,7 @@ function cardHTML(p, idx) {
   else if (open === null) badges.push('<span class="b chk">시간 미상</span>');
   // CA·큐레이터 한 줄 코멘트: 차별점이라 승격 (있을 때만)
   const memo = p.note || p.mr;
-  const cacmt = memo ? `<div class="cacmt">💬 ${esc(memo)}</div>` : '';
+  const cacmt = memo ? `<div class="cacmt">${esc(memo)}</div>` : '';
   const wt = waitText(p);
   const rv = p.rv ? `<span class="rv num-mono">★ ${esc(p.rv[0])} (${esc(p.rv[1])})</span>` : '';
   const num = idx ? `<span class="num">${idx}</span>` : '';
