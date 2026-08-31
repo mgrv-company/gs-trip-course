@@ -341,7 +341,7 @@
   </div>
 
   <div class="segs" role="tablist">
-    <div class="seg on" role="button" tabindex="0" data-slot="auto" data-copy="seg.auto">영업중</div>
+    <div class="seg on" role="button" tabindex="0" data-slot="auto" data-copy="seg.auto">영업 중</div>
     <div class="seg" role="button" tabindex="0" data-slot="meal" data-copy="seg.meal">든든한 한 끼</div>
     <div class="seg" role="button" tabindex="0" data-slot="cafe" data-copy="seg.cafe">느낌 좋은 카페</div>
     <div class="seg" role="button" tabindex="0" data-slot="bar" data-copy="seg.bar">술과 함께</div>
@@ -421,7 +421,10 @@
       <div class="fberr" id="rateErr" role="alert"></div>
       <button class="fbbtn" id="rateSend" data-copy="rating.btn">별점 추가하기</button>
     </div>
-    <div class="done-line" id="rateDone" data-copy="rating.done" style="display:none">🙌 감사합니다! 더 좋은 추천으로 보답할게요.</div>
+    <div class="done-line" id="rateDone" style="display:none">
+      <span data-copy="rating.done">🙌 감사합니다! 답례로 강추 코스 하나 보여드릴게요.</span>
+      <a class="fbbtn" id="rateReward" href="course-pick.html" style="display:block;margin-top:10px;text-decoration:none;">✨ 강추 코스 보러가기</a>
+    </div>
 
     <div class="fbsplit"></div>
     <button class="fbbtn" id="fbBtn" data-copy="feedback.btnFb">✍️ 추천받은 가게 피드백 남기기</button>
