@@ -140,8 +140,8 @@ function hoursNowText(p) {
   return '오늘 ' + range.replace('-', '~');
 }
 function waitText(p) {
-  if (p.w === 2) return `웨이팅 잦은 편${p.lu ? ' · 네이버 줄서기' : ''}`;
-  if (p.w === 1) return '식사시간엔 대기 있을 수 있어요';
+  if (p.w === 2) return `웨이팅 잦음${p.lu ? ' · 줄서기 가능' : ''}`;
+  if (p.w === 1) return '대기 있을 수 있음';
   if (p.w === 0) return '바로 입장 가능';
   return '';
 }
@@ -159,12 +159,16 @@ function cardHTML(p, idx) {
   const num = idx ? `<span class="num">${idx}</span>` : '';
   // 판단 흐름을 따라 위계 분리 — "지금 갈 수 있나"(판단) → "뭘 시킬까"(실행, 카테고리는 옅은 배경 태그로 보조)
   // 별점은 신뢰도 검증용이라 정보 행 대신 지도 링크 버튼에 괄호로 붙여서 한 줄로 흡수한다.
+  // 카드 사진(110px)이 폭을 많이 차지해 본문이 좁아서(~235px), 영업시간+이동시간+대기상태를
+  // 한 줄에 다 넣으면 항상 줄바꿈됨(실측 확인) → 대기상태는 3행(카테고리·메뉴) 쪽으로 옮겨서
+  // 1행(영업시간·이동시간)은 한 줄에 안정적으로 들어가게 함.
   const hoursDetail = hoursNowText(p).replace(/^오늘\s*/, '').replace(/^영업시간\s*/, '');
   const hoursTag = `<span class="cattag">영업시간</span> ${esc(hoursDetail)}`;
-  const line1 = `<div class="ct">${hoursTag} · <span class="num-mono">${moveText(p)}</span>${wt ? ' · ' + esc(wt) : ''}</div>`;
+  const line1 = `<div class="ct">${hoursTag} · <span class="num-mono">${moveText(p)}</span></div>`;
   const menuTxt = (p.m && p.m.length) ? p.m.map(esc).join(' · ') : '';
   const catTag = p.c ? `<span class="cattag">${esc(p.c)}</span>` : '';
-  const line3body = menuTxt ? `${catTag} ${menuTxt}` : catTag;
+  const catMenu = menuTxt ? `${catTag} ${menuTxt}` : catTag;
+  const line3body = wt ? (catMenu ? `${catMenu} · ${esc(wt)}` : esc(wt)) : catMenu;
   const line3 = line3body ? `<div class="ct3">${line3body}</div>` : '';
   const rvSuffix = p.rv ? ` <span class="num-mono">(★${esc(p.rv[0])})</span>` : '';
   const shareBtn = p.u ? `<button type="button" class="sharebtn" data-share-name="${esc(p.n)}" data-share-url="${esc(p.u)}">공유</button>` : '';
