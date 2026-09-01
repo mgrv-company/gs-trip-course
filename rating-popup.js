@@ -27,17 +27,17 @@
     // 새로 생긴 건 어두운 배경(#rpOverlay)과 닫기 버튼(.rp-close)뿐 — 팝업이라 꼭 필요한 최소 추가.
     style.textContent = `
       #rpOverlay { position: fixed; inset: 0; background: rgba(0,0,0,.42); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; font-family: 'Pretendard Variable', Pretendard, 'Apple SD Gothic Neo', -apple-system, BlinkMacSystemFont, sans-serif; }
-      #rpOverlay .feedback { position: relative; width: 100%; max-width: 380px; margin: 0; background: #fff; border: 1px solid #e9e7e2; border-radius: 16px; padding: 17px 16px; text-align: center; }
+      #rpOverlay .feedback { position: relative; width: 100%; max-width: 380px; margin: 0; background: #fff; border: 1px solid #e9e7e2; border-radius: 0; padding: 17px 16px; text-align: center; }
       #rpOverlay .feedback p { font-size: 12.5px; color: #50514a; line-height: 1.7; margin-bottom: 13px; }
       #rpOverlay .rp-close { position: absolute; top: 8px; right: 8px; border: 0; background: none; font-size: 16px; color: #b3b2ab; cursor: pointer; line-height: 1; padding: 6px; }
       #rpOverlay .stars { display: flex; gap: 1px; justify-content: center; }
       #rpOverlay .star { font-size: 27px; line-height: 1; background: none; border: 0; cursor: pointer; padding: 4px 2px; filter: grayscale(1); opacity: .45; transition: filter .12s, opacity .12s, transform .12s; }
       #rpOverlay .star.on { filter: none; opacity: 1; }
       #rpOverlay .star:active { transform: scale(1.15); }
-      #rpOverlay #rpForm textarea { width: 100%; border: 1.5px solid #e9e7e2; border-radius: 10px; padding: 11px 12px; font-size: 14px; font-family: inherit; margin: 11px 0 10px; min-height: 60px; resize: vertical; color: #1f1e1d; }
-      #rpOverlay .fbbtn { width: 100%; background: #1f1e1d; color: #fff; border: 0; border-radius: 12px; padding: 13px; font-size: 14px; font-weight: 700; cursor: pointer; }
+      #rpOverlay #rpForm textarea { width: 100%; border: 1.5px solid #e9e7e2; border-radius: 0; padding: 11px 12px; font-size: 14px; font-family: inherit; margin: 11px 0 10px; min-height: 60px; resize: vertical; color: #1f1e1d; }
+      #rpOverlay .fbbtn { width: 100%; background: #1f1e1d; color: #fff; border: 0; border-radius: 0; padding: 13px; font-size: 14px; font-weight: 700; cursor: pointer; }
       #rpOverlay .fbbtn:disabled { opacity: .5; cursor: default; }
-      #rpOverlay .fberr { display: none; font-size: 12.5px; font-weight: 600; color: #b03a3a; background: #fbeaea; border-radius: 9px; padding: 8px 11px; margin-bottom: 9px; line-height: 1.5; text-align: left; }
+      #rpOverlay .fberr { display: none; font-size: 12.5px; font-weight: 600; color: #b03a3a; background: #fbeaea; border-radius: 0; padding: 8px 11px; margin-bottom: 9px; line-height: 1.5; text-align: left; }
       #rpOverlay .fberr.show { display: block; }
       #rpOverlay .done-line { font-size: 14px; font-weight: 700; color: #0a7a3c; padding: 6px 0 2px; }
     `;
@@ -57,7 +57,10 @@
           <div class="fberr" id="rpErr" role="alert"></div>
           <button class="fbbtn" id="rpSend">별점 추가하기</button>
         </div>
-        <div class="done-line" id="rpDone" style="display:none">🙌 감사합니다! 더 좋은 추천으로 보답할게요.</div>
+        <div class="done-line" id="rpDone" style="display:none">
+          🙌 감사합니다! 답례로 강추 코스 하나 보여드릴게요.
+          <a class="fbbtn" id="rpReward" href="course-pick.html" style="display:block;margin-top:10px;text-decoration:none;">✨ 강추 코스 보러가기</a>
+        </div>
       </div>
     `;
     document.body.appendChild(overlay);
@@ -89,7 +92,7 @@
         overlay.querySelector('#rpForm').style.display = 'none';
         overlay.querySelector('#rpDone').style.display = '';
         safeSet(STORAGE_KEY, '1');
-        setTimeout(() => close(false), 1800);
+        // 리워드 CTA를 누를 시간을 주기 위해 자동으로 닫지 않음 — ✕ 또는 코스 버튼 클릭으로 닫힘
       } catch (e) {
         const err = overlay.querySelector('#rpErr');
         if (err) { err.textContent = '전송에 실패했어요. 잠시 후 다시 시도해주세요.'; err.classList.add('show'); }

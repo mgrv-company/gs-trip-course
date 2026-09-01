@@ -609,7 +609,7 @@ const COPY_GROUPS = [
     ['attrmini.sub', '설명', 'input', '고성에서 즐길 거리와 볼 거리를 모아 소개해요.'],
   ]],
   ['추천 탭 이름', [
-    ['seg.auto', '영업중 탭', 'input', '영업중'],
+    ['seg.auto', '영업중 탭', 'input', '영업 중'],
     ['seg.meal', '식사 탭', 'input', '든든한 한 끼'],
     ['seg.cafe', '카페 탭', 'input', '느낌 좋은 카페'],
     ['seg.bar', '술 탭', 'input', '술과 함께'],

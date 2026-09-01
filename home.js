@@ -8,7 +8,8 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&a
 // 이미지 URL http→https 승격 (CSP img-src가 http 차단 → 사진 누락 방지)
 const httpsUp = u => String(u == null ? '' : u).replace(/^http:\/\//i, 'https://');
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
-const LIMIT = 3;                 // 추천 개수
+const LIMIT = 3;                 // '영업중'(자동 믹스) 탭 추천 개수
+const LIMIT_CATEGORY = 10;       // 한끼/카페/술집처럼 카테고리를 고른 탭은 더 많이 보여줌
 // 든든한 한 끼 옵션 — 통합 카테고리 (라벨 → 포함 식성 태그)
 const FOOD_GROUPS = [
   { label: '한식', tags: ['한식', '면', '분식'] },
@@ -34,7 +35,7 @@ const COPY = {
   'beachmini.sub': '맹그로브에서 가까운 순서대로 추천해요.',
   'attrmini.title': '즐길 곳',
   'attrmini.sub': '고성에서 즐길 거리와 볼 거리를 모아 소개해요.',
-  'seg.auto': '영업중',
+  'seg.auto': '영업 중',
   'seg.meal': '든든한 한 끼',
   'seg.cafe': '느낌 좋은 카페',
   'seg.bar': '술과 함께',
@@ -50,7 +51,7 @@ const COPY = {
   'rating.body': "원하는 별점을 누르고, 아래 '별점 추가하기' 버튼을 눌러주세요.",
   'rating.placeholder': '어떤 부분이 도움이 되었는지 적어주세요. 혹은 필요한 정보가 있다면 적어주셔도 좋아요.',
   'rating.btn': '별점 추가하기',
-  'rating.done': '🙌 감사합니다! 더 좋은 추천으로 보답할게요.',
+  'rating.done': '🙌 감사합니다! 답례로 강추 코스 하나 보여드릴게요.',
   'fb.title': '가게 피드백',
   'fb.desc': '좋았어요·아쉬웠어요·문 닫았더라고요 — 뭐든 좋아요. 남겨주신 의견은 커뮤니티 매니저에게 바로 전달돼요. 30초면 충분해요!',
   'fb.place': '가게 이름 (기억나는 만큼만)',
@@ -134,45 +135,51 @@ function moveText(p) {
 function hoursNowText(p) {
   if (!p.h) return '영업시간 미상 · 방문 전 확인';
   const range = p.h[DAY_NAMES[new Date().getDay()]];
-  if (range === null) return '오늘 휴무 ⚠️';
+  if (range === null) return '오늘 휴무';
   if (range === undefined) return '오늘 영업시간 미정 · 방문 전 확인';
   return '오늘 ' + range.replace('-', '~');
 }
 function waitText(p) {
-  if (p.w === 2) return `⏳ 웨이팅 잦음 — 평일·오픈직후 추천${p.lu ? ' · 📲 네이버 줄서기' : ''}`;
-  if (p.w === 1) return '⏳ 식사시간엔 대기 있을 수 있어요';
-  if (p.w === 0) return '🚶 보통 바로 입장';
+  if (p.w === 2) return `웨이팅 잦음${p.lu ? ' · 줄서기 가능' : ''}`;
+  if (p.w === 1) return '웨이팅할 수도 있어요';
+  if (p.w === 0) return '바로 입장 가능';
   return '';
 }
 
 function cardHTML(p, idx) {
   const badges = [];
-  if (p.ca) badges.push('<span class="b ca">📌 강추</span>');
-  if (p.r) badges.push('<span class="b rsv">☎ 예약</span>');
+  if (p.r) badges.push('<span class="b rsv">예약</span>');
   const open = openNow(p, new Date());
   if (open === true) badges.push('<span class="b open">● 영업중</span>');
   else if (open === null) badges.push('<span class="b chk">시간 미상</span>');
-  // 메뉴: 조용한 한 줄
-  const menu = (p.m && p.m.length) ? `<div class="info">🍽 ${p.m.map(esc).join(' · ')}</div>` : '';
-  // 영업시간·대기: 조용한 chip (영업시간 숫자는 tabular mono)
-  const chips = [`<span class="mchip num-mono">🕐 ${esc(hoursNowText(p))}</span>`];
-  const wt = waitText(p);
-  if (wt) chips.push(`<span class="mchip${p.w === 2 ? ' warn' : ''}">${esc(wt)}</span>`);
-  const chipRow = `<div class="metachips">${chips.join('')}</div>`;
   // CA·큐레이터 한 줄 코멘트: 차별점이라 승격 (있을 때만)
   const memo = p.note || p.mr;
-  const cacmt = memo ? `<div class="cacmt">💬 ${esc(memo)}</div>` : '';
-  const rv = p.rv ? `<span class="rv num-mono">★ ${esc(p.rv[0])} (${esc(p.rv[1])})</span>` : '';
+  const cacmt = memo ? `<div class="cacmt">${esc(memo)}</div>` : '';
+  const wt = waitText(p);
   const num = idx ? `<span class="num">${idx}</span>` : '';
+  // 판단 흐름을 따라 위계 분리 — "지금 갈 수 있나"(판단) → "뭘 시킬까"(실행, 카테고리는 옅은 배경 태그로 보조)
+  // 별점은 신뢰도 검증용이라 정보 행 대신 지도 링크 버튼에 괄호로 붙여서 한 줄로 흡수한다.
+  // 카드 사진(110px)이 폭을 많이 차지해 본문이 좁아서(~235px), 영업시간+이동시간+대기상태를
+  // 한 줄에 다 넣으면 항상 줄바꿈됨(실측 확인) → 대기상태는 3행(카테고리·메뉴) 쪽으로 옮겨서
+  // 1행(영업시간·이동시간)은 한 줄에 안정적으로 들어가게 함.
+  const hoursDetail = hoursNowText(p).replace(/^오늘\s*/, '').replace(/^영업시간\s*/, '');
+  const hoursTag = `<span class="cattag">영업시간</span> ${esc(hoursDetail)}`;
+  const line1 = `<div class="ct">${hoursTag} · <span class="num-mono">${moveText(p)}</span></div>`;
+  const menuTxt = (p.m && p.m.length) ? p.m.map(esc).join(' · ') : '';
+  const catTag = p.c ? `<span class="cattag">${esc(p.c)}</span>` : '';
+  const catMenu = menuTxt ? `${catTag} ${menuTxt}` : catTag;
+  const line3body = wt ? (catMenu ? `${catMenu} · ${esc(wt)}` : esc(wt)) : catMenu;
+  const line3 = line3body ? `<div class="ct3">${line3body}</div>` : '';
+  const rvSuffix = p.rv ? ` <span class="num-mono">(★${esc(p.rv[0])})</span>` : '';
+  const shareBtn = p.u ? `<button type="button" class="sharebtn" data-share-name="${esc(p.n)}" data-share-url="${esc(p.u)}">공유</button>` : '';
   return `<div class="card">
     ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : ''}
     <div class="body">
       <div class="rk">${num}<span class="nm">${esc(p.n)}</span>${badges.length ? ` <span class="badges">${badges.join('')}</span>` : ''}</div>
-      <div class="ct">${esc(p.c)} · <span class="num-mono">${moveText(p)}</span> ${rv}</div>
-      ${menu}
-      ${chipRow}
+      ${line1}
+      ${line3}
       ${cacmt}
-      <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">네이버 지도에서 보기 →</a>` : ''}</div>
+      <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">네이버 지도에서 보기${rvSuffix} →</a>` : ''}${shareBtn}</div>
     </div>
   </div>`;
 }
@@ -182,11 +189,11 @@ function beachCardHTML(p) {
   const rv = p.rv ? `<span class="rv num-mono">★ ${esc(p.rv[0])} (${esc(p.rv[1])})</span>` : '';
   const driveMin = Math.round((p.d || 0) / 50 * 60) + 3;
   const memo = p.note || p.mr;
-  const cacmt = memo ? `<div class="cacmt">💬 ${esc(memo)}</div>` : '';
+  const cacmt = memo ? `<div class="cacmt">${esc(memo)}</div>` : '';
   // 구역(z)은 거리 버킷이라 실제 행정구역과 다를 수 있어(멀면 다 '속초'로 뭉뚱그려짐) 주소 문자열로 판단
   // 대부분(27곳 중 24곳)이 고성이라 고성은 라벨 생략하고, 속초(3곳)만 구분 표시
   const region = (p.a || '').includes('속초시') ? '속초' : '';
-  const hot = p.rv && p.rv[1] >= 100 ? '<span class="b hot">🔥 HOT</span>' : '';
+  const hot = p.rv && p.rv[1] >= 100 ? '<span class="b hot">HOT</span>' : '';
   return `<div class="card">
     ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : ''}
     <div class="body">
@@ -318,6 +325,11 @@ document.addEventListener('error', function (e) {
     const pic = t.closest('.hpic');
     if (pic) pic.classList.add('noimg');   // 가짜 가게사진 오해 방지 → 중립 플레이스홀더
   }
+  // 카드뉴스(.ph) 사진 실패 — 이미지 자체를 접어 "사진 없음" 레이아웃과 동일하게(별도 플레이스홀더 불필요)
+  if (t && t.tagName === 'IMG' && t.classList && t.classList.contains('ph') && t.dataset.fb !== '1') {
+    t.dataset.fb = '1';
+    t.style.display = 'none';
+  }
 }, true);
 
 let curSlot = 'auto';
@@ -361,18 +373,19 @@ function renderNow() {
   const ranked = pool
     .map(p => ({ p, s: scoreNow(p, now) + (openNow(p, now) === true ? 1.2 : 0) + (isAuto && inType(p, biasType) ? 1 : 0) }))
     .sort((a, b) => b.s - a.s).map(x => x.p);
+  const limit = isAuto ? LIMIT : LIMIT_CATEGORY;
   // 풀 전체를 한 바퀴 다 돌 때까지 중복 0 — 다 돌면 초기화하고 새 순환
   let fresh = ranked.filter(p => !recent.includes(p.n));
-  if (fresh.length < LIMIT) { recent = []; fresh = ranked; }
-  const topPool = fresh.slice(0, Math.min(fresh.length, Math.max(LIMIT + 5, 12)));
-  const picks = weightedSample(topPool, LIMIT)
+  if (fresh.length < limit) { recent = []; fresh = ranked; }
+  const topPool = fresh.slice(0, Math.min(fresh.length, Math.max(limit + 5, 12)));
+  const picks = weightedSample(topPool, limit)
     .sort((a, b) => (openNow(b, now) === true ? 1 : 0) - (openNow(a, now) === true ? 1 : 0));
   recent = recent.concat(picks.map(p => p.n));   // 누적: 한 바퀴 다 돌 때까지 계속 제외
 
   $('#slotLabel').textContent = isAuto ? COPY['seg.auto'] : COPY['seg.' + slot];
   $('#slotSub').textContent = isAuto ? COPY['slotsub.auto'] : COPY['slotsub.' + slot];
   $('#nowList').innerHTML = picks.length
-    ? heroCardHTML(picks[0]) + (picks.length > 1 ? '<div class="subrec">이어서 추천</div>' + picks.slice(1).map(miniRowHTML).join('') : '')
+    ? picks.map((p, i) => cardHTML(p, i + 1)).join('')
     : `<p class="empty">지금 문 연 곳을 찾지 못했어요. 종류 탭이나 옵션을 바꿔보세요.</p>`;
   if (picks.length) queueImpressions(picks);   // 보여준 가게 노출 집계(CTR용)
 }
@@ -408,25 +421,6 @@ $('#optChips').addEventListener('click', e => {
 // 다른 곳 보기 (재추첨)
 $('#shuffleBtn').addEventListener('click', renderNow);
 
-// 이어서 추천: 미니 행 클릭 → 접힘/펼침 (지도 링크 클릭은 이동 그대로). #nowList는 유지되므로 위임 1회.
-$('#nowList').addEventListener('click', function (e) {
-  if (e.target.closest('a')) return;                      // 지도 링크는 이동
-  const trigger = e.target.closest('.mrow, .mcollapse');  // 행=펼침 / 접기버튼=닫기
-  if (!trigger) return;
-  const item = trigger.closest('.mitem');
-  if (!item) return;
-  const opened = item.classList.toggle('open');
-  const row = item.querySelector('.mrow');
-  if (row) row.setAttribute('aria-expanded', opened ? 'true' : 'false');
-  if (!opened) row && row.focus();                        // 접으면 행으로 포커스 복귀
-});
-$('#nowList').addEventListener('keydown', function (e) {
-  if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
-  const row = e.target.closest('.mrow');
-  if (!row) return;
-  e.preventDefault();
-  row.click();
-});
 
 // 피드백/추천 — 같은 팝업을 모드에 따라 문구만 바꿔 사용 (페이지 안에서 전송, 이동 없음)
 let fbMode = 'fb';   // 'fb' 가게 피드백 / 'suggest' 좋았던 곳 추천
@@ -782,7 +776,7 @@ document.addEventListener('keydown', function (e) {
 function beachMiniHTML(p) {
   // 대부분(27곳 중 24곳)이 고성이라 고성은 라벨 생략하고, 속초(3곳)만 구분 표시
   const region = (p.a || '').includes('속초시') ? '속초' : '';
-  const hot = p.rv && p.rv[1] >= 100 ? ' <span class="hot">🔥 HOT</span>' : '';
+  const hot = p.rv && p.rv[1] >= 100 ? ' <span class="hot">HOT</span>' : '';
   const rv = p.rv ? `<span class="rv">★${esc(p.rv[0])}</span>` : '';
   const driveMin = Math.round((p.d || 0) / 50 * 60) + 3;
   const img = p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : '<div class="noph">🏖</div>';
@@ -865,6 +859,16 @@ document.addEventListener('visibilitychange', () => {
   try { localStorage.setItem('gsBgIndex', String(i)); } catch (e) {}
 })();
 
+// 상단바: 히어로 사진 위에서는 투명, 스크롤하면 잉크색 배경으로 전환
+// (mangrove.city work-stay 실측 2026-08-14 — 스크롤 약 20px부터 전환됨)
+(function () {
+  var bar = document.querySelector('.topbar');
+  if (!bar) return;
+  function update() { bar.classList.toggle('solid', window.scrollY > 20); }
+  document.addEventListener('scroll', update, { passive: true });
+  update();
+})();
+
 // ── 조회수 집계 (손님만, 브라우저당 하루 1회) ─────────
 (function () {
   try {
@@ -889,6 +893,29 @@ document.addEventListener('click', function (e) {
   fetch(ADMIN_API + '/click', { method: 'POST', keepalive: true, body: JSON.stringify({ sid: sid, name: name }) })
     .catch(function (err) { console.debug('click beacon 실패(무시 가능):', err && err.message); });
 }, true);
+
+// ── 마음에 든 가게 공유 — Web Share API, 없으면 링크 복사로 대체 ──
+document.addEventListener('click', async function (e) {
+  const btn = e.target.closest('.sharebtn');
+  if (!btn) return;
+  const name = btn.getAttribute('data-share-name') || '';
+  const url = btn.getAttribute('data-share-url') || '';
+  if (!url) return;
+  const shareData = { title: name, text: `${name} — 맹그로브 고성에서 추천해요`, url };
+  try {
+    if (navigator.share) { await navigator.share(shareData); return; }
+    throw new Error('no-share-api');
+  } catch (err) {
+    if (err && err.name === 'AbortError') return;   // 공유 시트를 취소한 경우 — 조용히 무시
+    try {
+      await navigator.clipboard.writeText(url);
+      const prev = btn.textContent;
+      btn.textContent = '복사됨';
+      btn.classList.add('done');
+      setTimeout(() => { btn.textContent = prev; btn.classList.remove('done'); }, 1600);
+    } catch (copyErr) { console.debug('공유/복사 실패:', copyErr && copyErr.message); }
+  }
+});
 
 // ── 디자인 코멘트 모드 (어드민 전용) ─────────────────
 // 어드민 로그인(같은 도메인이라 토큰 공유) 상태면, 메인 페이지에서 요소를 클릭해 메모를 남길 수 있음.
