@@ -48,14 +48,14 @@
     overlay.innerHTML = `
       <div class="feedback">
         <button class="rp-close" id="rpClose" aria-label="닫기">✕</button>
-        <p><b>추천해드린 곳, 도움이 되었나요?</b><br>원하는 별점을 누르고, 아래 '별점 추가하기' 버튼을 눌러주세요.</p>
+        <p><b>추천해드린 곳, 도움이 되었나요?</b><br>원하는 별점을 누르고, 아래 '별점 보내기' 버튼을 눌러주세요.</p>
         <div class="stars" id="rpStars">
           ${[1, 2, 3, 4, 5].map(v => `<button class="star" data-v="${v}" aria-label="${v}점">★</button>`).join('')}
         </div>
         <div id="rpForm" style="display:none">
           <textarea id="rpMemo" maxlength="300" placeholder="유용했던 정보가 있거나 불편했던 점이 있다면 알려주세요."></textarea>
           <div class="fberr" id="rpErr" role="alert"></div>
-          <button class="fbbtn" id="rpSend">별점 추가하기</button>
+          <button class="fbbtn" id="rpSend">별점 보내기</button>
         </div>
         <div class="done-line" id="rpDone" style="display:none">
           🙌 감사합니다! 답례로 강추 코스 하나 보여드릴게요.

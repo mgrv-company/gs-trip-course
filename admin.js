@@ -628,9 +628,9 @@ const COPY_GROUPS = [
   ]],
   ['별점 영역', [
     ['rating.title', '제목', 'input', '추천해드린 곳, 도움이 되었나요?'],
-    ['rating.body', '안내', 'textarea', "원하는 별점을 누르고, 아래 '별점 추가하기' 버튼을 눌러주세요."],
+    ['rating.body', '안내', 'textarea', "원하는 별점을 누르고, 아래 '별점 보내기' 버튼을 눌러주세요."],
     ['rating.placeholder', '입력칸 안내문', 'textarea', '유용했던 정보가 있거나 불편했던 점이 있다면 알려주세요.'],
-    ['rating.btn', '버튼', 'input', '별점 추가하기'],
+    ['rating.btn', '버튼', 'input', '별점 보내기'],
     ['rating.done', '완료 문구', 'input', '🙌 감사합니다! 더 좋은 추천으로 보답할게요.'],
   ]],
   ['팝업 · 가게 피드백', [
