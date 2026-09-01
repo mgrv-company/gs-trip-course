@@ -48,7 +48,7 @@
     overlay.innerHTML = `
       <div class="feedback">
         <button class="rp-close" id="rpClose" aria-label="닫기">✕</button>
-        <p><b>이 추천 서비스는 어떠셨어요?</b><br>원하는 별점을 누르고, 아래 '별점 추가하기' 버튼을 눌러주세요.</p>
+        <p><b>추천해드린 곳, 도움이 되었나요?</b><br>원하는 별점을 누르고, 아래 '별점 추가하기' 버튼을 눌러주세요.</p>
         <div class="stars" id="rpStars">
           ${[1, 2, 3, 4, 5].map(v => `<button class="star" data-v="${v}" aria-label="${v}점">⭐</button>`).join('')}
         </div>

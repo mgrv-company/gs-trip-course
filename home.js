@@ -47,7 +47,7 @@ const COPY = {
   'feedback.body': '소중한 의견을 모아 더욱 유용한 서비스로 만들게요.\n솔직하게 적어주시면 큰 도움이 돼요.',
   'feedback.btnFb': '✍️ 추천받은 가게 피드백 남기기',
   'feedback.btnSuggest': '📌 리스트에 없었던 가게 추천하기',
-  'rating.title': '이 추천 서비스는 어떠셨어요?',
+  'rating.title': '추천해드린 곳, 도움이 되었나요?',
   'rating.body': "원하는 별점을 누르고, 아래 '별점 추가하기' 버튼을 눌러주세요.",
   'rating.placeholder': '어떤 부분이 도움이 되었는지 적어주세요. 혹은 필요한 정보가 있다면 적어주셔도 좋아요.',
   'rating.btn': '별점 추가하기',

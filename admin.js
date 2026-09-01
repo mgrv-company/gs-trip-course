@@ -627,7 +627,7 @@ const COPY_GROUPS = [
     ['feedback.btnSuggest', '추천 버튼', 'input', '📌 리스트에 없었던 가게 추천하기'],
   ]],
   ['별점 영역', [
-    ['rating.title', '제목', 'input', '이 추천 서비스는 어떠셨어요?'],
+    ['rating.title', '제목', 'input', '추천해드린 곳, 도움이 되었나요?'],
     ['rating.body', '안내', 'textarea', "원하는 별점을 누르고, 아래 '별점 추가하기' 버튼을 눌러주세요."],
     ['rating.placeholder', '입력칸 안내문', 'textarea', '어떤 부분이 도움이 되었는지 적어주세요. 혹은 필요한 정보가 있다면 적어주셔도 좋아요.'],
     ['rating.btn', '버튼', 'input', '별점 추가하기'],
