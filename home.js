@@ -220,15 +220,20 @@ function attractionCardHTML(p) {
     </div>
   </div>`;
 }
-// 즐길 곳 전체보기 — 자연명소/그 외 탭 (nat: 1=자연명소, 0/미기재=그 외)
+// 즐길 곳 전체보기 — 자연명소/해수욕장/기타 탭 (nat: 1=자연명소, 0/미기재=기타)
 function renderAttractionSection(sub) {
   const byDist = arr => arr.slice().sort((a, b) => (a.d == null ? 9e9 : a.d) - (b.d == null ? 9e9 : b.d));
-  const list = byDist(PLACES.filter(p => inType(p, '명소') && !p.x && (sub === 'natural' ? p.nat === 1 : p.nat !== 1)));
+  const isBeach = sub === 'beach';
+  const list = isBeach
+    ? byDist(PLACES.filter(p => inType(p, '해변') && !p.x))
+    : byDist(PLACES.filter(p => inType(p, '명소') && !p.x && (sub === 'natural' ? p.nat === 1 : p.nat !== 1)));
   const tabs = `<div class="chips" style="margin:0 0 10px">
     <span class="chip${sub === 'natural' ? ' on' : ''}" data-attrsub="natural">자연명소</span>
-    <span class="chip${sub === 'nonnatural' ? ' on' : ''}" data-attrsub="nonnatural">그 외 볼거리</span>
+    <span class="chip${sub === 'beach' ? ' on' : ''}" data-attrsub="beach">해수욕장</span>
+    <span class="chip${sub === 'nonnatural' ? ' on' : ''}" data-attrsub="nonnatural">기타</span>
   </div>`;
-  $('#secBody').innerHTML = tabs + (list.length ? list.map(p => attractionCardHTML(p)).join('') : '<p class="empty">해당하는 곳이 없어요. 다른 탭을 눌러보세요.</p>');
+  const cards = list.map(isBeach ? beachCardHTML : attractionCardHTML).join('');
+  $('#secBody').innerHTML = tabs + (list.length ? cards : '<p class="empty">해당하는 곳이 없어요. 다른 탭을 눌러보세요.</p>');
 }
 
 // 관광정보(TourAPI) 카드 — 영업시간/메뉴 없이 이름·거리·주소·전화·지도
@@ -602,11 +607,8 @@ function openSection(key) {
     html = list.length ? list.map(p => cardHTML(p)).join('') : '<p class="empty">등록된 포장·배달 가게가 없어요. 곧 추가할게요.</p>';
   } else if (key === 'activity' && typeof TOUR !== 'undefined') {
     html = tourNote + TOUR.activities.map(tourCardHTML).join('');
-  } else if (key === 'beach') {
-    const list = byDist(PLACES.filter(p => inType(p, '해변') && !p.x));
-    html = list.length ? list.map(p => beachCardHTML(p)).join('') : '<p class="empty">해변 정보를 찾지 못했어요. 잠시 후 다시 확인해주세요.</p>';
   } else if (key === 'attraction') {
-    renderAttractionSection('natural');
+    renderAttractionSection(miniAttrSub);
     $('#section').classList.add('show');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
@@ -796,28 +798,22 @@ function attrMiniHTML(p) {
 }
 let miniAttrSub = 'natural';
 function renderBottomSections() {
-  const byDist = arr => arr.slice().sort((a, b) => (a.d == null ? 9e9 : a.d) - (b.d == null ? 9e9 : b.d));
-  const beach = byDist(PLACES.filter(p => inType(p, '해변') && !p.x));
-  const beachScroll = $('#beachMiniScroll');
-  if (beachScroll) {
-    beachScroll.innerHTML = beach.map(beachMiniHTML).join('') || '<p class="empty">해변 정보를 찾지 못했어요. 잠시 후 다시 확인해주세요.</p>';
-    const moreBtn = $('#beachMiniMore');
-    if (moreBtn) moreBtn.textContent = `전체 ${beach.length}곳 보기 →`;
-  }
   renderAttrMini(miniAttrSub);
 }
+// 즐길 곳 미니 탭: 자연명소·기타는 '명소' 타입을, 해수욕장은 '해변' 타입을 같은 자리에서 보여준다.
 function renderAttrMini(sub) {
   miniAttrSub = sub;
   const byDist = arr => arr.slice().sort((a, b) => (a.d == null ? 9e9 : a.d) - (b.d == null ? 9e9 : b.d));
-  const list = byDist(PLACES.filter(p => inType(p, '명소') && !p.x && (sub === 'natural' ? p.nat === 1 : p.nat !== 1)));
+  const isBeach = sub === 'beach';
+  const list = isBeach
+    ? byDist(PLACES.filter(p => inType(p, '해변') && !p.x))
+    : byDist(PLACES.filter(p => inType(p, '명소') && !p.x && (sub === 'natural' ? p.nat === 1 : p.nat !== 1)));
   const attrScroll = $('#attrMiniScroll');
-  if (attrScroll) attrScroll.innerHTML = list.map(attrMiniHTML).join('') || '<p class="empty">해당하는 곳이 없어요. 다른 탭을 눌러보세요.</p>';
+  if (attrScroll) attrScroll.innerHTML = list.map(isBeach ? beachMiniHTML : attrMiniHTML).join('') || '<p class="empty">해당하는 곳이 없어요. 다른 탭을 눌러보세요.</p>';
   const moreBtn = $('#attrMiniMore');
   if (moreBtn) moreBtn.textContent = `전체 ${list.length}곳 보기 →`;
   $$('.attrminitab').forEach(t => t.classList.toggle('on', t.dataset.attrsub === sub));
 }
-const beachMore = $('#beachMiniMore');
-if (beachMore) beachMore.addEventListener('click', () => openSection('beach'));
 const attrMore = $('#attrMiniMore');
 if (attrMore) attrMore.addEventListener('click', () => openSection('attraction'));
 $$('.attrminitab').forEach(t => t.addEventListener('click', () => renderAttrMini(t.dataset.attrsub)));

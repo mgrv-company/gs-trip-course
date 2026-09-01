@@ -358,13 +358,14 @@
   <div id="nowList"></div>
   <div class="notice">📍 위 리스트는 <b style="color:#1f1e1d; text-decoration:underline; font-weight:800">네이버 지도</b>에 기반한 정보로 안내돼요. 가게 사정에 따라 변동이 있을 수 있으니, 방문 전 유선으로 확인해보시길 추천해요.</div>
 
-  <!-- 홈 하단 미니섹션: 즐길 곳 · 해수욕장 (나비게이션 버튼 없이 바로 몇 개 노출) -->
+  <!-- 홈 하단 미니섹션: 즐길 곳 (자연명소 · 해수욕장 · 기타, 나비게이션 버튼 없이 바로 몇 개 노출) -->
   <div class="minisec">
     <div class="minisec-head"><h3 data-copy="attrmini.title">즐길 곳</h3></div>
     <div class="minisec-sub" data-copy="attrmini.sub">고성에서 즐길 거리와 볼 거리를 모아 소개해요.</div>
     <div class="subtabs">
       <div class="attrminitab on" data-attrsub="natural">자연명소</div>
-      <div class="attrminitab" data-attrsub="nonnatural">그 외 볼거리</div>
+      <div class="attrminitab" data-attrsub="beach">해수욕장</div>
+      <div class="attrminitab" data-attrsub="nonnatural">기타</div>
     </div>
     <div class="miniscroll-wrap">
       <button class="miniarrow left" data-target="attrMiniScroll" aria-label="이전">‹</button>
@@ -372,16 +373,6 @@
       <button class="miniarrow right" data-target="attrMiniScroll" aria-label="다음">›</button>
     </div>
     <div class="morebtn" id="attrMiniMore">전체보기 →</div>
-  </div>
-  <div class="minisec">
-    <div class="minisec-head"><h3 data-copy="beachmini.title">해수욕장</h3></div>
-    <div class="minisec-sub" data-copy="beachmini.sub">맹그로브에서 가까운 순서대로 추천해요.</div>
-    <div class="miniscroll-wrap">
-      <button class="miniarrow left" data-target="beachMiniScroll" aria-label="이전">‹</button>
-      <div class="miniscroll" id="beachMiniScroll"></div>
-      <button class="miniarrow right" data-target="beachMiniScroll" aria-label="다음">›</button>
-    </div>
-    <div class="morebtn" id="beachMiniMore">전체보기 →</div>
   </div>
 
   <!-- 하단 섹션 임시 숨김 (완성도 보강 후 노출). 다시 켜려면 아래 div의 style="display:none" 만 제거 -->
