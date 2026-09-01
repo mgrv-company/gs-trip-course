@@ -150,7 +150,7 @@ function cardHTML(p, idx) {
   const badges = [];
   if (p.r) badges.push('<span class="b rsv">예약</span>');
   const open = openNow(p, new Date());
-  if (open === true) badges.push('<span class="b open">● 영업중</span>');
+  if (open === true) badges.push('<span class="b open"><span class="dot">●</span> 영업중</span>');
   else if (open === null) badges.push('<span class="b chk">시간 미상</span>');
   // CA·큐레이터 한 줄 코멘트: 차별점이라 승격 (있을 때만)
   const memo = p.note || p.mr;
