@@ -140,9 +140,9 @@ function hoursNowText(p) {
   return '오늘 ' + range.replace('-', '~');
 }
 function waitText(p) {
-  if (p.w === 2) return `웨이팅 잦음${p.lu ? ' · 줄서기 가능' : ''}`;
-  if (p.w === 1) return '웨이팅할 수도 있어요';
-  if (p.w === 0) return '바로 입장 가능';
+  if (p.w === 2) return `🔴 웨이팅 많은 편${p.lu ? ' · 줄서기 가능' : ''}`;
+  if (p.w === 1) return '🟡 웨이팅 있는 편';
+  if (p.w === 0) return '🟢 웨이팅 없는 편';
   return '';
 }
 
