@@ -49,7 +49,7 @@ const COPY = {
   'feedback.btnSuggest': '📌 리스트에 없었던 가게 추천하기',
   'rating.title': '추천해드린 곳, 도움이 되었나요?',
   'rating.body': "원하는 별점을 누르고, 아래 '별점 추가하기' 버튼을 눌러주세요.",
-  'rating.placeholder': '어떤 부분이 도움이 되었는지 적어주세요. 혹은 필요한 정보가 있다면 적어주셔도 좋아요.',
+  'rating.placeholder': '유용했던 정보가 있거나 불편했던 점이 있다면 알려주세요.',
   'rating.btn': '별점 추가하기',
   'rating.done': '🙌 감사합니다! 답례로 강추 코스 하나 보여드릴게요.',
   'fb.title': '가게 피드백',
