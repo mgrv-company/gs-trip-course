@@ -31,7 +31,7 @@
       #rpOverlay .feedback p { font-size: 12.5px; color: #50514a; line-height: 1.7; margin-bottom: 13px; }
       #rpOverlay .rp-close { position: absolute; top: 8px; right: 8px; border: 0; background: none; font-size: 16px; color: #b3b2ab; cursor: pointer; line-height: 1; padding: 6px; }
       #rpOverlay .stars { display: flex; gap: 1px; justify-content: center; }
-      #rpOverlay .star { font-size: 27px; line-height: 1; background: none; border: 0; cursor: pointer; padding: 4px 2px; filter: grayscale(1); opacity: .45; transition: filter .12s, opacity .12s, transform .12s; }
+      #rpOverlay .star { font-size: 27px; line-height: 1; background: none; border: 0; cursor: pointer; padding: 4px 2px; color: #f0c34b; filter: grayscale(1); opacity: .45; transition: filter .12s, opacity .12s, transform .12s; }
       #rpOverlay .star.on { filter: none; opacity: 1; }
       #rpOverlay .star:active { transform: scale(1.15); }
       #rpOverlay #rpForm textarea { width: 100%; border: 1.5px solid #e9e7e2; border-radius: 0; padding: 11px 12px; font-size: 14px; font-family: inherit; margin: 11px 0 10px; min-height: 60px; resize: vertical; color: #1f1e1d; }
@@ -50,7 +50,7 @@
         <button class="rp-close" id="rpClose" aria-label="닫기">✕</button>
         <p><b>추천해드린 곳, 도움이 되었나요?</b><br>원하는 별점을 누르고, 아래 '별점 추가하기' 버튼을 눌러주세요.</p>
         <div class="stars" id="rpStars">
-          ${[1, 2, 3, 4, 5].map(v => `<button class="star" data-v="${v}" aria-label="${v}점">⭐</button>`).join('')}
+          ${[1, 2, 3, 4, 5].map(v => `<button class="star" data-v="${v}" aria-label="${v}점">★</button>`).join('')}
         </div>
         <div id="rpForm" style="display:none">
           <textarea id="rpMemo" maxlength="300" placeholder="어떤 부분이 도움이 되었는지 적어주세요. 혹은 필요한 정보가 있다면 적어주셔도 좋아요."></textarea>

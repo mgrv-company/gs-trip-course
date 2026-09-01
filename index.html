@@ -136,7 +136,7 @@
   .fbbtn { width: 100%; background: var(--ink); color: #fff; border: 0; border-radius: 0; padding: 11px 13px; font-size: 14px; font-weight: 700; cursor: pointer; }
   .fbbtn.ghost2 { background: #fff; border: 1.5px solid var(--purple); color: var(--purple-deep); margin-top: 8px; }
   .stars { display: flex; gap: 1px; justify-content: center; }
-  .star { font-size: 27px; line-height: 1; background: none; border: 0; cursor: pointer; padding: 4px 2px; filter: grayscale(1); opacity: .45; transition: filter .12s, opacity .12s, transform .12s; }
+  .star { font-size: 27px; line-height: 1; background: none; border: 0; cursor: pointer; padding: 4px 2px; color: var(--gold); filter: grayscale(1); opacity: .45; transition: filter .12s, opacity .12s, transform .12s; }
   .star.on { filter: none; opacity: 1; }
   .star:active { transform: scale(1.15); }
   #rateForm textarea { width: 100%; border: 1.5px solid var(--line); border-radius: 0; padding: 11px 12px; font-size: 14px; font-family: inherit; margin: 11px 0 10px; min-height: 60px; resize: vertical; color: var(--ink); }
@@ -413,7 +413,7 @@
   <div class="feedback" id="rateCard">
     <p><b data-copy="rating.title">추천해드린 곳, 도움이 되었나요?</b><br><span data-copy="rating.body" style="white-space:pre-line">원하는 별점을 누르고, 아래 '별점 추가하기' 버튼을 눌러주세요.</span></p>
     <div class="stars" id="stars">
-      <button class="star" data-v="1">⭐</button><button class="star" data-v="2">⭐</button><button class="star" data-v="3">⭐</button><button class="star" data-v="4">⭐</button><button class="star" data-v="5">⭐</button>
+      <button class="star" data-v="1">★</button><button class="star" data-v="2">★</button><button class="star" data-v="3">★</button><button class="star" data-v="4">★</button><button class="star" data-v="5">★</button>
     </div>
     <div id="rateForm" style="display:none">
       <textarea id="rateMemo" data-copy-ph="rating.placeholder" placeholder="어떤 부분이 도움이 되었는지 적어주세요. 혹은 필요한 정보가 있다면 적어주셔도 좋아요."></textarea>
