@@ -179,7 +179,7 @@ function cardHTML(p, idx) {
       ${line1}
       ${line3}
       ${cacmt}
-      <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">네이버 지도에서 보기${rvSuffix} →</a>` : ''}${shareBtn}</div>
+      <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">지도 보기${rvSuffix}</a>` : ''}${shareBtn}</div>
     </div>
   </div>`;
 }
