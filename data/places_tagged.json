@@ -8729,5 +8729,43 @@
   "thumb": "",
   "naver": "https://map.naver.com/p/entry/place/15101419",
   "guessed": false
+ },
+ {
+  "name": "와요",
+  "type": "술집",
+  "list": "술집",
+  "category": "술집",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.94,
+  "address": "강원 속초시 온정로1길 7",
+  "lat": 38.1854723,
+  "lng": 128.5916122,
+  "sid": "1190480477",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1190480477",
+  "guessed": false
+ },
+ {
+  "name": "주오일심야라멘",
+  "type": "술집",
+  "list": "술집",
+  "category": "술집",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 8.97,
+  "address": "강원 속초시 영랑로2길 7",
+  "lat": 38.2140748,
+  "lng": 128.5912403,
+  "sid": "1466176514",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1466176514",
+  "guessed": false
  }
 ]
