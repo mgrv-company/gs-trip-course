@@ -84,11 +84,12 @@ function renderCard(data) {
     photoWrap.classList.remove('noimg');
   }
 
-  // 정보 문장 3종: 이동시간 / 메뉴 / 별점 — 값 없는 항목은 조용히 생략한다.
+  // 정보 문장 3종: 이동시간 / 영업시간 / 별점 — 값 없는 항목은 조용히 생략한다.
   const moveIcon = data.moveMode === '도보' ? '🚶' : (data.moveMode === '차로' ? '🚗' : '');
   const sentences = [];
   if (data.moveMode && data.moveMin) sentences.push(`맹그로브 고성에서 ${moveIcon} ${data.moveMode}로 ${data.moveMin}분 걸려요.`);
-  if (data.menu) sentences.push(`메뉴는 '${data.menu}'가 있어요.`);
+  if (data.hoursClosed) sentences.push('오늘은 쉬는 날이에요.');
+  else if (data.hoursStart && data.hoursEnd) sentences.push(`오늘 ${to12h(data.hoursStart)}부터 ${to12h(data.hoursEnd)}까지 운영해요. 방문 전 유선으로 문의해보세요.`);
   if (data.ratingScore != null && data.ratingCount != null) sentences.push(`네이버 지도 별점은 ★${data.ratingScore}점이고, 오늘까지 리뷰는 ${data.ratingCount}건 달렸어요.`);
   $('sentEl').innerHTML = sentences.map(s => `<div class="line">${esc(s)}</div>`).join('');
 
