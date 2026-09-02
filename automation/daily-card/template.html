@@ -93,26 +93,14 @@ function renderCard(data) {
   if (data.ratingScore != null && data.ratingCount != null) sentences.push(`네이버 지도 별점은 ⭐${data.ratingScore}점이고, 오늘까지 ✍️ 리뷰는 ${data.ratingCount}건 달렸어요.`);
   $('sentEl').innerHTML = sentences.map(s => `<div class="line">${esc(s)}</div>`).join('');
 
-  // 코멘트 + 영업시간 안내(문장체) — 코멘트가 있을 때만 이 블록 전체를 노출
+  // 코멘트 + 하단 캡션 — 코멘트가 있을 때만 이 블록 전체를 노출
   if (data.blurb) {
     $('noteEl').textContent = data.blurb;
-    const nameEun = (data.name || '') + eunNeun(data.name);
-    let closing = '';
-    if (data.hoursClosed) closing = `${nameEun} 오늘 쉬는 날이에요.`;
-    else if (data.hoursStart && data.hoursEnd) closing = `${nameEun} 🕐 오늘 ${to12h(data.hoursStart)}부터 ${to12h(data.hoursEnd)}까지 운영해요. 오늘 시간 날 때 한 번 들러보시는 건 어때요?`;
-    $('closingEl').textContent = closing;
+    $('closingEl').textContent = '혼자 오셨거나 동행이 필요하다면 오픈채팅방 안에서 자유롭게 말을 건네보세요.';
     $('blurbEl').style.display = '';
   }
 
   $('card').dataset.ready = '1';
-}
-
-// 이름 받침 유무에 따라 은/는 조사를 고른다 (한글 음절 유니코드 오프셋 기반)
-function eunNeun(name) {
-  const s = String(name || '');
-  const code = s.charCodeAt(s.length - 1);
-  if (code < 0xAC00 || code > 0xD7A3) return '는';   // 한글 음절이 아니면(영문 등) 기본값
-  return (code - 0xAC00) % 28 === 0 ? '는' : '은';
 }
 
 function to12h(hhmm) {
