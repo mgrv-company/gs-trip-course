@@ -89,8 +89,8 @@ function renderCard(data) {
   const sentences = [];
   if (data.moveMode && data.moveMin) sentences.push(`맹그로브 고성에서 ${moveIcon} ${data.moveMode}로 ${data.moveMin}분 걸려요.`);
   if (data.hoursClosed) sentences.push('오늘은 쉬는 날이에요.');
-  else if (data.hoursStart && data.hoursEnd) sentences.push(`오늘 ${to12h(data.hoursStart)}부터 ${to12h(data.hoursEnd)}까지 운영해요. 방문 전 유선으로 문의해보세요.`);
-  if (data.ratingScore != null && data.ratingCount != null) sentences.push(`네이버 지도 별점은 ★${data.ratingScore}점이고, 오늘까지 리뷰는 ${data.ratingCount}건 달렸어요.`);
+  else if (data.hoursStart && data.hoursEnd) sentences.push(`🕐 오늘 ${to12h(data.hoursStart)}부터 ${to12h(data.hoursEnd)}까지 운영해요. 방문 전 유선으로 문의해보세요.`);
+  if (data.ratingScore != null && data.ratingCount != null) sentences.push(`네이버 지도 별점은 ⭐${data.ratingScore}점이고, 오늘까지 ✍️ 리뷰는 ${data.ratingCount}건 달렸어요.`);
   $('sentEl').innerHTML = sentences.map(s => `<div class="line">${esc(s)}</div>`).join('');
 
   // 코멘트 + 영업시간 안내(문장체) — 코멘트가 있을 때만 이 블록 전체를 노출
@@ -99,7 +99,7 @@ function renderCard(data) {
     const nameEun = (data.name || '') + eunNeun(data.name);
     let closing = '';
     if (data.hoursClosed) closing = `${nameEun} 오늘 쉬는 날이에요.`;
-    else if (data.hoursStart && data.hoursEnd) closing = `${nameEun} 오늘 ${to12h(data.hoursStart)}부터 ${to12h(data.hoursEnd)}까지 운영해요. 오늘 시간 날 때 한 번 들러보시는 건 어때요?`;
+    else if (data.hoursStart && data.hoursEnd) closing = `${nameEun} 🕐 오늘 ${to12h(data.hoursStart)}부터 ${to12h(data.hoursEnd)}까지 운영해요. 오늘 시간 날 때 한 번 들러보시는 건 어때요?`;
     $('closingEl').textContent = closing;
     $('blurbEl').style.display = '';
   }
