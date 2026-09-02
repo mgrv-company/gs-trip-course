@@ -21,7 +21,6 @@
   .photo-scrim { position: absolute; inset: 0; background: linear-gradient(to top, rgba(31,30,29,.92) 0%, rgba(31,30,29,.15) 55%, rgba(31,30,29,0) 75%); }
 
   .eyebrow { position: absolute; left: 56px; top: 56px; height: 48px; display: inline-flex; align-items: center; background: var(--purple-deep); color: #fff; font-size: 26px; font-weight: 800; padding: 0 22px; letter-spacing: -0.01em; }
-  .date { position: absolute; right: 56px; top: 56px; height: 48px; display: flex; align-items: center; color: #fff; font-size: 24px; font-weight: 600; opacity: .92; font-variant-numeric: tabular-nums; }
 
   .name-block { position: absolute; left: 56px; right: 56px; bottom: 44px; color: #fff; }
   .name-block .nm { font-size: 64px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; text-wrap: balance; }
@@ -33,12 +32,13 @@
   .sentences .line { padding-left: 30px; position: relative; }
   .sentences .line::before { content: '•'; position: absolute; left: 6px; color: var(--gray); font-weight: 800; }
 
-  .blurb { border-left: 4px solid #55564e; padding: 4px 0 4px 28px; color: #55564e; }
+  .blurb { margin-left: 20px; border-left: 4px solid #55564e; padding: 4px 0 4px 28px; color: #55564e; }
   .blurb .note { font-size: 30px; font-weight: 700; line-height: 1.55; }
   .blurb .closing { font-size: 26px; font-weight: 600; line-height: 1.55; margin-top: 10px; }
 
-  .foot { margin-top: auto; padding-top: 28px; border-top: 1px solid var(--ink); display: flex; align-items: center; justify-content: flex-end; }
+  .foot { margin-top: auto; padding-top: 28px; border-top: 1px solid var(--ink); display: flex; align-items: center; justify-content: space-between; }
   .foot .logo { height: 30px; }
+  .foot .foot-date { font-size: 22px; font-weight: 600; color: var(--gray); font-variant-numeric: tabular-nums; }
 </style>
 </head>
 <body>
@@ -46,8 +46,7 @@
   <div class="photo-wrap noimg" id="photoWrap">
     <img id="photoImg" alt="" style="display:none;">
     <div class="photo-scrim"></div>
-    <div class="eyebrow">오늘의 추천</div>
-    <div class="date" id="dateEl"></div>
+    <div class="eyebrow">오늘의 PICK</div>
     <div class="name-block">
       <div class="nm" id="nameEl"></div>
       <div class="cat" id="catEl"></div>
@@ -61,6 +60,7 @@
     </div>
     <div class="foot">
       <img class="logo" src="../../assets/mangrove-goseong-logo-black.svg" onerror="this.src='../../assets/mangrove-goseong-logo.svg'; this.style.filter='invert(1)';" alt="맹그로브 고성">
+      <div class="foot-date" id="dateEl"></div>
     </div>
   </div>
 </article>
