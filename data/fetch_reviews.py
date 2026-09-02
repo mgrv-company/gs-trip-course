@@ -1,4 +1,5 @@
 # 방문자 리뷰에서 웨이팅 신호 수집: 최근 리뷰 10개의 대기 언급 + 네이버 줄서기 도입 여부
+# + 카드뉴스용 리뷰 본문 일부 저장(2026-09-02 추가 — 이전엔 개수만 세고 본문은 버렸음)
 # 실행: python data/fetch_reviews.py  (프로젝트 루트, 4초 간격 — 429 방지)
 import json, re, time, urllib.request, io, sys
 
@@ -6,6 +7,7 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15'
 WAIT_PAT = re.compile(r'웨이팅|대기[가-힣]*\s|줄\s*서|줄이\s|오픈런|번호표')
+BODIES_KEEP = 8  # 카드에서 짧은/긴 스타일 하나씩 고를 수 있게 여러 개 보관
 places = json.load(open('data/places_tagged.json', encoding='utf-8'))
 
 try:
@@ -27,9 +29,10 @@ def fetch(sid):
     wait = sum(1 for b in bodies if WAIT_PAT.search(b))
     # 네이버 줄서기(원격 웨이팅) 도입 여부 — booking 표기명에서 확인
     lineup = bool(re.search(r'"booking(?:Display|Button|HubButton)Name":\s*"[^"]*줄서기', html))
-    return {'sample': len(bodies), 'wait': wait, 'lineup': lineup}
+    return {'sample': len(bodies), 'wait': wait, 'lineup': lineup, 'bodies': bodies[:BODIES_KEEP]}
 
-todo = [p for p in places if str(p['sid']) not in stats]
+# 'bodies' 키가 없는 곳(과거에 개수만 저장했던 곳 포함)은 전부 다시 수집 대상
+todo = [p for p in places if 'bodies' not in stats.get(str(p['sid']), {})]
 print(f'대상 {len(todo)}곳 (이미 수집 {len(stats)}곳)')
 fail = 0
 for i, p in enumerate(todo):
