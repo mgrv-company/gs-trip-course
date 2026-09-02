@@ -104,6 +104,30 @@ def today_hours_status(p, day_name):
     return 'closed' if h[day_name] is None else 'open'
 
 
+def open_at_time(p, day_name, target_hhmm):
+    # 점심/저녁 슬롯 발송용 — "오늘 언젠가 영업"이 아니라 target_hhmm 그 시각에 실제로 열려있는지
+    # 확인한다. 마감 30분 전은 방문客 입장에서 사실상 닫힌 것과 같아 제외한다(홈페이지 openNow()의
+    # 마감 임박 배제 로직과 같은 취지). 반환값: True=열림 / False=닫힘·마감임박 / None=시간 정보 없음
+    h = p.get('h')
+    if not h or day_name not in h:
+        return None
+    val = h[day_name]
+    if val is None:
+        return False
+    def to_min(t):
+        hh, mm = t.split(':')
+        return int(hh) * 60 + int(mm)
+    start_s, end_s = val.split('-')
+    target, start, end = to_min(target_hhmm), to_min(start_s), to_min(end_s)
+    if end <= start:
+        end += 1440  # 자정 넘어가는 영업시간(예: 18:00-02:00)
+    if start <= target <= end - 30:
+        return True
+    if target + 1440 >= start and target + 1440 <= end - 30:
+        return True
+    return False
+
+
 def weighted_pick(ranked, rng):
     n = len(ranked)
     weights = [n - i for i in range(n)]
@@ -267,9 +291,10 @@ def archive_card_locally(card_path, date_str):
 
 
 def prune_old_cards(keep_days=CARD_KEEP_DAYS):
-    # git이 추적 중인 output/daily-card/YYYY-MM-DD.png 중 오래된 것을 로컬 아카이브로 옮긴 뒤 git rm으로 스테이징.
+    # git이 추적 중인 output/daily-card/YYYY-MM-DD[-slot].png 중 오래된 것을 로컬 아카이브로 옮긴 뒤
+    # git rm으로 스테이징. -슬롯 접미사(점심/저녁 등)가 붙어도 날짜만 뽑아 나이를 판단한다.
     # 실제 커밋은 이 함수를 호출한 쪽(git_commit_push)이 오늘 카드 추가와 한 커밋으로 묶어서 한다.
-    pattern = re.compile(r'^(\d{4}-\d{2}-\d{2})\.png$')
+    pattern = re.compile(r'^(\d{4}-\d{2}-\d{2})(?:-\w+)?\.png$')
     card_dir_git = CARD_DIR.replace(os.sep, '/')
     try:
         out = subprocess.run(['git', 'ls-files', card_dir_git],
@@ -280,17 +305,18 @@ def prune_old_cards(keep_days=CARD_KEEP_DAYS):
 
     dated = []
     for line in out.splitlines():
-        m = pattern.match(os.path.basename(line))
+        base = os.path.basename(line)
+        m = pattern.match(base)
         if m:
-            dated.append((m.group(1), line))
+            dated.append((m.group(1), base[:-4], line))  # (날짜, 슬롯 포함 슬러그, git 경로)
     dated.sort()  # 날짜 오름차순 → 앞쪽이 오래된 것
 
     if len(dated) <= keep_days:
         return []
 
     removed = []
-    for date_str, git_path in dated[:-keep_days]:
-        archive_card_locally(git_path.replace('/', os.sep), date_str)
+    for date_str, slug, git_path in dated[:-keep_days]:
+        archive_card_locally(git_path.replace('/', os.sep), slug)
         r = subprocess.run(['git', 'rm', '--quiet', git_path],
                             capture_output=True, text=True, encoding='utf-8', errors='replace')
         if r.returncode == 0:
@@ -300,7 +326,9 @@ def prune_old_cards(keep_days=CARD_KEEP_DAYS):
     return removed
 
 
-def pick_today(rng=None):
+def pick_today(rng=None, target_hhmm=None):
+    # target_hhmm(예: '18:30')을 주면 "오늘 언젠가 영업"이 아니라 그 시각에 실제로 열려있는
+    # 곳만 후보로 삼는다(점심/저녁처럼 하루 여러 번 보낼 때 시간대에 안 맞는 추천을 막기 위함).
     rng = rng or random.Random()
     now = datetime.now()
     day_idx = int(now.strftime('%w'))
@@ -312,9 +340,15 @@ def pick_today(rng=None):
 
     scored = []
     for p in filtered:
-        status = today_hours_status(p, day_name)
-        if status == 'closed':
-            continue
+        if target_hhmm is not None:
+            open_then = open_at_time(p, day_name, target_hhmm)
+            if open_then is False:
+                continue
+            status = 'open' if open_then else 'unknown'
+        else:
+            status = today_hours_status(p, day_name)
+            if status == 'closed':
+                continue
         s = base_score(p, rng) + season_bonus(p, month) + weekday_bonus(p, day_idx)
         if status == 'unknown':
             s -= 1.0
@@ -396,11 +430,23 @@ def send(msg, image_url=None, image_alt=''):
         return False
 
 
+# 점심/저녁처럼 하루 여러 번 보낼 때 슬롯별 대표 시각 — 그 시각에 실제로 열려있는 곳만 후보로 삼는다.
+SLOT_TIMES = {'lunch': '12:30', 'dinner': '18:30'}
+
 if __name__ == '__main__':
     preview = '--preview' in sys.argv
+    slot = None
+    if '--slot' in sys.argv:
+        idx = sys.argv.index('--slot')
+        slot = sys.argv[idx + 1] if idx + 1 < len(sys.argv) else None
+        if slot not in SLOT_TIMES:
+            print(f'⚠️ 알 수 없는 --slot 값: {slot!r} (사용 가능: {list(SLOT_TIMES)})')
+            sys.exit(1)
+    target_hhmm = SLOT_TIMES.get(slot)
+
     now = datetime.now()
     day_name = DAY_NAMES[int(now.strftime('%w'))]
-    chosen, msg, history = pick_today()
+    chosen, msg, history = pick_today(target_hhmm=target_hhmm)
     print(msg)
 
     card_data = build_card_data(chosen, day_name, now)
@@ -410,13 +456,14 @@ if __name__ == '__main__':
         sys.exit(0)
 
     date_str = now.strftime('%Y-%m-%d')
-    card_rel_path = os.path.join(CARD_DIR, f'{date_str}.png')
+    slug = f'{date_str}-{slot}' if slot else date_str
+    card_rel_path = os.path.join(CARD_DIR, f'{slug}.png')
     image_url = None
     if render_card(card_data, card_rel_path):
-        archive_card_locally(card_rel_path, date_str)  # 공개 저장소 정리와 무관하게 이 컴퓨터엔 항상 남긴다
+        archive_card_locally(card_rel_path, slug)  # 공개 저장소 정리와 무관하게 이 컴퓨터엔 항상 남긴다
         card_git_path = card_rel_path.replace(os.sep, '/')
         pruned = prune_old_cards()
-        commit_msg = f'data: 오늘의 추천 카드 {date_str} ({chosen.get("n", "")})'
+        commit_msg = f'data: 오늘의 추천 카드 {slug} ({chosen.get("n", "")})'
         if pruned:
             commit_msg += f' + 지난 카드 {len(pruned)}개 정리(로컬 보관)'
         if git_commit_push(card_git_path, commit_msg):
