@@ -155,9 +155,12 @@ def move_text(p):
 
 def move_parts(p):
     # 카드 문장("맹그로브 고성에서 {모드}로 {분}분 걸려요")용 — 대표 이동수단 하나만 뽑는다.
+    # 도보 범위를 넘지만 차 타기엔 애매한 거리는 자전거로(시속 15km 가정, ~14분 이내).
     d = p.get('d') or 0
     if d <= 1.2:
         return '도보', max(3, round(d * 15))
+    if d <= 3.5:
+        return '자전거', max(5, round(d / 15 * 60))
     return '차로', round(d / 50 * 60) + 3
 
 

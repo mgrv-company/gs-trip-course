@@ -85,9 +85,11 @@ function renderCard(data) {
   }
 
   // 정보 문장 3종: 이동시간 / 영업시간 / 별점 — 값 없는 항목은 조용히 생략한다.
-  const moveIcon = data.moveMode === '도보' ? '🚶' : (data.moveMode === '차로' ? '🚗' : '');
+  const moveIcon = data.moveMode === '도보' ? '🚶' : (data.moveMode === '차로' ? '🚗' : (data.moveMode === '자전거' ? '🚲' : ''));
+  // '차로'는 단어 자체에 조사가 이미 붙어 있어(차+로) '로'를 또 붙이면 "차로로"가 된다.
+  const movePhrase = data.moveMode === '차로' ? '차로' : `${data.moveMode}로`;
   const sentences = [];
-  if (data.moveMode && data.moveMin) sentences.push(`맹그로브 고성에서 ${moveIcon} ${data.moveMode}로 ${data.moveMin}분 걸려요.`);
+  if (data.moveMode && data.moveMin) sentences.push(`맹그로브 고성에서 ${moveIcon} ${movePhrase} ${data.moveMin}분 걸려요.`);
   if (data.hoursClosed) sentences.push('오늘은 쉬는 날이에요.');
   else if (data.hoursStart && data.hoursEnd) sentences.push(`오늘 ⏰ ${to12h(data.hoursStart)}부터 ${to12h(data.hoursEnd)}까지 운영해요. 방문 전 유선으로 문의해보세요.`);
   if (data.ratingScore != null && data.ratingCount != null) sentences.push(`네이버 지도 별점은 ⭐${data.ratingScore}점이고, 오늘까지 ✍️ 리뷰는 ${data.ratingCount}건 달렸어요.`);
