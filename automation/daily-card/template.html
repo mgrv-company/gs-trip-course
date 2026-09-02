@@ -20,8 +20,8 @@
   .photo-wrap.noimg { background: var(--ink); }
   .photo-scrim { position: absolute; inset: 0; background: linear-gradient(to top, rgba(31,30,29,.92) 0%, rgba(31,30,29,.15) 55%, rgba(31,30,29,0) 75%); }
 
-  .eyebrow { position: absolute; left: 56px; top: 56px; display: inline-flex; align-items: center; background: var(--ink); color: #fff; font-size: 26px; font-weight: 800; padding: 10px 22px; letter-spacing: -0.01em; }
-  .date { position: absolute; right: 56px; top: 66px; color: #fff; font-size: 24px; font-weight: 600; opacity: .92; font-variant-numeric: tabular-nums; }
+  .eyebrow { position: absolute; left: 56px; top: 56px; height: 48px; display: inline-flex; align-items: center; background: var(--ink); color: #fff; font-size: 26px; font-weight: 800; padding: 0 22px; letter-spacing: -0.01em; }
+  .date { position: absolute; right: 56px; top: 56px; height: 48px; display: flex; align-items: center; color: #fff; font-size: 24px; font-weight: 600; opacity: .92; font-variant-numeric: tabular-nums; }
 
   .name-block { position: absolute; left: 56px; right: 56px; bottom: 44px; color: #fff; }
   .name-block .nm { font-size: 64px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; text-wrap: balance; }
@@ -29,10 +29,11 @@
 
   .body { flex: 1; padding: 40px 56px 56px; display: flex; flex-direction: column; gap: 24px; }
 
-  .sentences { display: flex; flex-direction: column; gap: 10px; font-size: 28px; font-weight: 600; color: var(--ink); line-height: 1.5; }
+  .sentences { display: flex; flex-direction: column; gap: 12px; font-size: 28px; font-weight: 600; color: var(--ink); line-height: 1.5; }
+  .sentences .line { padding-left: 30px; position: relative; }
+  .sentences .line::before { content: '•'; position: absolute; left: 6px; color: var(--gray); font-weight: 800; }
 
   .blurb { border-left: 4px solid #55564e; padding: 4px 0 4px 28px; color: #55564e; }
-  .blurb .label { font-size: 22px; font-weight: 700; opacity: .75; margin-bottom: 6px; }
   .blurb .note { font-size: 30px; font-weight: 700; line-height: 1.55; }
   .blurb .closing { font-size: 26px; font-weight: 600; line-height: 1.55; margin-top: 10px; }
 
@@ -55,7 +56,6 @@
   <div class="body">
     <div class="sentences" id="sentEl"></div>
     <div class="blurb" id="blurbEl" style="display:none;">
-      <div class="label">코멘트</div>
       <div class="note" id="noteEl"></div>
       <div class="closing" id="closingEl"></div>
     </div>
@@ -85,23 +85,40 @@ function renderCard(data) {
   }
 
   // 정보 문장 3종: 이동시간 / 메뉴 / 별점 — 값 없는 항목은 조용히 생략한다.
+  const moveIcon = data.moveMode === '도보' ? '🚶' : (data.moveMode === '차로' ? '🚗' : '');
   const sentences = [];
-  if (data.moveMode && data.moveMin) sentences.push(`맹그로브 고성에서 ${data.moveMode}로 ${data.moveMin}분 걸려요.`);
+  if (data.moveMode && data.moveMin) sentences.push(`맹그로브 고성에서 ${moveIcon} ${data.moveMode}로 ${data.moveMin}분 걸려요.`);
   if (data.menu) sentences.push(`메뉴는 '${data.menu}'가 있어요.`);
-  if (data.ratingScore != null && data.ratingCount != null) sentences.push(`네이버 지도 별점은 ${data.ratingScore}점이고, 리뷰는 ${data.ratingCount}건이에요.`);
-  $('sentEl').innerHTML = sentences.map(esc).join('<br>');
+  if (data.ratingScore != null && data.ratingCount != null) sentences.push(`네이버 지도 별점은 ★${data.ratingScore}점이고, 오늘까지 리뷰는 ${data.ratingCount}건 달렸어요.`);
+  $('sentEl').innerHTML = sentences.map(s => `<div class="line">${esc(s)}</div>`).join('');
 
   // 코멘트 + 영업시간 안내(문장체) — 코멘트가 있을 때만 이 블록 전체를 노출
   if (data.blurb) {
     $('noteEl').textContent = data.blurb;
+    const nameEun = (data.name || '') + eunNeun(data.name);
     let closing = '';
-    if (data.hoursClosed) closing = '오늘은 쉬는 날이에요.';
-    else if (data.hoursStart && data.hoursEnd) closing = `오늘 ${data.hoursStart}부터 ${data.hoursEnd}까지 영업해요. 한 번 들러보시는 건 어때요?`;
+    if (data.hoursClosed) closing = `${nameEun} 오늘 쉬는 날이에요.`;
+    else if (data.hoursStart && data.hoursEnd) closing = `${nameEun} 오늘 ${to12h(data.hoursStart)}부터 ${to12h(data.hoursEnd)}까지 운영해요. 오늘 시간 날 때 한 번 들러보시는 건 어때요?`;
     $('closingEl').textContent = closing;
     $('blurbEl').style.display = '';
   }
 
   $('card').dataset.ready = '1';
+}
+
+// 이름 받침 유무에 따라 은/는 조사를 고른다 (한글 음절 유니코드 오프셋 기반)
+function eunNeun(name) {
+  const s = String(name || '');
+  const code = s.charCodeAt(s.length - 1);
+  if (code < 0xAC00 || code > 0xD7A3) return '는';   // 한글 음절이 아니면(영문 등) 기본값
+  return (code - 0xAC00) % 28 === 0 ? '는' : '은';
+}
+
+function to12h(hhmm) {
+  const [h, m] = hhmm.split(':').map(Number);
+  const period = h < 12 ? '오전' : '오후';
+  let h12 = h % 12; if (h12 === 0) h12 = 12;
+  return period + ' ' + h12 + '시' + (m ? ' ' + m + '분' : '');
 }
 
 function esc(s) {
@@ -116,7 +133,7 @@ if (!window.__NO_AUTO__) {
     hoursStart: '11:30', hoursEnd: '15:30', hoursClosed: false,
     ratingScore: 4.68, ratingCount: 705, menu: '참치 후토마끼 5pcs, 마제소바',
     blurb: '이 정도로 큰 후토마끼는 없을걸요. 속초 등대해변 근처 식사로 추천',
-    img: '', date: '8월 14일 (금)',
+    img: '', date: '26/08/14 (금)',
   });
 }
 </script>

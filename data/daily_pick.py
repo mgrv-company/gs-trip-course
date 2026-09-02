@@ -217,7 +217,7 @@ def build_card_data(p, day_name, now):
         'menu': ', '.join(menu[:2]) if menu else '',
         'blurb': p.get('note') or p.get('mr') or '',
         'img': p.get('img') or '',
-        'date': f"{now.month}월 {now.day}일 ({day_name})",
+        'date': f"{now.year % 100:02d}/{now.month:02d}/{now.day:02d} ({day_name})",
     }
 
 
