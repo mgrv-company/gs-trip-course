@@ -326,9 +326,10 @@ def prune_old_cards(keep_days=CARD_KEEP_DAYS):
     return removed
 
 
-def pick_today(rng=None, target_hhmm=None):
+def pick_today(rng=None, target_hhmm=None, target_types=None):
     # target_hhmm(예: '18:30')을 주면 "오늘 언젠가 영업"이 아니라 그 시각에 실제로 열려있는
     # 곳만 후보로 삼는다(점심/저녁처럼 하루 여러 번 보낼 때 시간대에 안 맞는 추천을 막기 위함).
+    # target_types를 주면 TARGET_TYPES 대신 그 집합만 후보로 삼는다(저녁엔 카페 제외 등).
     rng = rng or random.Random()
     now = datetime.now()
     day_idx = int(now.strftime('%w'))
@@ -336,7 +337,7 @@ def pick_today(rng=None, target_hhmm=None):
     month = now.month
 
     places = load_places()
-    filtered = [p for p in places if not p.get('x') and p.get('t') in TARGET_TYPES]
+    filtered = [p for p in places if not p.get('x') and p.get('t') in (target_types or TARGET_TYPES)]
 
     scored = []
     for p in filtered:
@@ -432,6 +433,8 @@ def send(msg, image_url=None, image_alt=''):
 
 # 점심/저녁처럼 하루 여러 번 보낼 때 슬롯별 대표 시각 — 그 시각에 실제로 열려있는 곳만 후보로 삼는다.
 SLOT_TIMES = {'lunch': '12:30', 'dinner': '18:30'}
+# 저녁엔 카페보다 식사/술집이 자연스러워서 슬롯별로 후보 타입을 다르게 둔다(점심은 기존과 동일하게 전체).
+SLOT_TARGET_TYPES = {'dinner': {'식사', '술집'}}
 
 if __name__ == '__main__':
     preview = '--preview' in sys.argv
@@ -443,10 +446,11 @@ if __name__ == '__main__':
             print(f'⚠️ 알 수 없는 --slot 값: {slot!r} (사용 가능: {list(SLOT_TIMES)})')
             sys.exit(1)
     target_hhmm = SLOT_TIMES.get(slot)
+    target_types = SLOT_TARGET_TYPES.get(slot)
 
     now = datetime.now()
     day_name = DAY_NAMES[int(now.strftime('%w'))]
-    chosen, msg, history = pick_today(target_hhmm=target_hhmm)
+    chosen, msg, history = pick_today(target_hhmm=target_hhmm, target_types=target_types)
     print(msg)
 
     card_data = build_card_data(chosen, day_name, now)
