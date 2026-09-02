@@ -10,9 +10,9 @@
   html, body { background: #e5e5e2; } /* 카드 밖 여백 — 스크린샷 시 .card 요소만 잘라내므로 실제로는 안 보임 */
   body { font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
 
-  /* 카드 자체는 work-stay 실측 시스템을 그대로 따른다: radius 0, 헤어라인 구분,
-     퍼플 주 액션색. 앱(index.html)의 부드러운 유틸리티 톤과 달리 이 카드는
-     공유용 완성 이미지라 마케팅 페이지의 각진 언어를 그대로 가져와도 된다. */
+  /* 카드는 사이트(index.html)와 같은 톤을 쓴다: radius 0, 헤어라인 구분, 회색 톤 위주(퍼플·초록은
+     상태 신호 외에는 안 씀), 이모지는 이동수단 정도만 남긴다. 정보는 태그·배지 나열 대신 문장체로
+     풀어 쓴다. (2026-09-02 재정리) */
   .card { width: 1080px; height: 1350px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; }
 
   .photo-wrap { position: relative; height: 820px; flex: 0 0 auto; background: var(--ink); }
@@ -20,27 +20,24 @@
   .photo-wrap.noimg { background: var(--ink); }
   .photo-scrim { position: absolute; inset: 0; background: linear-gradient(to top, rgba(31,30,29,.92) 0%, rgba(31,30,29,.15) 55%, rgba(31,30,29,0) 75%); }
 
-  .eyebrow { position: absolute; left: 56px; top: 56px; display: inline-flex; align-items: center; gap: 10px; background: var(--purple); color: #fff; font-size: 26px; font-weight: 800; padding: 10px 22px; letter-spacing: -0.01em; }
+  .eyebrow { position: absolute; left: 56px; top: 56px; display: inline-flex; align-items: center; background: var(--ink); color: #fff; font-size: 26px; font-weight: 800; padding: 10px 22px; letter-spacing: -0.01em; }
   .date { position: absolute; right: 56px; top: 66px; color: #fff; font-size: 24px; font-weight: 600; opacity: .92; font-variant-numeric: tabular-nums; }
 
   .name-block { position: absolute; left: 56px; right: 56px; bottom: 44px; color: #fff; }
   .name-block .nm { font-size: 64px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; text-wrap: balance; }
   .name-block .cat { font-size: 28px; font-weight: 600; opacity: .88; margin-top: 12px; }
 
-  .body { flex: 1; padding: 40px 56px 56px; display: flex; flex-direction: column; gap: 22px; }
+  .body { flex: 1; padding: 40px 56px 56px; display: flex; flex-direction: column; gap: 24px; }
 
-  .metarow { display: flex; flex-wrap: wrap; gap: 14px 28px; font-size: 27px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
-  .metarow .op { color: var(--green-deep); font-weight: 800; }
-  .metarow .sep { color: var(--gray); font-weight: 400; }
+  .sentences { display: flex; flex-direction: column; gap: 10px; font-size: 28px; font-weight: 600; color: var(--ink); line-height: 1.5; }
 
-  .menu-line { font-size: 27px; color: var(--gray); font-weight: 600; }
-  .menu-line b { color: var(--ink); font-weight: 700; }
+  .blurb { border-left: 4px solid #55564e; padding: 4px 0 4px 28px; color: #55564e; }
+  .blurb .label { font-size: 22px; font-weight: 700; opacity: .75; margin-bottom: 6px; }
+  .blurb .note { font-size: 30px; font-weight: 700; line-height: 1.55; }
+  .blurb .closing { font-size: 26px; font-weight: 600; line-height: 1.55; margin-top: 10px; }
 
-  .blurb { border-top: 1px solid var(--ink); color: var(--purple-deep); font-size: 30px; font-weight: 700; line-height: 1.55; padding-top: 24px; }
-
-  .foot { margin-top: auto; padding-top: 28px; border-top: 1px solid var(--ink); display: flex; align-items: center; justify-content: space-between; }
+  .foot { margin-top: auto; padding-top: 28px; border-top: 1px solid var(--ink); display: flex; align-items: center; justify-content: flex-end; }
   .foot .logo { height: 30px; }
-  .foot .tag { font-size: 22px; font-weight: 700; color: var(--gray); }
 </style>
 </head>
 <body>
@@ -48,7 +45,7 @@
   <div class="photo-wrap noimg" id="photoWrap">
     <img id="photoImg" alt="" style="display:none;">
     <div class="photo-scrim"></div>
-    <div class="eyebrow">🍜 오늘의 고성 추천</div>
+    <div class="eyebrow">오늘의 추천</div>
     <div class="date" id="dateEl"></div>
     <div class="name-block">
       <div class="nm" id="nameEl"></div>
@@ -56,25 +53,28 @@
     </div>
   </div>
   <div class="body">
-    <div class="metarow" id="metaEl"></div>
-    <div class="menu-line" id="menuEl"></div>
-    <div class="blurb" id="blurbEl" style="display:none;"></div>
+    <div class="sentences" id="sentEl"></div>
+    <div class="blurb" id="blurbEl" style="display:none;">
+      <div class="label">코멘트</div>
+      <div class="note" id="noteEl"></div>
+      <div class="closing" id="closingEl"></div>
+    </div>
     <div class="foot">
       <img class="logo" src="../../assets/mangrove-goseong-logo-black.svg" onerror="this.src='../../assets/mangrove-goseong-logo.svg'; this.style.filter='invert(1)';" alt="맹그로브 고성">
-      <div class="tag">mgrv-company.github.io/gs-trip-course</div>
     </div>
   </div>
 </article>
 
 <script>
-// data 형태: { name, category, zone, move, hours, isOpen(bool|null), rating, menu, blurb, img, date }
-// daily_pick.py의 fields dict를 그대로 확장한 값을 받는다 (automation/daily-card/render.mjs 참고)
+// data 형태: { name, category, moveMode, moveMin, hoursStart, hoursEnd, hoursClosed,
+//              ratingScore, ratingCount, menu, blurb, img, date }
+// daily_pick.py의 build_card_data()가 만들어 넘긴다 (automation/daily-card/render.mjs 참고)
 function renderCard(data) {
   data = data || {};
   const $ = id => document.getElementById(id);
 
   $('nameEl').textContent = data.name || '';
-  $('catEl').textContent = [data.category, data.zone].filter(Boolean).join(' · ');
+  $('catEl').textContent = data.category || '';
   $('dateEl').textContent = data.date || '';
 
   const photoWrap = $('photoWrap'), photoImg = $('photoImg');
@@ -84,18 +84,22 @@ function renderCard(data) {
     photoWrap.classList.remove('noimg');
   }
 
-  const metaParts = [];
-  if (data.isOpen === true) metaParts.push('<span class="op">● 영업중</span>');
-  else if (data.isOpen === false) metaParts.push('<span class="op" style="color:var(--gray)">오늘 휴무</span>');
-  if (data.move) metaParts.push(esc(data.move));
-  if (data.hours) metaParts.push(esc(data.hours));
-  if (data.rating) metaParts.push('★ ' + esc(data.rating));
-  $('metaEl').innerHTML = metaParts.map((p, i) => (i ? '<span class="sep">·</span>' : '') + p).join(' ');
+  // 정보 문장 3종: 이동시간 / 메뉴 / 별점 — 값 없는 항목은 조용히 생략한다.
+  const sentences = [];
+  if (data.moveMode && data.moveMin) sentences.push(`맹그로브 고성에서 ${data.moveMode}로 ${data.moveMin}분 걸려요.`);
+  if (data.menu) sentences.push(`메뉴는 '${data.menu}'가 있어요.`);
+  if (data.ratingScore != null && data.ratingCount != null) sentences.push(`네이버 지도 별점은 ${data.ratingScore}점이고, 리뷰는 ${data.ratingCount}건이에요.`);
+  $('sentEl').innerHTML = sentences.map(esc).join('<br>');
 
-  $('menuEl').textContent = data.menu ? ('▶ ' + data.menu) : '';
-  $('menuEl').style.display = data.menu ? '' : 'none';
-
-  if (data.blurb) { $('blurbEl').textContent = data.blurb; $('blurbEl').style.display = ''; }
+  // 코멘트 + 영업시간 안내(문장체) — 코멘트가 있을 때만 이 블록 전체를 노출
+  if (data.blurb) {
+    $('noteEl').textContent = data.blurb;
+    let closing = '';
+    if (data.hoursClosed) closing = '오늘은 쉬는 날이에요.';
+    else if (data.hoursStart && data.hoursEnd) closing = `오늘 ${data.hoursStart}부터 ${data.hoursEnd}까지 영업해요. 한 번 들러보시는 건 어때요?`;
+    $('closingEl').textContent = closing;
+    $('blurbEl').style.display = '';
+  }
 
   $('card').dataset.ready = '1';
 }
@@ -108,8 +112,9 @@ function esc(s) {
 // render.mjs가 자동화 실행 시 window.__NO_AUTO__ = true 를 먼저 심어 이 자동렌더를 막는다.
 if (!window.__NO_AUTO__) {
   renderCard({
-    name: '하마식당', category: '식사', zone: '도보', move: '🚶 14분', hours: '오늘 11:30~15:30',
-    isOpen: true, rating: '4.68 (705)', menu: '참치 후토마끼 5pcs, 마제소바',
+    name: '하마식당', category: '식사', moveMode: '도보', moveMin: 14,
+    hoursStart: '11:30', hoursEnd: '15:30', hoursClosed: false,
+    ratingScore: 4.68, ratingCount: 705, menu: '참치 후토마끼 5pcs, 마제소바',
     blurb: '이 정도로 큰 후토마끼는 없을걸요. 속초 등대해변 근처 식사로 추천',
     img: '', date: '8월 14일 (금)',
   });

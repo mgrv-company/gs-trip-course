@@ -129,6 +129,14 @@ def move_text(p):
     return f'🚗 {car}분'
 
 
+def move_parts(p):
+    # 카드 문장("맹그로브 고성에서 {모드}로 {분}분 걸려요")용 — 대표 이동수단 하나만 뽑는다.
+    d = p.get('d') or 0
+    if d <= 1.2:
+        return '도보', max(3, round(d * 15))
+    return '차로', round(d / 50 * 60) + 3
+
+
 def hours_text(p, day_name):
     h = p.get('h')
     if not h:
@@ -184,18 +192,28 @@ def render_message(p, day_name, template):
 
 def build_card_data(p, day_name, now):
     # automation/daily-card/template.html의 renderCard()가 받는 필드 형태.
-    # render_message()의 fields와 값을 최대한 재사용해 텍스트/카드가 서로 어긋나지 않게 한다.
+    # 카드가 태그·배지 나열 대신 문장체로 바뀌어서(2026-09-02), 각 정보를 문장으로
+    # 조립하기 좋은 원자 단위(모드/분, 시작~종료 시각 등)로 넘긴다.
     rv = p.get('rv')
     menu = p.get('m') or []
-    status = today_hours_status(p, day_name)
+    h = p.get('h') or {}
+    today_hours = h.get(day_name) if day_name in h else None  # None=휴무, 미포함 키=미상
+    move_mode, move_min = move_parts(p)
+    hours_start = hours_end = None
+    if today_hours:
+        parts = today_hours.split('-')
+        if len(parts) == 2:
+            hours_start, hours_end = parts[0], parts[1]
     return {
         'name': p.get('n') or '',
         'category': p.get('c') or p.get('t') or '',
-        'zone': p.get('z') or '',
-        'move': move_text(p),
-        'hours': hours_text(p, day_name),
-        'isOpen': True if status == 'open' else (False if status == 'closed' else None),
-        'rating': f"{rv[0]} ({rv[1]})" if rv else '',
+        'moveMode': move_mode,
+        'moveMin': move_min,
+        'hoursStart': hours_start,
+        'hoursEnd': hours_end,
+        'hoursClosed': day_name in h and h[day_name] is None,
+        'ratingScore': rv[0] if rv else None,
+        'ratingCount': rv[1] if rv else None,
         'menu': ', '.join(menu[:2]) if menu else '',
         'blurb': p.get('note') or p.get('mr') or '',
         'img': p.get('img') or '',
