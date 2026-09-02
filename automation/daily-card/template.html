@@ -13,7 +13,7 @@
   /* 카드는 사이트(index.html)와 같은 톤을 쓴다: radius 0, 헤어라인 구분, 회색 톤 위주(퍼플·초록은
      상태 신호 외에는 안 씀), 이모지는 이동수단 정도만 남긴다. 정보는 태그·배지 나열 대신 문장체로
      풀어 쓴다. (2026-09-02 재정리) */
-  .card { width: 1080px; height: 1350px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+  .card { width: 1080px; height: 1560px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; }
 
   .photo-wrap { position: relative; height: 820px; flex: 0 0 auto; background: var(--ink); }
   .photo-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -31,6 +31,12 @@
   .sentences { display: flex; flex-direction: column; gap: 12px; font-size: 28px; font-weight: 600; color: var(--ink); line-height: 1.5; }
   .sentences .line { padding-left: 30px; position: relative; }
   .sentences .line::before { content: '•'; position: absolute; left: 6px; color: var(--gray); font-weight: 800; }
+
+  .reviews { display: flex; flex-direction: column; gap: 10px; }
+  .reviews .reviews-label { font-size: 22px; font-weight: 700; color: var(--gray); letter-spacing: -0.01em; }
+  .reviews .quote { background: var(--soft); padding: 16px 20px; font-size: 25px; font-weight: 600; color: var(--ink); line-height: 1.5; }
+  .reviews .quote::before { content: '\201C'; color: var(--gray); font-weight: 800; }
+  .reviews .quote::after { content: '\201D'; color: var(--gray); font-weight: 800; }
 
   .blurb { margin-left: 20px; border-left: 4px solid #55564e; padding: 4px 0 4px 28px; color: #55564e; }
   .blurb .note { font-size: 30px; font-weight: 700; line-height: 1.55; }
@@ -54,6 +60,11 @@
   </div>
   <div class="body">
     <div class="sentences" id="sentEl"></div>
+    <div class="reviews" id="reviewsEl" style="display:none;">
+      <div class="reviews-label">실제 방문 후기</div>
+      <div class="quote" id="reviewShortEl" style="display:none;"></div>
+      <div class="quote" id="reviewLongEl" style="display:none;"></div>
+    </div>
     <div class="blurb" id="blurbEl" style="display:none;">
       <div class="note" id="noteEl"></div>
       <div class="closing" id="closingEl"></div>
@@ -95,6 +106,13 @@ function renderCard(data) {
   if (data.ratingScore != null && data.ratingCount != null) sentences.push(`네이버 지도 별점은 ⭐${data.ratingScore}점이고, 오늘까지 ✍️ 리뷰는 ${data.ratingCount}건 달렸어요.`);
   $('sentEl').innerHTML = sentences.map(s => `<div class="line">${esc(s)}</div>`).join('');
 
+  // 실제 방문 후기 — 키워드형(짧은 것) + 서술형(긴 것) 두 스타일, 있는 것만 보여준다.
+  if (data.reviewShort || data.reviewLong) {
+    if (data.reviewShort) { $('reviewShortEl').textContent = data.reviewShort; $('reviewShortEl').style.display = ''; }
+    if (data.reviewLong) { $('reviewLongEl').textContent = data.reviewLong; $('reviewLongEl').style.display = ''; }
+    $('reviewsEl').style.display = '';
+  }
+
   // 코멘트 + 하단 캡션 — 코멘트가 있을 때만 이 블록 전체를 노출
   if (data.blurb) {
     $('noteEl').textContent = data.blurb;
@@ -123,6 +141,7 @@ if (!window.__NO_AUTO__) {
     name: '하마식당', category: '식사', moveMode: '도보', moveMin: 14,
     hoursStart: '11:30', hoursEnd: '15:30', hoursClosed: false,
     ratingScore: 4.68, ratingCount: 705, menu: '참치 후토마끼 5pcs, 마제소바',
+    reviewShort: '가성비 최고예요', reviewLong: '양도 푸짐하고 재료도 신선해서 다음에 또 방문하고 싶어요',
     blurb: '이 정도로 큰 후토마끼는 없을걸요. 속초 등대해변 근처 식사로 추천',
     img: '', date: '26/08/14 (금)',
   });

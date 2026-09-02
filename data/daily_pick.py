@@ -40,6 +40,10 @@ except FileNotFoundError:
     cfg = {}
 
 HISTORY_PATH = 'data/.daily_pick_history.json'
+REVIEWS_PATH = 'data/reviews_stats.json'
+REVIEW_SENTENCE_SPLIT = re.compile(r'[\n.!?~]+')
+REVIEW_SHORT_LEN = (8, 22)   # 키워드형 — 짧고 강점 위주
+REVIEW_LONG_LEN = (28, 60)   # 서술형 — 방문 경험을 풀어쓴 문장
 
 
 def load_places():
@@ -48,6 +52,31 @@ def load_places():
     if not m:
         raise RuntimeError('places.js에서 PLACES 배열을 찾지 못함')
     return json.loads(m.group(1))
+
+
+def load_reviews_stats():
+    try:
+        return json.load(open(REVIEWS_PATH, encoding='utf-8'))
+    except FileNotFoundError:
+        return {}
+
+
+def pick_review_quotes(p, reviews_stats):
+    # fetch_reviews.py가 모아둔 리뷰 본문(최대 8개)에서 문장 단위로 쪼갠 뒤, 짧은
+    # 키워드형 하나 + 긴 서술형 하나를 뽑는다(2026-09-02: "2가지 스타일 다 보여줘" 요청).
+    stats = reviews_stats.get(str(p.get('s')), {})
+    bodies = stats.get('bodies') or []
+    frags = []
+    for b in bodies:
+        for part in REVIEW_SENTENCE_SPLIT.split(b):
+            part = part.strip()
+            if part:
+                frags.append(part)
+    short = [f for f in frags if REVIEW_SHORT_LEN[0] <= len(f) <= REVIEW_SHORT_LEN[1]]
+    long_ = [f for f in frags if REVIEW_LONG_LEN[0] <= len(f) <= REVIEW_LONG_LEN[1]]
+    q_short = random.choice(short) if short else None
+    q_long = random.choice(long_) if long_ else None
+    return q_short, q_long
 
 
 def load_history():
@@ -231,6 +260,7 @@ def build_card_data(p, day_name, now):
         parts = today_hours.split('-')
         if len(parts) == 2:
             hours_start, hours_end = parts[0], parts[1]
+    review_short, review_long = pick_review_quotes(p, load_reviews_stats())
     return {
         'name': p.get('n') or '',
         'category': p.get('c') or p.get('t') or '',
@@ -243,6 +273,8 @@ def build_card_data(p, day_name, now):
         'ratingCount': rv[1] if rv else None,
         'menu': ', '.join(menu[:2]) if menu else '',
         'blurb': p.get('note') or p.get('mr') or '',
+        'reviewShort': review_short,
+        'reviewLong': review_long,
         'img': p.get('img') or '',
         'date': f"{now.year % 100:02d}/{now.month:02d}/{now.day:02d} ({day_name})",
     }

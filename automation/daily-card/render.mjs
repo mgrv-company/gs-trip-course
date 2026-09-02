@@ -23,7 +23,7 @@ async function main() {
 
   const browser = await chromium.launch();
   try {
-    const page = await browser.newPage({ viewport: { width: 1200, height: 1500 }, deviceScaleFactor: 2 });
+    const page = await browser.newPage({ viewport: { width: 1200, height: 1700 }, deviceScaleFactor: 2 });
     // template.html 하단의 자동 샘플 렌더(브라우저 직접 열람용 미리보기)를 막는다
     await page.addInitScript(() => { window.__NO_AUTO__ = true; });
     await page.goto(templateUrl);
