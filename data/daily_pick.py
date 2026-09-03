@@ -44,6 +44,18 @@ REVIEWS_PATH = 'data/reviews_stats.json'
 REVIEW_SENTENCE_SPLIT = re.compile(r'[\n.!?~]+')
 REVIEW_SHORT_LEN = (8, 22)   # 키워드형 — 짧고 강점 위주
 REVIEW_LONG_LEN = (28, 60)   # 서술형 — 방문 경험을 풀어쓴 문장
+# 부정적인 문장이 홍보 문구처럼 인용되는 걸 막는다(2026-09-03: "별루임" 리뷰가 그대로 뽑힌 사고 계기).
+# 부정어 차단만으로는 "소통이 잘 안되는 느낌입니다"처럼 특정 단어 없이도 비판적인 문장을 못 걸러서
+# (같은 날 재발), 부정어 블록리스트 + 긍정 신호 허용리스트(둘 다 통과해야 채택)로 강화했다.
+REVIEW_NEGATIVE_PAT = re.compile(
+    r'별루|별로|아쉽|실망|비추|최악|후회|맛없|불친절|재방문\s*안|다신\s*안|두\s*번\s*다시|'
+    r'돈\s*아깝|시간\s*아깝|그닥|글쎄|보통이|평범하|그냥\s*그런|기대\s*이하|'
+    r'안\s*되는|안\s*돼|불편|부족한|소통이\s*안|않(?:았|아요|네요)'
+)
+REVIEW_POSITIVE_PAT = re.compile(
+    r'맛있|맛나|최고|추천|만족|친절|신선|푸짐|재방문|또\s*올|또\s*가|또\s*방문|좋았|좋아요|좋은|'
+    r'훌륭|정성|가성비|깔끔|분위기\s*좋|맛집|대박|엄지척|감동|든든|짱|굿'
+)
 
 
 def load_places():
@@ -70,7 +82,7 @@ def pick_review_quotes(p, reviews_stats):
     for b in bodies:
         for part in REVIEW_SENTENCE_SPLIT.split(b):
             part = part.strip()
-            if part:
+            if part and REVIEW_POSITIVE_PAT.search(part) and not REVIEW_NEGATIVE_PAT.search(part):
                 frags.append(part)
     short = [f for f in frags if REVIEW_SHORT_LEN[0] <= len(f) <= REVIEW_SHORT_LEN[1]]
     long_ = [f for f in frags if REVIEW_LONG_LEN[0] <= len(f) <= REVIEW_LONG_LEN[1]]
