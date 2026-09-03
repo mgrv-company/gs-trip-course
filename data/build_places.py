@@ -90,11 +90,19 @@ def classify_natural(sid, name):
         return True
     return False  # 애매하면 '그 외'로 — 어드민에서 확인 후 자연명소로 올리는 게 반대보다 안전
 
+REC_MENU_WEIGHT = 3  # 대표메뉴(rec: true) 키워드에 가중치를 줘서 사이드 메뉴에 밀리지 않게 한다
+
 def infer_cuisine(menu_items):
-    text = ' '.join(mi['name'] for mi in menu_items)
+    # 대표메뉴(rec: true)에 가중치를 줘서 판단한다 — 전체 메뉴를 동일 가중치로 세면 사이드 메뉴(예:
+    # 막국수집의 "수육") 키워드가 실제 대표메뉴(막국수)를 밀어내고 엉뚱한 카테고리로 뽑히는 사고가 났다
+    # (2026-09-03: "금화정막국수"가 "고기 요리"로 잘못 표시된 건). 대표메뉴만 보고 판단하면 반대로
+    # 대표메뉴 하나가 어느 규칙과도 안 맞을 때 나머지 메뉴의 뚜렷한 신호까지 버리게 되어, 가중치를
+    # 주되 전체 메뉴를 계속 함께 본다.
+    rec_text = ' '.join(mi['name'] for mi in menu_items if mi.get('rec'))
+    other_text = ' '.join(mi['name'] for mi in menu_items if not mi.get('rec'))
     best, best_n = None, 0
     for label, pat in CUISINE_RULES:
-        n = len(re.findall(pat, text))
+        n = len(re.findall(pat, rec_text)) * REC_MENU_WEIGHT + len(re.findall(pat, other_text))
         if n > best_n:
             best, best_n = label, n
     return best
