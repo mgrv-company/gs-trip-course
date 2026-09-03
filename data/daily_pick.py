@@ -40,6 +40,7 @@ except FileNotFoundError:
     cfg = {}
 
 HISTORY_PATH = 'data/.daily_pick_history.json'
+PLAN_PATH = 'data/.daily_pick_plan.json'
 REVIEWS_PATH = 'data/reviews_stats.json'
 REVIEW_SENTENCE_SPLIT = re.compile(r'[\n.!?~]+')
 REVIEW_SHORT_LEN = (8, 22)   # 키워드형 — 짧고 강점 위주
@@ -382,6 +383,21 @@ def pick_today(rng=None, target_hhmm=None, target_types=None):
     day_idx = int(now.strftime('%w'))
     day_name = DAY_NAMES[day_idx]
     month = now.month
+    history = load_history()
+
+    # 하루 1회(슬롯 없는) 발송은 사용자가 미리 검수해둔 주간 큐가 있으면 그걸 그대로 쓴다 —
+    # 랜덤 자동선정은 큐에 오늘 날짜가 없을 때만 폴백으로 동작한다(2026-09-03 도입).
+    if target_hhmm is None:
+        plan = load_plan()
+        entry = plan.get(now.strftime('%Y-%m-%d'))
+        if entry:
+            places_by_sid = {p.get('s'): p for p in load_places()}
+            chosen = places_by_sid.get(entry.get('sid'))
+            if chosen:
+                template = fetch_template()
+                msg = render_message(chosen, day_name, template)
+                return chosen, msg, history
+            print(f'⚠️ 큐에 있는 장소(sid={entry.get("sid")})를 places.js에서 못 찾음 — 랜덤 선정으로 대체')
 
     places = load_places()
     filtered = [p for p in places if not p.get('x') and p.get('t') in (target_types or TARGET_TYPES)]
@@ -402,7 +418,6 @@ def pick_today(rng=None, target_hhmm=None, target_types=None):
             s -= 1.0
         scored.append((s, p))
 
-    history = load_history()
     cutoff = now - timedelta(days=DEDUP_DAYS)
     recent_sids = {sid for sid, d in history.items() if datetime.strptime(d, '%Y-%m-%d') >= cutoff}
     deduped = [(s, p) for s, p in scored if p.get('s') not in recent_sids]
@@ -417,6 +432,68 @@ def pick_today(rng=None, target_hhmm=None, target_types=None):
     template = fetch_template()
     msg = render_message(chosen, day_name, template)
     return chosen, msg, history
+
+
+def pick_for_date(day, exclude_sids, rng, history):
+    # plan_week()용 — pick_today()와 같은 스코어링/중복회피 로직이지만 특정 미래 날짜(day) 기준으로
+    # 돌리고, 같은 계획 안에서 이미 고른 곳(exclude_sids)도 추가로 피한다.
+    day_idx = int(day.strftime('%w'))
+    day_name = DAY_NAMES[day_idx]
+    month = day.month
+
+    places = load_places()
+    filtered = [p for p in places if not p.get('x') and p.get('t') in TARGET_TYPES and p.get('s') not in exclude_sids]
+
+    scored = []
+    for p in filtered:
+        status = today_hours_status(p, day_name)
+        if status == 'closed':
+            continue
+        s = base_score(p, rng) + season_bonus(p, month) + weekday_bonus(p, day_idx)
+        if status == 'unknown':
+            s -= 1.0
+        scored.append((s, p))
+
+    cutoff = day - timedelta(days=DEDUP_DAYS)
+    recent_sids = {sid for sid, d in history.items() if datetime.strptime(d, '%Y-%m-%d') >= cutoff}
+    deduped = [(s, p) for s, p in scored if p.get('s') not in recent_sids]
+
+    pool = deduped if len(deduped) >= MIN_POOL_AFTER_DEDUP else scored
+    if not pool:
+        raise RuntimeError(f'{day.strftime("%Y-%m-%d")} 추천 가능한 후보가 없음 (필터 결과 0곳)')
+
+    ranked = sorted(pool, key=lambda x: -x[0])[:10]
+    _, chosen = weighted_pick(ranked, rng)
+    return chosen, day_name
+
+
+def plan_week(n=7, start_date=None):
+    # 하루씩 자동 발송하는 대신, N일치를 미리 뽑아서 사용자가 검수한 뒤에 큐로 소비하게 한다
+    # (2026-09-03: "1주일치를 내가 미리 검수하고 올리고 싶어" 요청).
+    rng = random.Random()
+    history = load_history()
+    start = start_date or datetime.now()
+    used_sids = set()
+    plan = []
+    for i in range(n):
+        day = start + timedelta(days=i)
+        chosen, day_name = pick_for_date(day, used_sids, rng, history)
+        used_sids.add(chosen.get('s'))
+        plan.append({'date': day.strftime('%Y-%m-%d'), 'day_name': day_name, 'place': chosen})
+    return plan
+
+
+def save_plan(plan):
+    data = {item['date']: {'sid': item['place'].get('s'), 'name': item['place'].get('n'), 'day_name': item['day_name']}
+            for item in plan}
+    json.dump(data, open(PLAN_PATH, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+
+
+def load_plan():
+    try:
+        return json.load(open(PLAN_PATH, encoding='utf-8'))
+    except FileNotFoundError:
+        return {}
 
 
 def notify_fallback(text):
@@ -483,7 +560,25 @@ SLOT_TIMES = {'lunch': '12:30', 'dinner': '18:30'}
 # 저녁엔 카페보다 식사/술집이 자연스러워서 슬롯별로 후보 타입을 다르게 둔다(점심은 기존과 동일하게 전체).
 SLOT_TARGET_TYPES = {'dinner': {'식사', '술집'}}
 
+PLAN_PREVIEW_DIR = os.path.join(CARD_DIR, 'plan')
+
 if __name__ == '__main__':
+    if '--plan' in sys.argv:
+        idx = sys.argv.index('--plan')
+        n = int(sys.argv[idx + 1]) if idx + 1 < len(sys.argv) and sys.argv[idx + 1].isdigit() else 7
+        plan = plan_week(n)
+        now = datetime.now()
+        os.makedirs(PLAN_PREVIEW_DIR, exist_ok=True)
+        for item in plan:
+            day = datetime.strptime(item['date'], '%Y-%m-%d')
+            card_data = build_card_data(item['place'], item['day_name'], day)
+            out_path = os.path.join(PLAN_PREVIEW_DIR, f"{item['date']}.png")
+            render_card(card_data, out_path)
+            print(f"{item['date']} ({item['day_name']}) — {item['place'].get('n')} → {out_path}")
+        save_plan(plan)
+        print(f'{PLAN_PATH}에 큐 저장됨 (커밋·발송 없음) — 검수 후 승인되면 매일 발송이 이 큐를 먼저 씀')
+        sys.exit(0)
+
     preview = '--preview' in sys.argv
     slot = None
     if '--slot' in sys.argv:
