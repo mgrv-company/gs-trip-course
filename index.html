@@ -104,6 +104,13 @@
   .b.hot { background: #fde8e8; color: #c0392b; }
   .empty { text-align: center; color: var(--gray); font-size: 14px; padding: 34px 10px; }
   .notice { border-top: 1px solid var(--line); color: var(--gray); font-size: 13px; font-weight: 600; line-height: 1.7; padding: 13px 2px 0; margin-top: 16px; }
+  /* 상황 안내 한 줄 (추천 카드 위). 초록은 "영업중" 상태 전용이라 여기선 안 쓰고,
+     중립 배경 + 잉크 레일로 둔다 — 카드보다 조용해야 카드를 안 가린다.
+     display:flex 가 hidden 속성을 덮으므로 [hidden] 규칙을 반드시 같이 둔다. */
+  .ctxnote { display: flex; gap: 9px; align-items: flex-start; background: var(--soft); border-left: 3px solid var(--ink);
+             padding: 11px 13px; margin: 0 0 11px; font-size: 12.5px; line-height: 1.6; color: var(--ink); font-weight: 500; }
+  .ctxnote[hidden] { display: none; }
+  .ctxnote .ic { flex: 0 0 auto; font-size: 14px; line-height: 1.45; }
 
   /* 디자인 코멘트 모드 (어드민 전용 — 손님에겐 안 뜸) */
   #cmDock { position: fixed; right: 14px; bottom: 14px; z-index: 60; border: 0; border-radius: 999px; padding: 11px 15px; font-size: 13px; font-weight: 800; background: #1f1e1d; color: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.25); cursor: pointer; }
@@ -340,8 +347,8 @@
   </div>
 
   <div class="segs" role="tablist">
-    <div class="seg on" role="button" tabindex="0" data-slot="auto" data-copy="seg.auto">영업 중</div>
-    <div class="seg" role="button" tabindex="0" data-slot="meal" data-copy="seg.meal">든든한 한 끼</div>
+    <div class="seg" role="button" tabindex="0" data-slot="auto" data-copy="seg.auto">영업 중</div>
+    <div class="seg on" role="button" tabindex="0" data-slot="meal" data-copy="seg.meal">든든한 한 끼</div>
     <div class="seg" role="button" tabindex="0" data-slot="cafe" data-copy="seg.cafe">느낌 좋은 카페</div>
     <div class="seg" role="button" tabindex="0" data-slot="bar" data-copy="seg.bar">술과 함께</div>
   </div>
@@ -351,10 +358,11 @@
   <div class="slotrow">
     <div>
       <div class="slotlabel" id="slotLabel"></div>
-      <div class="slotsub" id="slotSub">메뉴에 상관없이 지금 영업 중인 가게를 추천해요.</div>
+      <div class="slotsub" id="slotSub">식사가 될 수 있을만한 가게들로 추천해요.</div>
     </div>
     <button class="shuffle" id="shuffleBtn"><span class="sh-ic" aria-hidden="true">↻</span> 다른 곳</button>
   </div>
+  <div class="ctxnote" id="ctxNote" hidden></div>
   <div id="nowList"></div>
   <div class="notice">📍 위 리스트는 <b style="color:#1f1e1d; text-decoration:underline; font-weight:800">네이버 지도</b>에 기반한 정보로 안내돼요. 가게 사정에 따라 변동이 있을 수 있으니, 방문 전 유선으로 확인해보시길 추천해요.</div>
 

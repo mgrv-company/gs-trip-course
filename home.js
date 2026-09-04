@@ -8,8 +8,10 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&a
 // 이미지 URL http→https 승격 (CSP img-src가 http 차단 → 사진 누락 방지)
 const httpsUp = u => String(u == null ? '' : u).replace(/^http:\/\//i, 'https://');
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
-const LIMIT = 3;                 // '영업중'(자동 믹스) 탭 추천 개수
-const LIMIT_CATEGORY = 10;       // 한끼/카페/술집처럼 카테고리를 고른 탭은 더 많이 보여줌
+// 2026-09-04: '영업 중' 탭도 10개로 통일. 3개일 땐 상위 몇 곳만 계속 노출돼서
+// (58일 실측: 상위 20곳이 전체 노출의 32%, 181곳은 노출 20회 미만) 가게가 고르게 안 보였음.
+const LIMIT = 10;                // '영업중'(자동 믹스) 탭 추천 개수
+const LIMIT_CATEGORY = 10;       // 한끼/카페/술집처럼 카테고리를 고른 탭
 // 든든한 한 끼 옵션 — 통합 카테고리 (라벨 → 포함 식성 태그)
 const FOOD_GROUPS = [
   { label: '한식', tags: ['한식', '면', '분식'] },
@@ -43,6 +45,11 @@ const COPY = {
   'slotsub.meal': '식사가 될 수 있을만한 가게들로 추천해요.',
   'slotsub.cafe': '카페부터 베이커리, 젤라또까지 다양하게 추천해요.',
   'slotsub.bar': '노포부터 이자카야까지, 술 한 잔 하기 좋은 곳을 추천해요.',
+  // 추천 카드 위 상황 안내 한 줄 — 해당하는 순간에만 뜬다. 비워두면 그 안내는 안 뜸.
+  'note.morning': '아침 일찍 여는 곳만 골라서 보여드릴게요.',
+  'note.evening': '고성은 저녁 7시부터 문 닫는 곳이 빠르게 늘어요. 마감 시간을 확인하고 나서시길 추천해요.',
+  'note.late': '지금 문 연 곳이 얼마 남지 않았어요. 포장·배달도 함께 살펴보세요.',
+  'note.closedday': '오늘은 쉬는 가게가 많은 날이에요. 지금 문 연 곳만 골라서 보여드릴게요.',
   'feedback.title': '다녀온 가게, 어떠셨어요?',
   'feedback.body': '소중한 의견을 모아 더욱 유용한 서비스로 만들게요.\n솔직하게 적어주시면 큰 도움이 돼요.',
   'feedback.btnFb': '✍️ 추천받은 가게 피드백 남기기',
@@ -337,7 +344,9 @@ document.addEventListener('error', function (e) {
   }
 }, true);
 
-let curSlot = 'auto';
+// 2026-09-04: 첫 화면을 '든든한 한 끼'로. 58일 실측에서 손님이 실제로 옮겨간 탭이
+// 밥(274회) > 카페(167) > 영업 중(128) > 술(120) 이라, 기본값이 손님을 한 번 더 누르게 만들고 있었음.
+let curSlot = 'meal';
 let curFilter = null;   // 선택된 옵션 태그 (식성/분위기), null=전체
 let recent = [];        // 최근 보여준 가게 이름 — 중복 방지(돌아가며 노출)
 
@@ -392,7 +401,31 @@ function renderNow() {
   $('#nowList').innerHTML = picks.length
     ? picks.map((p, i) => cardHTML(p, i + 1)).join('')
     : `<p class="empty">지금 문 연 곳을 찾지 못했어요. 종류 탭이나 옵션을 바꿔보세요.</p>`;
+  renderContextNote();                         // 지금 시각·요일에 맞는 안내 한 줄 (없으면 숨김)
   if (picks.length) queueImpressions(picks);   // 보여준 가게 노출 집계(CTR용)
+}
+
+// ── 추천 카드 위 상황 안내 한 줄 ────────────────────────
+// 손님은 대개 한 번 열고 나가므로(1~2박), 그 한 번에 "지금 알아야 할 것"만 붙인다.
+// 시간대가 요일보다 우선 — 시간은 지금 당장의 행동을 바꾸고, 요일은 배경 정보다.
+// 알릴 게 없는 날엔 아무것도 안 띄운다. 매번 뜨면 손님이 안내 자체를 안 읽게 된다.
+const NOTE_ICON = { morning: '☀️', evening: '🕗', late: '🌙', closedday: '📅' };
+function contextNoteKey(now) {
+  const h = now.getHours(), day = now.getDay();
+  if (h >= 6 && h < 10) return 'morning';     // 오전 9시 기준 문 연 곳 57곳뿐 (places.js 실측)
+  if (h >= 17 && h < 20) return 'evening';    // 식사 가게 18시 131곳 → 20시 72곳으로 감소 시작
+  if (h >= 20 && h <= 23) return 'late';      // 21시 43곳 · 22시 12곳
+  if (day === 2 || day === 3) return 'closedday';   // 화 101곳·수 107곳 휴무 (다른 요일의 2~10배)
+  return null;
+}
+function renderContextNote() {
+  const el = $('#ctxNote');
+  if (!el) return;
+  const key = contextNoteKey(new Date());
+  const text = key ? String(COPY['note.' + key] || '').trim() : '';
+  if (!text) { el.hidden = true; el.textContent = ''; return; }
+  el.innerHTML = `<span class="ic" aria-hidden="true">${NOTE_ICON[key]}</span><span>${esc(text)}</span>`;
+  el.hidden = false;
 }
 
 function renderContext() {
@@ -706,6 +739,7 @@ async function applySettings() {
       }
     }
     applyCopyToDom();
+    renderContextNote();   // 안내 문구는 data-copy가 아니라 코드가 그리므로 따로 다시 그린다
     applyTheme(s && s.theme);
     return true;
   } catch (e) {

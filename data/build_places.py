@@ -155,7 +155,18 @@ ov_by_sid = {str(v['sid']): v for v in overrides.values() if isinstance(v, dict)
 
 slim = []
 stat = Counter()
+renamed = []
 for x in places:
+    # 가게 이름은 네이버 즐겨찾기 북마크에 저장된 값이라 북마크한 시점에 고정돼 있다.
+    # 가게가 상호를 바꿔도 주간 갱신으로는 안 따라오므로, 플레이스 상세에서 받아온
+    # 현재 상호(extras의 name)를 우선 쓰고 없을 때만 북마크 이름을 그대로 둔다.
+    bookmark_name = x['name']
+    live_name = (extras.get(str(x['sid'])) or {}).get('name')
+    if live_name and live_name != bookmark_name:
+        x['name'] = live_name
+        renamed.append((bookmark_name, live_name))
+        stat['상호 변경 반영'] += 1
+
     h = norm_hours(hours.get(str(x['sid'])))
     stat['영업시간 있음' if h else '정보 없음'] += 1
     item = {
@@ -219,7 +230,7 @@ for x in places:
         stat['워크인 무난'] += 1
 
     # 수동 피드백(overrides)은 자동 신호보다 우선 — sid 우선, 없으면 이름(구형식 호환)
-    ov = ov_by_sid.get(str(x['sid'])) or overrides.get(x['name'])
+    ov = ov_by_sid.get(str(x['sid'])) or overrides.get(x['name']) or overrides.get(bookmark_name)
     if ov:
         if ov.get('exclude'):
             # 버리지 않고 x=1로 표시만 차단 — 어드민에서 복구하면 (재빌드 없이) 즉시 다시 보이게
@@ -250,8 +261,13 @@ for x in places:
                 stat['추가 노출'] += 1
     slim.append(item)
 
+# 상호가 바뀐 가게 알림 — 보드·안내문에 옛 이름이 남아있을 수 있어 눈에 띄게 찍는다
+for old, new in renamed:
+    print(f'✏️ 상호 변경: "{old}" → "{new}"')
+
 # 오타 방지: 매칭 안 된 피드백 이름 경고
-names = {x['name'] for x in places}
+# 상호가 바뀐 가게는 sid로 이미 연결돼 있으므로 옛 이름도 매칭된 것으로 친다
+names = {x['name'] for x in places} | {old for old, _ in renamed}
 for k in overrides:
     if k not in names:
         print(f'⚠️ overrides.json의 "{k}" 가 장소 목록에 없음 (이름 확인 필요)')

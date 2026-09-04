@@ -48,6 +48,10 @@ def fetch(sid):
 
     out = {}
     if base:
+        # 현재 상호명 — 네이버 즐겨찾기 북마크의 이름은 북마크한 시점에 고정돼서 가게가
+        # 간판을 바꿔도 안 따라온다. 그래서 플레이스 상세의 살아있는 이름을 같이 받아둔다.
+        if base.get('name'):
+            out['name'] = base['name']
         if base.get('visitorReviewsScore'):
             out['score'] = base['visitorReviewsScore']
         if base.get('visitorReviewsTotal'):
