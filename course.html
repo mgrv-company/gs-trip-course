@@ -105,21 +105,6 @@
       fetch(ADMIN_API + '/view', { method: 'POST', keepalive: true, body: JSON.stringify({ page: 'course' }) }).catch(function () {});
     } catch (e) {}
   })();
-  // ── 페이지별 조회 집계 ──────────────────────────────
-  // 위 블록은 코스 3종이 'gsHit:course' 열쇠와 course_views 카운터를 함께 쓴다. 그래서 같은 날
-  // 다른 코스를 먼저 연 손님은 이 페이지를 열어도 아예 안 세어지고, 세어져도 어느 코스였는지
-  // 구분이 안 된다. 어느 코스가 실제로 읽히는지 알아야 해서 페이지별 열쇠로 따로 센다.
-  // (기존 합산 수치는 과거와 끊기지 않게 위 블록 그대로 유지)
-  (function () {
-    try {
-      if (localStorage.getItem('gstAdminSession')) return;
-      const d = new Date();
-      const key = 'gsHit:course-sea:' + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
-      if (localStorage.getItem(key)) return;
-      localStorage.setItem(key, '1');
-      fetch(ADMIN_API + '/event', { method: 'POST', keepalive: true, body: JSON.stringify({ key: 'page:course-sea' }) }).catch(function () {});
-    } catch (e) {}
-  })();
   document.addEventListener('click', function (e) {
     const a = e.target.closest('a[data-clk]');
     if (!a) return;
