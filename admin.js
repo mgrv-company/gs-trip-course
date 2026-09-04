@@ -487,7 +487,9 @@ async function loadViews() {
     const ev = (await api('/admin/events')).events || [];
     const LABELS = { 'tab:auto': '탭: 영업중', 'tab:meal': '탭: 든든한 한끼', 'tab:cafe': '탭: 카페', 'tab:bar': '탭: 술과 함께',
       'coll:walk': '모음: 걸어서 갈 곳', 'coll:capick': '모음: CA 강추', 'coll:time': '모음: 아침·심야', 'coll:makguksu': '모음: 막국수 모음',
-      'coll:takeout': '모음: 포장·배달', 'coll:activity': '모음: 액티비티', 'coll:beach': '모음: 해수욕장', 'coll:festival': '모음: 축제' };
+      'coll:takeout': '모음: 포장·배달', 'coll:activity': '모음: 액티비티', 'coll:beach': '모음: 해수욕장', 'coll:festival': '모음: 축제',
+      // 코스 3종은 '코스 조회수'에 합산돼서 어느 코스가 읽히는지 구분이 안 됐다. 페이지별로 따로 셈(2026-09-04~).
+      'page:course3': '코스: 첫 방문 3일', 'page:course-sea': '코스: 바다+막국수', 'page:course-pick': '코스: 강추 조합' };
     $('#vEvents').innerHTML = ev.length
       ? ev.map(e => '<li><span class="rname">' + esc(LABELS[e.key] || e.key) + '</span><span class="rval">' + e.n + '<span class="rsub">회</span></span></li>').join('')
       : '<li class="empty">아직 기록이 없어요.</li>';
