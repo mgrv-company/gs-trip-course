@@ -1,1 +1,45 @@
-[]
+[
+ {
+  "name": "감뚜",
+  "type": "식사",
+  "list": "식사",
+  "category": "한식",
+  "food": [
+   "한식",
+   "면"
+  ],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "도보권",
+  "dist_km": 0.86,
+  "address": "강원 고성군 죽왕면 교암2길 57",
+  "lat": 38.2949854,
+  "lng": 128.54839,
+  "sid": "2008462820",
+  "thumb": "https://ldb-phinf.pstatic.net/20260715_279/17841170154915ip41_JPEG/%B8%C5%BB%FD%C0%CC%C4%AE%B1%B9%BC%F6.jpg",
+  "naver": "https://map.naver.com/p/entry/place/2008462820",
+  "guessed": false
+ },
+ {
+  "name": "티무트",
+  "type": "식사",
+  "list": "식사",
+  "category": "인도음식",
+  "food": [
+   "아시안"
+  ],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10,
+  "address": "강원 속초시 중앙로 148 4층",
+  "lat": 38.2039,
+  "lng": 128.5911,
+  "sid": "2014313854",
+  "thumb": "https://ldb-phinf.pstatic.net/20260726_53/1785025053229OzVcj_JPEG/9.TimburCurry_01.jpg",
+  "naver": "https://map.naver.com/p/entry/place/2014313854",
+  "guessed": false
+ }
+]
