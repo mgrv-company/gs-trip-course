@@ -786,12 +786,60 @@ document.addEventListener('keydown', function (e) {
     if (code >= 95) return ['천둥번개', '⛈'];
     return ['', '🌡'];
   }
-  fetch('https://api.open-meteo.com/v1/forecast?latitude=38.28&longitude=128.52&current=temperature_2m,weather_code,wind_speed_10m&wind_speed_unit=ms&timezone=Asia%2FSeoul')
+  const isRain = function (code) { return (code >= 51 && code <= 67) || (code >= 80 && code <= 82) || code >= 95; };
+  const isSnow = function (code) { return (code >= 71 && code <= 77) || code === 85 || code === 86; };
+
+  // '밤 9시쯤' — 예보 시각(Asia/Seoul 기준 '2026-09-07T21:00')을 사람이 읽는 말로
+  function whenText(iso) {
+    const h = parseInt(String(iso).slice(11, 13), 10);
+    if (isNaN(h)) return '';
+    const part = h < 6 ? '새벽' : h < 12 ? '오전' : h < 18 ? '오후' : h < 22 ? '저녁' : '밤';
+    return part + ' ' + (h % 12 || 12) + '시쯤 ';
+  }
+
+  // 둘째 줄 — 앞으로 12시간 예보로 우산·옷차림 한 줄. 해당 없거나 자료 없으면 '' (줄 자체를 안 띄움)
+  function forecastLine(cur, hourly) {
+    if (!hourly || !hourly.time) return '';
+    const times = hourly.time, codes = hourly.weather_code || [],
+          pop = hourly.precipitation_probability || [], mm = hourly.precipitation || [],
+          temps = hourly.temperature_2m || [];
+
+    // (1) 지금 오는 중이면 예보보다 이게 먼저
+    if (isSnow(cur.weather_code)) return '지금 눈 와요 · 미끄럼 조심하세요 ❄️';
+    if (isRain(cur.weather_code)) return '지금 비 와요 · 우산 챙기세요 ☔';
+
+    // (2) 앞으로 첫 강수 시각 — times[0]은 현재 시각대라 다음 시각대부터 본다
+    for (let i = 1; i < times.length; i++) {
+      const wet = pop[i] >= 50 || mm[i] >= 0.2;
+      if (!wet) continue;
+      const snow = isSnow(codes[i]);
+      if (i <= 2) return snow ? '곧 눈 소식이 있어요 ❄️' : '곧 비 소식이 있어요 · 우산 챙기세요 ☔';
+      return whenText(times[i]) + (snow ? '눈 소식이 있어요 ❄️' : '비 소식이 있어요 ☔');
+    }
+
+    // (3) 비 소식이 없으면 기온으로 — 앞으로 12시간 최고·최저
+    const ahead = temps.filter(function (v) { return typeof v === 'number'; });
+    if (!ahead.length) return '';
+    const hi = Math.max.apply(null, ahead), lo = Math.min.apply(null, ahead);
+    if (hi >= 30) return '오늘 많이 더워요 · 물 챙기세요 🥵';
+    if (Math.min(lo, cur.temperature_2m) <= 5) return '많이 추워요 · 따뜻하게 입으세요 🧣';
+    // 지금보다 8° 넘게 떨어질 때만 — 아침에 '이따 추워져요'라고 잘못 말하지 않게
+    if (cur.temperature_2m - lo >= 8) return '이따 ' + Math.round(lo) + '°까지 내려가요 · 겉옷 챙기세요 🧥';
+    return '오늘은 나들이하기 좋아요 🌿';
+  }
+
+  const s2El = document.getElementById('introSub2');
+  fetch('https://api.open-meteo.com/v1/forecast?latitude=38.28&longitude=128.52&current=temperature_2m,weather_code,wind_speed_10m&hourly=temperature_2m,precipitation_probability,precipitation,weather_code&forecast_hours=12&wind_speed_unit=ms&timezone=Asia%2FSeoul')
     .then(function (r) { if (!r.ok) throw 0; return r.json(); })
     .then(function (j) {
       const c = j.current, t = Math.round(c.temperature_2m), w = wmo(c.weather_code);
       const wind = c.wind_speed_10m >= 9 ? ' · 바람 많이 불어요 💨' : '';
       if (sEl) sEl.textContent = '현재 ' + t + '° · ' + w[0] + ' ' + w[1] + wind;
+      if (s2El) {
+        let line = '';
+        try { line = forecastLine(c, j.hourly); } catch (e) { line = ''; }   // 예보만 실패해도 첫 줄은 살린다
+        s2El.textContent = line;
+      }
     })
     .catch(function () { if (sEl) sEl.textContent = '오늘도 즐거운 고성 여행 되세요'; });
 
