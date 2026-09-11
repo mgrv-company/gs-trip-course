@@ -994,9 +994,10 @@ function openSendBox() {
   $('sendbox').classList.add('on');
 }
 async function ensureToken(force) {
-  let tok = force ? '' : (localStorage.getItem(TOKEN_KEY) || '');
+  // 같은 주소(mgrv-company.github.io)의 admin.html 에 로그인돼 있으면 그 세션을 그대로 쓴다 — 비밀번호를 또 안 물어봄
+  let tok = force ? '' : (localStorage.getItem(TOKEN_KEY) || localStorage.getItem('gstAdminSession') || '');
   if (tok) return tok;
-  const pw = window.prompt('트립코스 어드민 비밀번호를 입력하세요 (이 기기에 한 번만 저장돼요)');
+  const pw = (window.prompt('트립코스 어드민(admin.html) 비밀번호를 입력하세요 (이 기기에 한 번만 저장돼요)') || '').trim();
   if (!pw) return '';
   const r = await fetch(`${ADMIN_API}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }) });
   const j = await r.json().catch(() => ({}));
