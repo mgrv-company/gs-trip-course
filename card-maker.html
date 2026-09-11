@@ -160,6 +160,13 @@
   .sheet textarea:focus { border-color: var(--ink); }
   .sheet .btnrow .btn { flex: 1; padding: 12px; font-size: 15px; }
   .sheet .btn.danger { color: #b3261e; border-color: #b3261e; }
+  .drafts { display: flex; flex-direction: column; gap: 6px; }
+  .drafts .row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 6px; align-items: center; font-size: 13px; padding: 6px 8px; background: var(--soft); }
+  .drafts .row .ttl { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+  .drafts .row .ttl small { display: block; font-weight: 500; color: var(--gray); font-size: 11px; }
+  .drafts .row .btn { padding: 6px 9px; font-size: 12px; }
+  .drafts .row .btn.danger { color: #b3261e; border-color: #b3261e; }
+  .drafts .empty { font-size: 12px; color: var(--gray); }
 </style>
 </head>
 <body>
@@ -211,6 +218,16 @@
         <button class="btn" id="btnReset">처음으로</button>
       </div>
       <div class="hint"><span class="only-desktop">문장·후기 위에 마우스를 올리면 오른쪽에 삭제(×) 버튼이 나와요. </span><span class="only-mobile">문장·후기를 누르면 고치거나 지울 수 있어요. </span>후기는 네이버 리뷰에서 긍정 문장만 골라 넣어요.</div>
+    </div>
+
+    <div class="field">
+      <div class="lbl">임시저장 (서버에 보관 — 폰·PC 어디서든 이어서 편집)</div>
+      <div class="btnrow">
+        <button class="btn" id="btnDraftSave" disabled>지금 상태 임시저장</button>
+        <button class="btn" id="btnDraftList">목록 새로고침</button>
+      </div>
+      <div class="drafts" id="drafts"><div class="empty">아직 불러온 목록이 없어요. 어드민 비밀번호로 한 번 로그인하면 목록이 보여요.</div></div>
+      <div class="status" id="draftStatus"></div>
     </div>
 
     <div class="field">
@@ -391,7 +408,9 @@ function pickUnused(kind) {
   const pool = (kind === 'short' ? reviewPool.short : kind === 'long' ? reviewPool.long : [...reviewPool.short, ...reviewPool.long]).filter(f => !used.has(f));
   return pool.length ? sample(pool) : (kind ? pickUnused(null) : '');
 }
+let currentPhotoUrl = '';
 function setPhoto(url) {
+  currentPhotoUrl = url || '';
   const img = $('photoImg');
   photoView = { zoom: 1, left: 0, top: 0 }; $('zoom').value = 1; $('zoomVal').textContent = '1.00×';
   img.removeAttribute('style'); img.style.display = 'none';
@@ -418,7 +437,8 @@ function fillCard(p) {
   $('tgNote').checked = !!(p.note || p.mr);
   $('tgClosing').checked = true;
   applyToggles();
-  $('btnRender').disabled = false; $('mobileSave').disabled = false;
+  $('btnRender').disabled = false; $('mobileSave').disabled = false; $('btnDraftSave').disabled = false;
+  if (!restoringDraft) currentDraftId = null;
   $('stageNote').textContent = `${p.n} · ${p.t}${p.c ? ' · ' + p.c : ''} · 리뷰 문장 후보 ${reviewPool.short.length + reviewPool.long.length}개`;
   $('status').textContent = ''; $('status').className = 'status'; $('saved').innerHTML = '';
   $('linkField').hidden = !p.u;
@@ -465,10 +485,10 @@ async function loadPhotos(p) {
     else note = '네이버 사진 목록을 못 가져왔어요. 대표 사진·내 사진·주소 입력은 그대로 쓸 수 있어요.';
   } catch (e) { note = '네이버 사진 목록을 못 가져왔어요. 대표 사진·내 사진·주소 입력은 그대로 쓸 수 있어요.'; }
   if (seq !== photoReq) return;   // 그 사이 다른 가게를 골랐음
-  const all = [...new Set([...base, ...extra])];
+  const keepData = currentPhotoUrl && currentPhotoUrl.startsWith('data:') ? [currentPhotoUrl] : [];
+  const all = [...new Set([...base, ...extra, ...keepData])];
   renderPhotoGrid(all);
-  const cur = $('photoImg').getAttribute('src') ? (current && current.img) || '' : '';
-  [...$('photoGrid').querySelectorAll('button[data-url]')].forEach(b => b.classList.toggle('on', b.dataset.url === cur));
+  [...$('photoGrid').querySelectorAll('button[data-url]')].forEach(b => b.classList.toggle('on', b.dataset.url === currentPhotoUrl));
   $('photoNote').textContent = note || (all.length ? `사진 ${all.length}장 중에서 골라주세요. 클릭하면 카드에 바로 들어가요.` : '등록 사진이 없어요. 내 사진을 올리거나 주소를 넣어주세요.');
 }
 $('photoFile').addEventListener('change', e => {
@@ -716,6 +736,132 @@ $('btnRender').addEventListener('click', async () => {
     $('btnRender').disabled = false; $('mobileSave').disabled = false;
   }
 });
+// ───────── 임시저장 (서버) ─────────
+// 편집 상태를 통째로 JSON 으로 만들어 워커(KV)에 둔다. 불러오면 가게를 다시 채운 뒤 저장된 문구·사진 위치를 덮어쓴다.
+let currentDraftId = null;     // 불러온 초안이면 그 id — '임시저장'이 같은 초안을 덮어쓴다
+let restoringDraft = false;
+function collectState() {
+  return {
+    v: 1,
+    sid: current ? String(current.s) : '',
+    placeName: current ? current.n : '',
+    title: `${$('nameEl').textContent.trim() || (current && current.n) || ''}`,
+    date: $('date').value,
+    eyebrow: $('eyebrowEl').textContent, name: $('nameEl').textContent, cat: $('catEl').textContent, dateText: $('dateEl').textContent,
+    lines: [...$('sentEl').querySelectorAll('.txt')].map(x => x.textContent),
+    reviewLabel: $('reviewsEl').querySelector('.reviews-label').textContent,
+    quotes: currentQuotes(),
+    note: $('noteEl').textContent, closing: $('closingEl').textContent,
+    toggles: { reviews: $('tgReviews').checked, note: $('tgNote').checked, closing: $('tgClosing').checked },
+    photo: { url: currentPhotoUrl, zoom: photoView.zoom, left: photoView.left, top: photoView.top },
+  };
+}
+function applyState(s) {
+  $('eyebrowEl').textContent = s.eyebrow || '오늘의 PICK';
+  $('nameEl').textContent = s.name || ''; $('catEl').textContent = s.cat || ''; $('dateEl').textContent = s.dateText || $('dateEl').textContent;
+  $('sentEl').innerHTML = ''; (s.lines || []).forEach(x => addLine(x));
+  $('reviewsEl').querySelector('.reviews-label').textContent = s.reviewLabel || '실제 방문 후기';
+  $('quoteList').innerHTML = ''; (s.quotes || []).forEach(q => addQuote(q));
+  $('noteEl').textContent = s.note || ''; $('closingEl').textContent = s.closing || CLOSING_DEFAULT;
+  if (s.toggles) { $('tgReviews').checked = !!s.toggles.reviews; $('tgNote').checked = !!s.toggles.note; $('tgClosing').checked = !!s.toggles.closing; }
+  applyToggles();
+  if (s.photo && s.photo.url) {
+    const img = $('photoImg');
+    const grid = $('photoGrid');
+    if (s.photo.url.startsWith('data:') && ![...grid.querySelectorAll('button[data-url]')].some(b => b.dataset.url === s.photo.url)) {
+      const b = document.createElement('button'); b.type = 'button'; b.dataset.url = s.photo.url; b.innerHTML = `<img alt="">`; b.querySelector('img').src = s.photo.url;
+      b.addEventListener('click', () => setPhoto(s.photo.url)); grid.insertBefore(b, grid.querySelector('.up'));
+    }
+    setPhoto(s.photo.url);
+    const applyPos = () => {
+      photoView = { zoom: Number(s.photo.zoom) || 1, left: Number(s.photo.left) || 0, top: Number(s.photo.top) || 0 };
+      $('zoom').value = photoView.zoom; $('zoomVal').textContent = photoView.zoom.toFixed(2) + '×';
+      layoutPhoto(false);
+    };
+    if (img.complete && img.naturalWidth) applyPos(); else img.addEventListener('load', applyPos, { once: true });
+  }
+}
+function fmtAt(iso) { const d = new Date(iso); return isNaN(d) ? '' : `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; }
+async function draftFetch(pathname, init) {
+  let tok = await ensureToken(false);
+  if (!tok) return null;
+  const run = token => fetch(`${ADMIN_API}${pathname}`, { ...(init || {}), headers: { ...((init && init.headers) || {}), Authorization: 'Bearer ' + token } });
+  let r = await run(tok);
+  if (r.status === 401) { localStorage.removeItem(TOKEN_KEY); tok = await ensureToken(true); if (!tok) return null; r = await run(tok); }
+  return r;
+}
+let draftCache = [];
+function renderDrafts() {
+  const box = $('drafts');
+  if (!draftCache.length) { box.innerHTML = '<div class="empty">임시저장한 카드가 없어요.</div>'; return; }
+  box.innerHTML = '';
+  for (const d of draftCache) {
+    const row = document.createElement('div'); row.className = 'row';
+    row.innerHTML = `<div class="ttl"></div><button class="btn" type="button">불러오기</button><button class="btn danger" type="button">삭제</button>`;
+    row.querySelector('.ttl').innerHTML = `${esc(d.title || d.place || '(이름 없음)')}<small>${esc(fmtAt(d.at))}${d.id === currentDraftId ? ' · 편집 중' : ''}</small>`;
+    row.children[1].addEventListener('click', () => loadDraft(d.id));
+    row.children[2].addEventListener('click', () => deleteDraft(d.id));
+    box.appendChild(row);
+  }
+}
+async function listDrafts(silent) {
+  const st = $('draftStatus');
+  try {
+    const r = await draftFetch('/card/drafts'); if (!r) return;
+    const j = await r.json(); if (!r.ok || !j.ok) throw new Error(j.error || 'HTTP ' + r.status);
+    draftCache = j.drafts || []; renderDrafts();
+    if (!silent) { st.className = 'status'; st.textContent = `임시저장 ${draftCache.length}건`; }
+  } catch (e) { st.className = 'status err'; st.textContent = '목록 실패: ' + (e && e.message || e); }
+}
+async function saveDraft() {
+  if (!current) return;
+  const st = $('draftStatus'); st.className = 'status'; st.textContent = '저장 중…';
+  try {
+    const id = currentDraftId || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    const state = collectState();
+    const r = await draftFetch(`/card/drafts/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(state) }); if (!r) { st.textContent = ''; return; }
+    const j = await r.json(); if (!r.ok || !j.ok) throw new Error(j.error || 'HTTP ' + r.status);
+    currentDraftId = id;
+    // KV 목록 반영이 늦을 수 있어 화면 목록은 바로 고친다
+    draftCache = [{ id, title: j.title || state.title, place: state.placeName, at: j.at }, ...draftCache.filter(d => d.id !== id)];
+    renderDrafts();
+    st.textContent = `임시저장됨 (${fmtAt(j.at)})`;
+  } catch (e) { st.className = 'status err'; st.textContent = '저장 실패: ' + (e && e.message || e); }
+}
+async function loadDraft(id) {
+  const st = $('draftStatus'); st.className = 'status'; st.textContent = '불러오는 중…';
+  try {
+    const r = await draftFetch(`/card/drafts/${id}`); if (!r) { st.textContent = ''; return; }
+    const s = await r.json(); if (!r.ok || s.ok === false) throw new Error(s.error || 'HTTP ' + r.status);
+    const p = PLACES.find(x => String(x.s) === String(s.sid));
+    if (!p) throw new Error('이 초안의 가게를 목록에서 찾지 못했어요');
+    restoringDraft = true;
+    try {
+      if (s.date) $('date').value = s.date;
+      $('q').value = p.n;
+      fillCard(p);                 // 기본값으로 채운 뒤(사진 목록 로드 시작) 저장된 상태로 덮어쓴다
+      applyState(s);
+    } finally { restoringDraft = false; }
+    currentDraftId = id; renderDrafts();
+    st.textContent = '불러왔어요. 이어서 고친 뒤 "지금 상태 임시저장"을 누르면 같은 초안에 덮어써요.';
+    if (isNarrow()) document.querySelector('.stage').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (e) { st.className = 'status err'; st.textContent = '불러오기 실패: ' + (e && e.message || e); }
+}
+async function deleteDraft(id) {
+  if (!window.confirm('이 임시저장을 지울까요?')) return;
+  const st = $('draftStatus');
+  try {
+    const r = await draftFetch(`/card/drafts/${id}`, { method: 'DELETE' }); if (!r) return;
+    const j = await r.json(); if (!r.ok || !j.ok) throw new Error(j.error || 'HTTP ' + r.status);
+    draftCache = draftCache.filter(d => d.id !== id); if (currentDraftId === id) currentDraftId = null; renderDrafts();
+    st.className = 'status'; st.textContent = '지웠어요.';
+  } catch (e) { st.className = 'status err'; st.textContent = '삭제 실패: ' + (e && e.message || e); }
+}
+$('btnDraftSave').addEventListener('click', saveDraft);
+$('btnDraftList').addEventListener('click', () => listDrafts(false));
+// 토큰이 이미 있으면(전에 로그인한 기기) 열자마자 목록을 조용히 채운다 — 비밀번호는 안 묻는다
+if (localStorage.getItem('gs-card-maker-token')) setTimeout(() => listDrafts(true), 300);
+
 // ───────── 트립코스 채널로 보내기 ─────────
 // 어드민 비밀번호로 한 번 로그인하면(토큰은 이 기기에 저장) 이후엔 바로 보내진다. 자동 추천(매일 11시)은 껐고 이 버튼이 그 자리를 대신한다.
 const TOKEN_KEY = 'gs-card-maker-token';

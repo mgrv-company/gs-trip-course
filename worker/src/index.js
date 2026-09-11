@@ -22,6 +22,9 @@ const NAVER_PHOTO_CACHE_MS = 3600000; // 네이버 사진 목록 메모리 캐�
 const CARD_SEND_LIMIT = 20;        // 카드 트립코스 발송: IP당 10분 최대 (로그인 필요하지만 실수 연타 방지)
 const CARD_MAX_BYTES = 6 * 1024 * 1024;   // 카드 이미지 최대 크기 (JPEG 0.9 기준 1MB 안팎, 여유 있게)
 const CARD_TTL_SEC = 180 * 86400;  // KV 보관 기간 — 슬랙에서 다시 열어볼 수 있게 6개월
+const DRAFT_MAX_BYTES = 4 * 1024 * 1024;  // 임시저장 1건 최대 (내 사진을 넣으면 data: 주소가 포함돼 수백 KB)
+const DRAFT_TTL_SEC = 90 * 86400;  // 임시저장 보관 기간 3개월 (그 뒤 자동 삭제)
+const DRAFT_LIMIT = 60;            // 임시저장 읽기/쓰기: IP당 10분 최대
 const IMG_HOST_RE = /(^|\.)(pstatic\.net|phinf\.naver\.net)$/;   // 사진 중계 허용 호스트 — 네이버 이미지 CDN만 (열린 프록시 방지)
 const NAVER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36';         // 공개 읽기 메모리 캐시 (남용시 무료한도 소진 방지 — 어드민 저장하면 즉시 비움)
 const SLACK_BOT_NAME = '고성 트립 코스 봇';  // 이 서비스가 #gs-routine 에 보내는 슬랙 알림 표시 이름 (공용 웹훅이라 이름만 덮어씀)
@@ -417,7 +420,7 @@ export default {
       }
 
       // ── 여기부터는 로그인 필요 ────────────────────────────────
-      if (path.startsWith('/admin/') || path === '/logout' || path === '/card/send') {
+      if (path.startsWith('/admin/') || path === '/logout' || path === '/card/send' || path.startsWith('/card/drafts')) {
         if (!(await checkAuth(req, db))) return json(req, { error: '로그인이 필요해요.' }, 401);
       }
 
@@ -455,6 +458,41 @@ export default {
           return json(req, { ok: false, error: `슬랙 발송 실패 (${r.status}) ${body}`, imageUrl }, 502);
         }
         return json(req, { ok: true, imageUrl });
+      }
+
+      // ── 카드 만들기: 임시저장 (서버 보관 — 폰·PC 어디서든 이어서 편집, 2026-09-11) ──────
+      // KV 키 'draft/<id>' 에 편집 상태(JSON)를 통째로 보관. 목록은 metadata(이름·시각)만 읽는다.
+      // KV 목록은 반영이 수십 초 늦을 수 있어(최종 일관성) 화면 쪽에서 저장 직후엔 목록을 직접 갱신한다.
+      if (path === '/card/drafts' && req.method === 'GET') {
+        if (!env.CARDS) return json(req, { ok: false, error: 'CARDS(KV) 미설정' }, 501);
+        const ip = req.headers.get('CF-Connecting-IP') || 'local';
+        if (await overLimit(db, 'draft@' + ip, DRAFT_LIMIT)) return json(req, { ok: false, error: '요청이 너무 잦아요. 10분 뒤 다시 해주세요.' }, 429);
+        const list = await env.CARDS.list({ prefix: 'draft/', limit: 200 });
+        const drafts = list.keys.map(k => ({ id: k.name.slice('draft/'.length), ...(k.metadata || {}) }))
+          .sort((a, b) => String(b.at || '').localeCompare(String(a.at || '')));
+        return json(req, { ok: true, drafts });
+      }
+      if (path.startsWith('/card/drafts/') && ['GET', 'PUT', 'DELETE'].includes(req.method)) {
+        if (!env.CARDS) return json(req, { ok: false, error: 'CARDS(KV) 미설정' }, 501);
+        const id = path.slice('/card/drafts/'.length);
+        if (!/^[0-9a-zA-Z_-]{6,60}$/.test(id)) return json(req, { ok: false, error: 'bad id' }, 400);
+        const ip = req.headers.get('CF-Connecting-IP') || 'local';
+        if (await overLimit(db, 'draft@' + ip, DRAFT_LIMIT)) return json(req, { ok: false, error: '요청이 너무 잦아요. 10분 뒤 다시 해주세요.' }, 429);
+        const key = 'draft/' + id;
+        if (req.method === 'GET') {
+          const v = await env.CARDS.get(key, { type: 'text' });
+          if (!v) return json(req, { ok: false, error: 'not found' }, 404);
+          return new Response(v, { status: 200, headers: { 'Content-Type': 'application/json; charset=utf-8', ...corsHeaders(req) } });
+        }
+        if (req.method === 'DELETE') { await env.CARDS.delete(key); return json(req, { ok: true }); }
+        const raw = await req.text();
+        if (raw.length > DRAFT_MAX_BYTES) return json(req, { ok: false, error: '임시저장이 너무 커요 (4MB 초과)' }, 413);
+        let state;
+        try { state = JSON.parse(raw); } catch (e) { return json(req, { ok: false, error: '형식 오류' }, 400); }
+        const at = new Date().toISOString();
+        const title = String(state.title || state.name || '').slice(0, 60);
+        await env.CARDS.put(key, raw, { expirationTtl: DRAFT_TTL_SEC, metadata: { title, place: String(state.placeName || '').slice(0, 40), at } });
+        return json(req, { ok: true, id, at, title });
       }
 
       if (path === '/logout' && req.method === 'POST') {
