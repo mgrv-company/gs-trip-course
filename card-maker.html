@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>고성 추천 카드 만들기</title>
+<link rel="icon" href="assets/favicon.svg">
+<link rel="stylesheet" href="design/tokens.css">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #e5e5e2; }
+  body { font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif; color: var(--ink); }
+
+  /* ───────── 카드 (automation/daily-card/template.html 과 동일한 CSS — 바꿀 땐 두 파일을 같이 고칠 것) ───────── */
+  .card { width: 1080px; height: 1560px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+
+  .photo-wrap { position: relative; height: 820px; flex: 0 0 auto; background: var(--ink); }
+  .photo-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photo-wrap.noimg { background: var(--ink); }
+  .photo-scrim { position: absolute; inset: 0; background: linear-gradient(to top, rgba(31,30,29,.92) 0%, rgba(31,30,29,.15) 55%, rgba(31,30,29,0) 75%); }
+
+  .eyebrow { position: absolute; left: 56px; top: 56px; height: 48px; display: inline-flex; align-items: center; background: var(--purple-deep); color: #fff; font-size: 26px; font-weight: 800; padding: 0 22px; letter-spacing: -0.01em; }
+
+  .name-block { position: absolute; left: 56px; right: 56px; bottom: 44px; color: #fff; }
+  .name-block .nm { font-size: 64px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; text-wrap: balance; }
+  .name-block .cat { font-size: 28px; font-weight: 600; opacity: .88; margin-top: 12px; }
+
+  .body { flex: 1; padding: 40px 56px 56px; display: flex; flex-direction: column; gap: 24px; }
+
+  .sentences { display: flex; flex-direction: column; gap: 12px; font-size: 28px; font-weight: 600; color: var(--ink); line-height: 1.5; }
+  .sentences .line { padding-left: 30px; position: relative; }
+  .sentences .line::before { content: '•'; position: absolute; left: 6px; color: var(--gray); font-weight: 800; }
+
+  .reviews { display: flex; flex-direction: column; gap: 10px; }
+  .reviews .reviews-label { font-size: 22px; font-weight: 700; color: var(--gray); letter-spacing: -0.01em; }
+  .reviews .quote { background: var(--soft); padding: 16px 20px; font-size: 25px; font-weight: 600; color: var(--ink); line-height: 1.5; }
+  .reviews .quote::before { content: '\201C'; color: var(--gray); font-weight: 800; }
+  .reviews .quote::after { content: '\201D'; color: var(--gray); font-weight: 800; }
+
+  .blurb { margin-left: 20px; border-left: 4px solid #55564e; padding: 4px 0 4px 28px; color: #55564e; }
+  .blurb .note { font-size: 30px; font-weight: 700; line-height: 1.55; }
+  .blurb .closing { font-size: 26px; font-weight: 600; line-height: 1.55; margin-top: 10px; }
+
+  .foot { margin-top: auto; padding-top: 28px; border-top: 1px solid var(--ink); display: flex; align-items: center; justify-content: space-between; }
+  .foot .logo { height: 30px; }
+  .foot .foot-date { font-size: 22px; font-weight: 600; color: var(--gray); font-variant-numeric: tabular-nums; }
+
+  /* ───────── 편집 화면 ───────── */
+  .app { display: grid; grid-template-columns: 380px 1fr; min-height: 100vh; }
+  .panel { background: #fff; border-right: 1px solid var(--line); padding: 22px 20px 40px; display: flex; flex-direction: column; gap: 18px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+  .panel h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; }
+  .panel h1 small { display: block; font-size: 12px; font-weight: 500; color: var(--gray); margin-top: 4px; line-height: 1.5; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label, .field .lbl { font-size: 12px; font-weight: 700; color: var(--gray); }
+  .field input[type=text], .field input[type=date], .field input[type=url] { font: inherit; font-size: 16px; padding: 9px 10px; border: 1px solid var(--line); background: var(--bg); outline: none; width: 100%; }
+  .field input:focus { border-color: var(--ink); }
+  .search { position: relative; }
+  .results { position: absolute; left: 0; right: 0; top: 100%; z-index: 20; background: #fff; border: 1px solid var(--line); border-top: 0; max-height: 320px; overflow-y: auto; display: none; }
+  .results.on { display: block; }
+  .results button { display: flex; justify-content: space-between; gap: 10px; width: 100%; text-align: left; font: inherit; font-size: 14px; padding: 10px; background: none; border: 0; border-bottom: 1px solid var(--soft); cursor: pointer; }
+  .results button:hover, .results button.hl { background: var(--purple-light); }
+  .results button .meta { font-size: 12px; color: var(--gray); white-space: nowrap; }
+  .toggles { display: flex; flex-direction: column; gap: 8px; }
+  .toggles label { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
+  .btnrow { display: flex; flex-wrap: wrap; gap: 8px; }
+  .btn { font: inherit; font-size: 13px; font-weight: 700; padding: 9px 12px; border: 1px solid var(--ink); background: #fff; color: var(--ink); cursor: pointer; }
+  .btn:hover { background: var(--soft); }
+  .btn.primary { background: var(--purple); border-color: var(--purple); color: #fff; font-size: 15px; padding: 12px; }
+  .btn.primary:hover { background: var(--purple-deep); }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .hint { font-size: 12px; color: var(--gray); line-height: 1.55; }
+  .status { font-size: 13px; line-height: 1.5; min-height: 20px; }
+  .status a { color: var(--purple-deep); font-weight: 700; }
+  .status.err { color: #b3261e; }
+  .saved img { width: 100%; border: 1px solid var(--line); display: block; margin-top: 8px; }
+
+  /* 사진 고르기 */
+  .photo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .photo-grid button { aspect-ratio: 1; border: 2px solid transparent; padding: 0; background: var(--soft); cursor: pointer; overflow: hidden; }
+  .photo-grid button.on { border-color: var(--purple); }
+  .photo-grid img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photo-grid .up { display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--gray); border: 1px dashed var(--gray); }
+  .photo-grid .up:hover { color: var(--ink); border-color: var(--ink); }
+  .photo-note { font-size: 12px; color: var(--gray); }
+
+  .stage { padding: 28px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .stage .scaler { width: 1080px; height: 1560px; transform-origin: top left; }
+  .stage .frame { position: relative; box-shadow: 0 10px 40px rgba(0,0,0,.18); }
+  .stage-note { font-size: 12px; color: var(--gray); text-align: center; }
+
+  [contenteditable] { outline: none; cursor: text; }
+  [contenteditable]:hover { box-shadow: 0 0 0 2px rgba(176,59,212,.35); }
+  [contenteditable]:focus { box-shadow: 0 0 0 2px var(--purple); }
+  .name-block [contenteditable]:hover, .name-block [contenteditable]:focus, .eyebrow:hover, .eyebrow:focus { box-shadow: 0 0 0 2px #fff; }
+  .sentences .line { display: flex; align-items: flex-start; gap: 8px; }
+  .sentences .line .txt { flex: 1; }
+  .ctl { flex: 0 0 auto; display: inline-flex; gap: 4px; opacity: 0; transition: opacity .12s; }
+  .sentences .line:hover .ctl { opacity: 1; }
+  .ctl button { width: 34px; height: 34px; border: 1px solid var(--line); background: #fff; color: var(--gray); font-size: 20px; line-height: 1; cursor: pointer; }
+  .ctl button:hover { color: var(--ink); border-color: var(--ink); }
+  .hidden-block { display: none !important; }
+
+  /* PNG 굽는 동안: 편집용 장식 전부 제거 (html-to-image 가 이 순간의 계산된 스타일을 복제한다) */
+  body.capturing .ctl { display: none !important; }
+  body.capturing [contenteditable] { box-shadow: none !important; }
+
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    .panel { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+    .stage { padding: 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="panel">
+    <h1>고성 추천 카드 만들기<small>가게를 고르면 카드가 채워지고, 카드 위 글자는 바로 눌러서 고칠 수 있어요.</small></h1>
+
+    <div class="field search">
+      <label for="q">가게 검색</label>
+      <input type="text" id="q" placeholder="가게 이름을 입력하세요" autocomplete="off">
+      <div class="results" id="results"></div>
+    </div>
+
+    <div class="field">
+      <label for="date">카드 날짜 (영업시간·요일 기준)</label>
+      <input type="date" id="date">
+    </div>
+
+    <div class="field">
+      <div class="lbl">사진 고르기</div>
+      <div class="photo-grid" id="photoGrid"></div>
+      <div class="photo-note" id="photoNote">가게를 고르면 네이버에 등록된 사진을 불러와요.</div>
+      <input type="file" id="photoFile" accept="image/*" hidden>
+      <input type="url" id="photo" placeholder="또는 사진 주소 직접 입력 (https://...)">
+    </div>
+
+    <div class="field">
+      <div class="lbl">보일 항목</div>
+      <div class="toggles">
+        <label><input type="checkbox" id="tgReviews" checked> 실제 방문 후기</label>
+        <label><input type="checkbox" id="tgBlurb" checked> 코멘트 + 오픈채팅 안내</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="lbl">문장 도구</div>
+      <div class="btnrow">
+        <button class="btn" id="btnAddLine">문장 추가</button>
+        <button class="btn" id="btnMenuLine">대표 메뉴 문장</button>
+        <button class="btn" id="btnReroll">후기 다시 뽑기</button>
+        <button class="btn" id="btnReset">처음으로</button>
+      </div>
+      <div class="hint">각 문장 위에 마우스를 올리면 오른쪽에 삭제(×) 버튼이 나와요. 후기는 네이버 리뷰에서 긍정 문장만 골라 넣고, 다시 뽑기를 누르면 다른 문장으로 바뀌어요.</div>
+    </div>
+
+    <div class="field">
+      <button class="btn primary" id="btnRender" disabled>PNG 저장</button>
+      <div class="status" id="status"></div>
+      <div class="saved" id="saved"></div>
+      <div class="hint">컴퓨터에선 바로 내려받기, 휴대폰에선 아래 나온 이미지를 길게 눌러 저장하면 돼요.</div>
+    </div>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-note" id="stageNote">가게를 검색해서 골라주세요.</div>
+    <div class="scaler" id="scaler">
+      <div class="frame">
+        <article class="card" id="card">
+          <div class="photo-wrap noimg" id="photoWrap">
+            <img id="photoImg" alt="" crossorigin="anonymous" style="display:none;">
+            <div class="photo-scrim"></div>
+            <div class="eyebrow" id="eyebrowEl" contenteditable="true">오늘의 PICK</div>
+            <div class="name-block">
+              <div class="nm" id="nameEl" contenteditable="true"></div>
+              <div class="cat" id="catEl" contenteditable="true"></div>
+            </div>
+          </div>
+          <div class="body">
+            <div class="sentences" id="sentEl"></div>
+            <div class="reviews" id="reviewsEl">
+              <div class="reviews-label" contenteditable="true">실제 방문 후기</div>
+              <div class="quote" id="reviewShortEl" contenteditable="true"></div>
+              <div class="quote" id="reviewLongEl" contenteditable="true"></div>
+            </div>
+            <div class="blurb" id="blurbEl">
+              <div class="note" id="noteEl" contenteditable="true"></div>
+              <div class="closing" id="closingEl" contenteditable="true"></div>
+            </div>
+            <div class="foot">
+              <img class="logo" src="assets/mangrove-goseong-logo.svg" style="filter:invert(1);" alt="맹그로브 고성">
+              <div class="foot-date" id="dateEl" contenteditable="true"></div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.13/html-to-image.js"></script>
+<script src="places.js?v=8"></script>
+<script>
+// ───────── 설정 ─────────
+// 워커: 네이버 사진 중계(/public/img) + 등록 사진 목록(/public/naver-photos). 로컬 시험은 ?worker=http://127.0.0.1:8787
+const ADMIN_API = new URLSearchParams(location.search).get('worker') || 'https://gs-trip-admin.mangrove-goseong.workers.dev';
+const NAVER_IMG_RE = /^https:\/\/[^/]*(pstatic\.net|phinf\.naver\.net)\//;
+// 네이버 사진은 워커를 거쳐야 PNG 에 들어간다(CORS). data: 주소(내 사진)나 그 외 주소는 그대로.
+const proxied = u => NAVER_IMG_RE.test(u) ? `${ADMIN_API}/public/img?u=${encodeURIComponent(u)}` : u;
+
+// ───────── 데이터 규칙 ─────────
+// daily_pick.py 의 move_parts()/build_card_data()/pick_review_quotes() 를 그대로 옮겼다.
+// (자동 카드와 손으로 만든 카드가 같은 문장 규칙을 쓰게)
+const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
+const CLOSING_DEFAULT = '혼자 오셨거나 동행이 필요하다면 오픈채팅방 안에서 자유롭게 말을 건네보세요.';
+const REVIEW_SENTENCE_SPLIT = /[\n.!?~]+/;
+const REVIEW_SHORT_LEN = [8, 22], REVIEW_LONG_LEN = [28, 60];
+const REVIEW_NEGATIVE_PAT = /별루|별로|아쉽|실망|비추|최악|후회|맛없|불친절|재방문\s*안|다신\s*안|두\s*번\s*다시|돈\s*아깝|시간\s*아깝|그닥|글쎄|보통이|평범하|그냥\s*그런|기대\s*이하|안\s*되는|안\s*돼|불편|부족한|소통이\s*안|않(?:았|아요|네요)/;
+const REVIEW_POSITIVE_PAT = /맛있|맛나|최고|추천|만족|친절|신선|푸짐|재방문|또\s*올|또\s*가|또\s*방문|좋았|좋아요|좋은|훌륭|정성|가성비|깔끔|분위기\s*좋|맛집|대박|엄지척|감동|든든|짱|굿/;
+
+const $ = id => document.getElementById(id);
+let REVIEWS = {};
+let current = null;          // 지금 고른 가게 (PLACES 항목)
+let reviewPool = { short: [], long: [] };
+let photoReq = 0;            // 사진 목록 요청 순번 (늦게 온 옛 응답 무시)
+let fontCSS = null;          // html-to-image 가 쓸 폰트 CSS (한 번만 만들어 재사용)
+
+fetch('data/reviews_stats.json').then(r => r.ok ? r.json() : {}).then(j => { REVIEWS = j || {}; }).catch(() => {});
+
+function moveParts(p) {
+  const d = p.d || 0;
+  if (d <= 1.2) return ['도보', Math.max(3, Math.round(d * 15))];
+  if (d <= 3.5) return ['자전거', Math.max(5, Math.round(d / 15 * 60))];
+  return ['차로', Math.round(d / 50 * 60) + 3];
+}
+function to12h(hhmm) {
+  const [h, m] = hhmm.split(':').map(Number);
+  const period = h < 12 ? '오전' : '오후';
+  let h12 = h % 12; if (h12 === 0) h12 = 12;
+  return period + ' ' + h12 + '시' + (m ? ' ' + m + '분' : '');
+}
+function fmtDate(d) {
+  return `${String(d.getFullYear() % 100).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')} (${DAY_NAMES[d.getDay()]})`;
+}
+function pickDate() {
+  const v = $('date').value;
+  if (!v) return new Date();
+  const [y, m, d] = v.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+function reviewFragments(p) {
+  const bodies = ((REVIEWS[String(p.s)] || {}).bodies) || [];
+  const frags = [];
+  for (const b of bodies) for (let part of b.split(REVIEW_SENTENCE_SPLIT)) {
+    part = part.trim();
+    if (part && REVIEW_POSITIVE_PAT.test(part) && !REVIEW_NEGATIVE_PAT.test(part)) frags.push(part);
+  }
+  return {
+    short: frags.filter(f => f.length >= REVIEW_SHORT_LEN[0] && f.length <= REVIEW_SHORT_LEN[1]),
+    long: frags.filter(f => f.length >= REVIEW_LONG_LEN[0] && f.length <= REVIEW_LONG_LEN[1]),
+  };
+}
+const sample = arr => arr.length ? arr[Math.floor(Math.random() * arr.length)] : '';
+
+function buildSentences(p, date) {
+  const day = DAY_NAMES[date.getDay()];
+  const h = p.h || {};
+  const [mode, min] = moveParts(p);
+  const icon = mode === '도보' ? '🚶' : mode === '차로' ? '🚗' : '🚲';
+  const phrase = mode === '차로' ? '차로' : `${mode}로`;
+  const out = [`맹그로브 고성에서 ${icon} ${phrase} ${min}분 걸려요.`];
+  if (day in h) {
+    if (h[day] === null) out.push('오늘은 쉬는 날이에요.');
+    else { const [s, e] = h[day].split('-'); if (s && e) out.push(`오늘 ⏰ ${to12h(s)}부터 ${to12h(e)}까지 운영해요. 방문 전 유선으로 문의해보세요.`); }
+  }
+  if (p.rv) out.push(`네이버 지도 별점은 ⭐${p.rv[0]}점이고, 오늘까지 ✍️ 리뷰는 ${p.rv[1]}건 달렸어요.`);
+  return out;
+}
+function menuSentence(p) {
+  const m = (p.m || []).slice(0, 2).map(s => s.replace(/\s*[\d,]+원$/, '').trim()).filter(Boolean);
+  return m.length ? `🍽 대표 메뉴는 ${m.join(', ')}이에요.` : '🍽 대표 메뉴를 적어주세요.';
+}
+
+// ───────── 카드 채우기 ─────────
+function addLine(text, focus) {
+  const line = document.createElement('div');
+  line.className = 'line';
+  line.innerHTML = `<div class="txt" contenteditable="true"></div><span class="ctl"><button type="button" title="이 문장 지우기">×</button></span>`;
+  line.querySelector('.txt').textContent = text;
+  line.querySelector('button').addEventListener('click', () => line.remove());
+  $('sentEl').appendChild(line);
+  if (focus) line.querySelector('.txt').focus();
+  return line;
+}
+function setPhoto(url) {
+  const img = $('photoImg');
+  if (url) { img.src = proxied(url); img.style.display = 'block'; $('photoWrap').classList.remove('noimg'); }
+  else { img.removeAttribute('src'); img.style.display = 'none'; $('photoWrap').classList.add('noimg'); }
+  [...$('photoGrid').querySelectorAll('button[data-url]')].forEach(b => b.classList.toggle('on', b.dataset.url === url));
+}
+function fillCard(p) {
+  current = p;
+  const date = pickDate();
+  $('eyebrowEl').textContent = '오늘의 PICK';
+  $('nameEl').textContent = p.n || '';
+  $('catEl').textContent = p.c || p.t || '';
+  $('dateEl').textContent = fmtDate(date);
+  $('photo').value = '';
+  $('sentEl').innerHTML = '';
+  buildSentences(p, date).forEach(s => addLine(s));
+  reviewPool = reviewFragments(p);
+  $('reviewShortEl').textContent = sample(reviewPool.short);
+  $('reviewLongEl').textContent = sample(reviewPool.long);
+  $('tgReviews').checked = !!(reviewPool.short.length || reviewPool.long.length);
+  $('noteEl').textContent = p.note || p.mr || '';
+  $('closingEl').textContent = CLOSING_DEFAULT;
+  $('tgBlurb').checked = !!(p.note || p.mr);
+  applyToggles();
+  $('btnRender').disabled = false;
+  $('stageNote').textContent = `${p.n} · ${p.t}${p.c ? ' · ' + p.c : ''} · 리뷰 문장 후보 ${reviewPool.short.length + reviewPool.long.length}개`;
+  $('status').textContent = ''; $('status').className = 'status'; $('saved').innerHTML = '';
+  loadPhotos(p);
+}
+function applyToggles() {
+  $('reviewsEl').classList.toggle('hidden-block', !$('tgReviews').checked);
+  $('blurbEl').classList.toggle('hidden-block', !$('tgBlurb').checked);
+  // 후기 칸이 비어 있으면 그 칸만 접는다(빈 따옴표가 남지 않게)
+  $('reviewShortEl').classList.toggle('hidden-block', !$('reviewShortEl').textContent.trim());
+  $('reviewLongEl').classList.toggle('hidden-block', !$('reviewLongEl').textContent.trim());
+}
+
+// ───────── 사진 고르기 ─────────
+function renderPhotoGrid(urls) {
+  const grid = $('photoGrid');
+  grid.innerHTML = '';
+  for (const u of urls) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.dataset.url = u;
+    b.innerHTML = `<img alt="" loading="lazy">`;
+    b.querySelector('img').src = proxied(u);   // 일부 네이버 사진 호스트는 직접 넣으면 403 → 썸네일도 중계(엣지 캐시라 부담 적음)
+    b.addEventListener('click', () => setPhoto(u));
+    grid.appendChild(b);
+  }
+  const up = document.createElement('button');
+  up.type = 'button'; up.className = 'up'; up.textContent = '+ 내 사진';
+  up.addEventListener('click', () => $('photoFile').click());
+  grid.appendChild(up);
+}
+async function loadPhotos(p) {
+  const seq = ++photoReq;
+  const base = p.img ? [p.img] : [];
+  renderPhotoGrid(base);
+  setPhoto(p.img || '');
+  $('photoNote').textContent = '네이버 등록 사진 불러오는 중…';
+  let extra = [], note = '';
+  try {
+    const r = await fetch(`${ADMIN_API}/public/naver-photos?sid=${encodeURIComponent(p.s)}`);
+    const j = await r.json();
+    if (j.ok) extra = (j.photos || []).map(x => x.url);
+    else note = '네이버 사진 목록을 못 가져왔어요. 대표 사진·내 사진·주소 입력은 그대로 쓸 수 있어요.';
+  } catch (e) { note = '네이버 사진 목록을 못 가져왔어요. 대표 사진·내 사진·주소 입력은 그대로 쓸 수 있어요.'; }
+  if (seq !== photoReq) return;   // 그 사이 다른 가게를 골랐음
+  const all = [...new Set([...base, ...extra])];
+  renderPhotoGrid(all);
+  const cur = $('photoImg').getAttribute('src') ? (current && current.img) || '' : '';
+  [...$('photoGrid').querySelectorAll('button[data-url]')].forEach(b => b.classList.toggle('on', b.dataset.url === cur));
+  $('photoNote').textContent = note || (all.length ? `사진 ${all.length}장 중에서 골라주세요. 클릭하면 카드에 바로 들어가요.` : '등록 사진이 없어요. 내 사진을 올리거나 주소를 넣어주세요.');
+}
+$('photoFile').addEventListener('change', e => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  const fr = new FileReader();
+  fr.onload = () => shrinkImage(fr.result, 1800).then(u => {
+    const grid = $('photoGrid');
+    const b = document.createElement('button');
+    b.type = 'button'; b.dataset.url = u; b.innerHTML = `<img alt="">`; b.querySelector('img').src = u;
+    b.addEventListener('click', () => setPhoto(u));
+    grid.insertBefore(b, grid.querySelector('.up'));
+    setPhoto(u);
+  });
+  fr.readAsDataURL(f);
+  e.target.value = '';
+});
+// 휴대폰 원본(수천 px)은 그대로 쓰면 PNG 굽기가 느려져서 카드에 필요한 크기로만 줄인다
+function shrinkImage(dataUrl, maxW) {
+  return new Promise(resolve => {
+    const im = new Image();
+    im.onload = () => {
+      const k = Math.min(1, maxW / im.width);
+      if (k === 1) return resolve(dataUrl);
+      const c = document.createElement('canvas');
+      c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+      resolve(c.toDataURL('image/jpeg', 0.9));
+    };
+    im.onerror = () => resolve(dataUrl);
+    im.src = dataUrl;
+  });
+}
+$('photo').addEventListener('change', () => { const u = $('photo').value.trim(); if (u) setPhoto(u); });
+
+$('tgReviews').addEventListener('change', applyToggles);
+$('tgBlurb').addEventListener('change', applyToggles);
+$('reviewShortEl').addEventListener('blur', applyToggles);
+$('reviewLongEl').addEventListener('blur', applyToggles);
+$('date').addEventListener('change', () => { if (current) { const keep = $('photoImg').getAttribute('src'); fillCard(current); } });
+$('btnAddLine').addEventListener('click', () => addLine('', true));
+$('btnMenuLine').addEventListener('click', () => { if (current) addLine(menuSentence(current), true); });
+$('btnReroll').addEventListener('click', () => {
+  if (!current) return;
+  const pick = (arr, cur) => { const others = arr.filter(x => x !== cur); return sample(others.length ? others : arr); };
+  $('reviewShortEl').textContent = pick(reviewPool.short, $('reviewShortEl').textContent);
+  $('reviewLongEl').textContent = pick(reviewPool.long, $('reviewLongEl').textContent);
+  applyToggles();
+});
+$('btnReset').addEventListener('click', () => { if (current) fillCard(current); });
+
+// 붙여넣기는 서식 없이 글자만
+document.addEventListener('paste', e => {
+  if (!e.target.isContentEditable) return;
+  e.preventDefault();
+  document.execCommand('insertText', false, (e.clipboardData || window.clipboardData).getData('text/plain'));
+});
+// 한 줄 칸에서 Enter 는 줄바꿈 대신 편집 종료
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.isContentEditable && !e.target.closest('.quote, .note, .closing')) { e.preventDefault(); e.target.blur(); }
+});
+
+// ───────── 검색 ─────────
+const norm = s => (s || '').replace(/\s+/g, '').toLowerCase();
+let hl = -1, matches = [];
+function search(q) {
+  q = norm(q);
+  matches = q ? PLACES.filter(p => norm(p.n).includes(q) || norm(p.c).includes(q)).slice(0, 15) : [];
+  hl = -1;
+  const box = $('results');
+  box.innerHTML = matches.map((p, i) => `<button type="button" data-i="${i}"><span>${esc(p.n)}</span><span class="meta">${esc(p.t)}${p.c ? ' · ' + esc(p.c) : ''} · ${esc(p.z || '')}</span></button>`).join('');
+  box.classList.toggle('on', matches.length > 0);
+}
+function choose(i) { const p = matches[i]; if (!p) return; $('q').value = p.n; $('results').classList.remove('on'); $('q').blur(); fillCard(p); }
+$('q').addEventListener('input', e => search(e.target.value));
+$('q').addEventListener('focus', e => { if (e.target.value) search(e.target.value); });
+$('q').addEventListener('keydown', e => {
+  if (!matches.length) return;
+  if (e.key === 'ArrowDown') { hl = Math.min(hl + 1, matches.length - 1); e.preventDefault(); }
+  else if (e.key === 'ArrowUp') { hl = Math.max(hl - 1, 0); e.preventDefault(); }
+  else if (e.key === 'Enter') { choose(hl < 0 ? 0 : hl); e.preventDefault(); return; }
+  else if (e.key === 'Escape') { $('results').classList.remove('on'); return; }
+  else return;
+  [...$('results').children].forEach((b, i) => b.classList.toggle('hl', i === hl));
+});
+$('results').addEventListener('click', e => { const b = e.target.closest('button'); if (b) choose(Number(b.dataset.i)); });
+document.addEventListener('click', e => { if (!e.target.closest('.search')) $('results').classList.remove('on'); });
+
+// ───────── 화면 맞춤 축소 ─────────
+function fitStage() {
+  const narrow = window.innerWidth <= 900;
+  const avail = Math.min(narrow ? window.innerWidth - 28 : window.innerWidth - 380 - 56, 1080);
+  const k = Math.min(1, avail / 1080);
+  const sc = $('scaler');
+  sc.style.transform = `scale(${k})`;
+  sc.style.height = (1560 * k) + 'px';
+  sc.style.width = (1080 * k) + 'px';
+}
+window.addEventListener('resize', fitStage);
+
+// ───────── PNG 저장 (브라우저 안에서 직접 굽는다 — html-to-image) ─────────
+$('btnRender').addEventListener('click', async () => {
+  if (!current) return;
+  const st = $('status'); st.className = 'status'; st.textContent = 'PNG 굽는 중… (5~15초, 처음엔 폰트를 받아서 더 걸려요)';
+  $('btnRender').disabled = true;
+  document.activeElement && document.activeElement.blur();
+  applyToggles();
+  document.body.classList.add('capturing');
+  try {
+    const card = $('card');
+    const img = $('photoImg');
+    if (img.getAttribute('src') && !img.complete) await new Promise(r => { img.onload = img.onerror = r; });
+    if (!fontCSS) fontCSS = await htmlToImage.getFontEmbedCSS(card);
+    const opts = { pixelRatio: 2, width: 1080, height: 1560, fontEmbedCSS: fontCSS, cacheBust: false, style: { transform: 'none' } };
+    // iOS 사파리는 첫 번째 굽기에서 사진이 빠지는 버그가 있어 한 번 더 굽는다
+    const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (isIOS) await htmlToImage.toPng(card, opts);
+    const dataUrl = await htmlToImage.toPng(card, opts);
+    const file = `${ymd()}-${($('nameEl').textContent.trim() || current.n).replace(/[\\/:*?"<>|\s]+/g, '_').slice(0, 40)}.png`;
+    $('saved').innerHTML = `<img src="${dataUrl}" alt="완성된 카드">`;
+    const a = document.createElement('a'); a.href = dataUrl; a.download = file; document.body.appendChild(a); a.click(); a.remove();
+    st.textContent = `완성: ${file}`;
+  } catch (e) {
+    st.className = 'status err'; st.textContent = 'PNG 굽기 실패: ' + (e && e.message || e);
+  } finally {
+    document.body.classList.remove('capturing');
+    $('btnRender').disabled = false;
+  }
+});
+function ymd() { const t = new Date(); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+const t0 = new Date();
+$('date').value = `${t0.getFullYear()}-${String(t0.getMonth() + 1).padStart(2, '0')}-${String(t0.getDate()).padStart(2, '0')}`;
+fitStage();
+renderPhotoGrid([]);
+</script>
+</body>
+</html>

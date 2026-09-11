@@ -15,7 +15,12 @@ const VIEW_LIMIT = 40;             // 조회수 집계: IP당 10분 최대 (부�
 const SEND_LIMIT = 12;             // 코멘트 반영요청: IP당 10분 최대 (슬랙 스팸 방지)
 const CLICK_LIMIT = 120;           // 가게 클릭 집계: IP당 10분 최대 (남용 방지, 정상 사용엔 넉넉)
 const IMPRESSION_LIMIT = 300;      // 노출 집계: IP당 10분 최대 (렌더마다 1회·디바운스라 넉넉)
-const PUB_CACHE_MS = 15000;         // 공개 읽기 메모리 캐시 (남용시 무료한도 소진 방지 — 어드민 저장하면 즉시 비움)
+const PUB_CACHE_MS = 15000;
+const IMG_LIMIT = 400;             // 사진 중계(/public/img): IP당 10분 최대 (카드 만들기 썸네일·본사진 — 캐시 히트는 안 셈)
+const NAVER_PHOTO_LIMIT = 40;      // 네이버 사진 목록(/public/naver-photos): IP당 10분 최대 (네이버 차단 방지)
+const NAVER_PHOTO_CACHE_MS = 3600000; // 네이버 사진 목록 메모리 캐시 1시간
+const IMG_HOST_RE = /(^|\.)(pstatic\.net|phinf\.naver\.net)$/;   // 사진 중계 허용 호스트 — 네이버 이미지 CDN만 (열린 프록시 방지)
+const NAVER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36';         // 공개 읽기 메모리 캐시 (남용시 무료한도 소진 방지 — 어드민 저장하면 즉시 비움)
 const SLACK_BOT_NAME = '고성 트립 코스 봇';  // 이 서비스가 #gs-routine 에 보내는 슬랙 알림 표시 이름 (공용 웹훅이라 이름만 덮어씀)
 
 // KST 날짜(YYYY-MM-DD) — 조회수 버킷 등 날짜 집계에 공용 사용
@@ -109,8 +114,37 @@ function parseAlso(raw) {
   } catch (e) { return []; }
 }
 
+// 네이버 플레이스 홈 페이지에서 가게 등록 사진 목록을 뽑는다 (카드 만들기 사진 고르기용).
+// data/fetch_photos.py 의 fetch() 와 같은 규칙: placeDetail 대표사진 → 등록사진(클립보다 사진 우선, 표시순서) — https 만.
+async function fetchNaverPhotos(sid) {
+  const res = await fetch(`https://m.place.naver.com/place/${sid}/home`, {
+    headers: { 'User-Agent': NAVER_UA, 'Accept-Language': 'ko', 'Referer': 'https://map.naver.com/' },
+    cf: { cacheTtl: 0 },
+  });
+  if (!res.ok) return { ok: false, error: 'naver ' + res.status, photos: [] };
+  const html = await res.text();
+  const m = html.match(/window\.__APOLLO_STATE__\s*=\s*(\{[\s\S]*?\});\s*\n/) || html.match(/window\.__APOLLO_STATE__\s*=\s*(\{[\s\S]*\})/);
+  if (!m) return { ok: false, error: 'no state', photos: [] };
+  let state;
+  try { state = JSON.parse(m[1]); } catch (e) { return { ok: false, error: 'parse', photos: [] }; }
+  const photos = [];
+  const seen = new Set();
+  const push = (u, type) => { if (u && u.startsWith('https://') && !seen.has(u)) { seen.add(u); photos.push({ url: u, type }); } };
+  for (const [k, v] of Object.entries(state)) {
+    if (k.startsWith('ROOT_QUERY') && v && typeof v === 'object') {
+      for (const [kk, vv] of Object.entries(v)) if (kk.startsWith('placeDetail') && vv && vv.imageUrl) push(vv.imageUrl, 'main');
+    }
+  }
+  // 2026-09 기준 필드: originalUrl/thumbnailUrl/mediaFormat(image|video)/mediaSource(business|clip|…). 구버전 origin/type 도 같이 본다.
+  const items = Object.entries(state).filter(([k, v]) => k.startsWith('PlaceDetailTopPhotoItem:') && v && (v.originalUrl || v.origin)).map(([, v]) => v);
+  const isVideo = v => v.mediaFormat === 'video' || v.type === 'clip' || !!v.video;
+  items.sort((a, b) => (isVideo(a) - isVideo(b)) || ((a.no ?? 999) - (b.no ?? 999)));   // 사진 먼저, 그다음 원래 순서
+  for (const it of items) if (!isVideo(it)) push(it.originalUrl || it.origin, it.mediaSource || it.type || 'photo');
+  return { ok: true, photos: photos.slice(0, 40) };
+}
+
 export default {
-  async fetch(req, env) {
+  async fetch(req, env, ctx) {
     const url = new URL(req.url);
     const path = url.pathname;
     const db = env.DB;
@@ -169,6 +203,45 @@ export default {
         if (row?.value) { try { data = JSON.parse(row.value); } catch { data = {}; } }
         pubCache[path] = { data, at: Date.now() };
         return json(req, data, 200, pubHdr);
+      }
+
+      // ── 공개: 카드 만들기 사진 중계 (2026-09-11) ──────────────
+      // 네이버 사진(pstatic)은 CORS 헤더가 없어 브라우저가 캔버스로 PNG를 못 굽는다. 워커가 대신 받아
+      // 허용 출처 헤더를 붙여 돌려준다. 네이버 이미지 호스트만 허용(열린 프록시 방지) + 엣지 캐시 + 횟수 제한.
+      if (path === '/public/img' && req.method === 'GET') {
+        let target;
+        try { target = new URL(url.searchParams.get('u') || ''); } catch (e) { return json(req, { ok: false, error: 'bad url' }, 400); }
+        if (target.protocol !== 'https:' || !IMG_HOST_RE.test(target.hostname)) return json(req, { ok: false, error: 'host not allowed' }, 403);
+        const cache = caches.default;
+        const cacheKey = new Request(target.href, { method: 'GET' });
+        let up = await cache.match(cacheKey);
+        if (!up) {
+          const ip = req.headers.get('CF-Connecting-IP') || 'local';
+          if (await overLimit(db, 'img@' + ip, IMG_LIMIT)) return json(req, { ok: false, error: 'too many' }, 429);
+          const r = await fetch(target.href, { headers: { 'User-Agent': NAVER_UA, 'Referer': 'https://map.naver.com/' } });
+          if (!r.ok) return json(req, { ok: false, error: 'upstream ' + r.status }, 502);
+          up = new Response(r.body, { status: 200, headers: { 'Content-Type': r.headers.get('Content-Type') || 'image/jpeg', 'Cache-Control': 'public, max-age=86400' } });
+          if (ctx) ctx.waitUntil(cache.put(cacheKey, up.clone()));
+        }
+        const h = new Headers(up.headers);
+        for (const [k, v] of Object.entries(corsHeaders(req))) h.set(k, v);
+        return new Response(up.body, { status: 200, headers: h });
+      }
+
+      // ── 공개: 네이버 등록 사진 목록 (카드 만들기 사진 고르기) ──────
+      // 네이버가 클라우드 IP 를 막을 수 있어 실패해도 ok:false 로 조용히 돌려주고, 화면은 대표 사진만으로 계속 간다.
+      if (path === '/public/naver-photos' && req.method === 'GET') {
+        const sid = url.searchParams.get('sid') || '';
+        if (!/^\d{5,15}$/.test(sid)) return json(req, { ok: false, error: 'bad sid', photos: [] }, 400);
+        const ck = 'np:' + sid;
+        const hit = pubCache[ck];
+        if (hit && Date.now() - hit.at < NAVER_PHOTO_CACHE_MS) return json(req, hit.data);
+        const ip = req.headers.get('CF-Connecting-IP') || 'local';
+        if (await overLimit(db, 'np@' + ip, NAVER_PHOTO_LIMIT)) return json(req, { ok: false, error: 'too many', photos: [] }, 429);
+        let data;
+        try { data = await fetchNaverPhotos(sid); } catch (e) { data = { ok: false, error: String(e && e.message || e), photos: [] }; }
+        if (data.ok) pubCache[ck] = { data, at: Date.now() };   // 실패는 캐시하지 않음 (일시 차단이면 다음 요청에 재시도)
+        return json(req, data);
       }
 
       // ── 공개: 조회수 집계 (손님 페이지 로드 시 1회) ──────────
