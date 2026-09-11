@@ -20,6 +20,8 @@
   .photo-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .photo-wrap.noimg { background: var(--ink); }
   .photo-scrim { position: absolute; inset: 0; background: linear-gradient(to top, rgba(31,30,29,.92) 0%, rgba(31,30,29,.15) 55%, rgba(31,30,29,0) 75%); }
+  .photo-scrim.draggable { cursor: grab; touch-action: none; }
+  .photo-scrim.dragging { cursor: grabbing; }
 
   .eyebrow { position: absolute; left: 56px; top: 56px; height: 48px; display: inline-flex; align-items: center; background: var(--purple-deep); color: #fff; font-size: 26px; font-weight: 800; padding: 0 22px; letter-spacing: -0.01em; }
 
@@ -76,6 +78,9 @@
   .status.err { color: #b3261e; }
   .saved img { width: 100%; border: 1px solid var(--line); display: block; margin-top: 8px; }
 
+  /* 확대·이동한 사진이 사진칸 밖으로 삐져나오지 않게 (template.html 은 object-fit 이라 필요 없던 규칙) */
+  #photoWrap { overflow: hidden; }
+
   /* 사진 고르기 */
   .photo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
   .photo-grid button { aspect-ratio: 1; border: 2px solid transparent; padding: 0; background: var(--soft); cursor: pointer; overflow: hidden; }
@@ -84,6 +89,8 @@
   .photo-grid .up { display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--gray); border: 1px dashed var(--gray); }
   .photo-grid .up:hover { color: var(--ink); border-color: var(--ink); }
   .photo-note { font-size: 12px; color: var(--gray); }
+  .zoomrow { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--gray); }
+  .zoomrow input { flex: 1; }
 
   .stage { padding: 28px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
   .stage .scaler { width: 1080px; height: 1560px; transform-origin: top left; }
@@ -133,6 +140,8 @@
       <div class="lbl">사진 고르기</div>
       <div class="photo-grid" id="photoGrid"></div>
       <div class="photo-note" id="photoNote">가게를 고르면 네이버에 등록된 사진을 불러와요.</div>
+      <div class="zoomrow"><span class="lbl">확대</span><input type="range" id="zoom" min="1" max="2.5" step="0.05" value="1"><span id="zoomVal">1.00×</span></div>
+      <div class="photo-note">카드 위 사진을 끌어서(드래그) 보이는 부분을 맞출 수 있어요. 가로로 넓은 사진은 확대를 올리면 위아래로도 움직여요.</div>
       <input type="file" id="photoFile" accept="image/*" hidden>
       <input type="url" id="photo" placeholder="또는 사진 주소 직접 입력 (https://...)">
     </div>
@@ -296,6 +305,8 @@ function addLine(text, focus) {
 }
 function setPhoto(url) {
   const img = $('photoImg');
+  photoView = { zoom: 1, left: 0, top: 0 }; $('zoom').value = 1; $('zoomVal').textContent = '1.00×';
+  img.removeAttribute('style'); img.style.display = 'none';
   if (url) { img.src = proxied(url); img.style.display = 'block'; $('photoWrap').classList.remove('noimg'); }
   else { img.removeAttribute('src'); img.style.display = 'none'; $('photoWrap').classList.add('noimg'); }
   [...$('photoGrid').querySelectorAll('button[data-url]')].forEach(b => b.classList.toggle('on', b.dataset.url === url));
@@ -416,6 +427,51 @@ $('btnReroll').addEventListener('click', () => {
   applyToggles();
 });
 $('btnReset').addEventListener('click', () => { if (current) fillCard(current); });
+
+// ───────── 사진 위치·확대 (끌어서 보이는 부분 조정) ─────────
+// object-fit 대신 직접 계산: 사진을 '꽉 채우는 배율 × 확대' 크기로 두고 left/top 을 끌어서 옮긴다.
+// 가로가 넓은 사진은 위아래로 남는 부분이 없으니, 확대(zoom)를 올려야 위아래로 움직일 여지가 생긴다.
+let photoView = { zoom: 1, left: 0, top: 0 };
+function layoutPhoto(center) {
+  const img = $('photoImg');
+  if (!img.naturalWidth || !img.naturalHeight) return;
+  const k = Math.max(1080 / img.naturalWidth, 820 / img.naturalHeight) * photoView.zoom;
+  const w = img.naturalWidth * k, h = img.naturalHeight * k;
+  if (center) { photoView.left = (1080 - w) / 2; photoView.top = (820 - h) / 2; }
+  photoView.left = Math.min(0, Math.max(1080 - w, photoView.left));
+  photoView.top = Math.min(0, Math.max(820 - h, photoView.top));
+  Object.assign(img.style, { position: 'absolute', maxWidth: 'none', width: w + 'px', height: h + 'px', left: photoView.left + 'px', top: photoView.top + 'px' });
+  $('photoWrap').querySelector('.photo-scrim').classList.toggle('draggable', w > 1081 || h > 821);
+}
+(function () {
+  const wrap = $('photoWrap'), scrim = wrap.querySelector('.photo-scrim'), img = $('photoImg');
+  let drag = null;
+  img.addEventListener('load', () => layoutPhoto(true));
+  scrim.addEventListener('pointerdown', e => {
+    if (!scrim.classList.contains('draggable')) return;
+    drag = { sx: e.clientX, sy: e.clientY, left: photoView.left, top: photoView.top, scale: wrap.getBoundingClientRect().width / 1080 };
+    scrim.setPointerCapture(e.pointerId); scrim.classList.add('dragging'); e.preventDefault();
+  });
+  scrim.addEventListener('pointermove', e => {
+    if (!drag) return;
+    photoView.left = drag.left + (e.clientX - drag.sx) / drag.scale;
+    photoView.top = drag.top + (e.clientY - drag.sy) / drag.scale;
+    layoutPhoto(false);
+  });
+  const end = () => { drag = null; scrim.classList.remove('dragging'); };
+  scrim.addEventListener('pointerup', end); scrim.addEventListener('pointercancel', end);
+  // 확대 슬라이더: 지금 보이는 가운데 지점을 유지한 채 배율만 바꾼다
+  $('zoom').addEventListener('input', e => {
+    if (!img.naturalWidth) return;
+    const prevK = Math.max(1080 / img.naturalWidth, 820 / img.naturalHeight) * photoView.zoom;
+    const cx = (540 - photoView.left) / (img.naturalWidth * prevK), cy = (410 - photoView.top) / (img.naturalHeight * prevK);
+    photoView.zoom = Number(e.target.value);
+    const k = Math.max(1080 / img.naturalWidth, 820 / img.naturalHeight) * photoView.zoom;
+    photoView.left = 540 - cx * img.naturalWidth * k; photoView.top = 410 - cy * img.naturalHeight * k;
+    layoutPhoto(false);
+    $('zoomVal').textContent = photoView.zoom.toFixed(2) + '×';
+  });
+})();
 
 // 붙여넣기는 서식 없이 글자만
 document.addEventListener('paste', e => {
