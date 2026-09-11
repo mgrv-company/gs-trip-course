@@ -113,17 +113,46 @@
   body.capturing .ctl { display: none !important; }
   body.capturing [contenteditable] { box-shadow: none !important; }
 
+  /* 후기 줄: 문장 줄과 같은 구조(본문 + 삭제 버튼) */
+  #quoteList { display: flex; flex-direction: column; gap: 10px; }
+  .qwrap { display: flex; align-items: flex-start; gap: 8px; }
+  .qwrap .quote { flex: 1; }
+  .qwrap:hover .ctl { opacity: 1; }
+
+  /* ───────── 모바일 (900px 이하): 한 줄 배치, 카드가 검색 바로 아래로 오고, 저장 버튼은 화면 아래 고정 ───────── */
+  .only-mobile { display: none; }
+  .mobile-bar { display: none; }
   @media (max-width: 900px) {
     .app { grid-template-columns: 1fr; }
-    .panel { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
-    .stage { padding: 14px; }
+    .panel { position: static; height: auto; border-right: 0; padding: 16px 14px 96px; gap: 16px; }
+    .stage { padding: 0; margin: 2px -14px 6px; }
+    .stage .frame { box-shadow: 0 6px 24px rgba(0,0,0,.14); }
+    .photo-grid { grid-template-columns: repeat(5, 1fr); }
+    .only-desktop { display: none; }
+    .only-mobile { display: block; }
+    .ctl { display: none; }
+    [contenteditable="false"] { cursor: pointer; }
+    #btnRender { display: none; }
+    .mobile-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: rgba(255,255,255,.96); border-top: 1px solid var(--line); display: flex; gap: 8px; }
+    .mobile-bar .btn { flex: 1; font-size: 15px; padding: 13px; }
   }
+
+  /* 모바일 문구 편집 시트: 카드 위 글자를 누르면 아래에서 올라온다 (축소된 카드에 직접 타이핑하는 건 너무 작아서) */
+  .sheet-bg { position: fixed; inset: 0; background: rgba(31,30,29,.45); z-index: 40; display: none; }
+  .sheet-bg.on { display: block; }
+  .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; background: #fff; border-top: 1px solid var(--line); padding: 14px 14px calc(14px + env(safe-area-inset-bottom)); display: none; flex-direction: column; gap: 10px; }
+  .sheet.on { display: flex; }
+  .sheet .sheet-title { font-size: 13px; font-weight: 700; color: var(--gray); }
+  .sheet textarea { font: inherit; font-size: 16px; line-height: 1.5; padding: 10px; border: 1px solid var(--line); background: var(--bg); outline: none; width: 100%; min-height: 96px; resize: vertical; }
+  .sheet textarea:focus { border-color: var(--ink); }
+  .sheet .btnrow .btn { flex: 1; padding: 12px; font-size: 15px; }
+  .sheet .btn.danger { color: #b3261e; border-color: #b3261e; }
 </style>
 </head>
 <body>
 <div class="app">
   <aside class="panel">
-    <h1>고성 추천 카드 만들기<small>가게를 고르면 카드가 채워지고, 카드 위 글자는 바로 눌러서 고칠 수 있어요.</small></h1>
+    <h1>고성 추천 카드 만들기<small><span class="only-desktop">가게를 고르면 카드가 채워지고, 카드 위 글자는 바로 클릭해서 고칠 수 있어요.</span><span class="only-mobile">가게를 고르면 카드가 채워지고, 카드 위 글자를 누르면 고칠 수 있어요.</span></small></h1>
 
     <div class="field search">
       <label for="q">가게 검색</label>
@@ -141,7 +170,7 @@
       <div class="photo-grid" id="photoGrid"></div>
       <div class="photo-note" id="photoNote">가게를 고르면 네이버에 등록된 사진을 불러와요.</div>
       <div class="zoomrow"><span class="lbl">확대</span><input type="range" id="zoom" min="1" max="2.5" step="0.05" value="1"><span id="zoomVal">1.00×</span></div>
-      <div class="photo-note">카드 위 사진을 끌어서(드래그) 보이는 부분을 맞출 수 있어요. 가로로 넓은 사진은 확대를 올리면 위아래로도 움직여요.</div>
+      <div class="photo-note">카드 위 사진을 끌어서 보이는 부분을 맞출 수 있어요. 가로로 넓은 사진은 확대를 올리면 위아래로도 움직여요.</div>
       <input type="file" id="photoFile" accept="image/*" hidden>
       <input type="url" id="photo" placeholder="또는 사진 주소 직접 입력 (https://...)">
     </div>
@@ -150,26 +179,27 @@
       <div class="lbl">보일 항목</div>
       <div class="toggles">
         <label><input type="checkbox" id="tgReviews" checked> 실제 방문 후기</label>
-        <label><input type="checkbox" id="tgBlurb" checked> 코멘트 + 오픈채팅 안내</label>
+        <label><input type="checkbox" id="tgNote" checked> 코멘트</label>
+        <label><input type="checkbox" id="tgClosing" checked> 오픈채팅 안내</label>
       </div>
     </div>
 
     <div class="field">
       <div class="lbl">문장 도구</div>
       <div class="btnrow">
-        <button class="btn" id="btnAddLine">문장 추가</button>
-        <button class="btn" id="btnMenuLine">대표 메뉴 문장</button>
+        <button class="btn" id="btnMoreReview">후기 1개 더 넣기</button>
         <button class="btn" id="btnReroll">후기 다시 뽑기</button>
+        <button class="btn" id="btnMenuLine">대표 메뉴 문장</button>
         <button class="btn" id="btnReset">처음으로</button>
       </div>
-      <div class="hint">각 문장 위에 마우스를 올리면 오른쪽에 삭제(×) 버튼이 나와요. 후기는 네이버 리뷰에서 긍정 문장만 골라 넣고, 다시 뽑기를 누르면 다른 문장으로 바뀌어요.</div>
+      <div class="hint"><span class="only-desktop">문장·후기 위에 마우스를 올리면 오른쪽에 삭제(×) 버튼이 나와요. </span><span class="only-mobile">문장·후기를 누르면 고치거나 지울 수 있어요. </span>후기는 네이버 리뷰에서 긍정 문장만 골라 넣어요.</div>
     </div>
 
     <div class="field">
       <button class="btn primary" id="btnRender" disabled>PNG 저장</button>
       <div class="status" id="status"></div>
       <div class="saved" id="saved"></div>
-      <div class="hint">컴퓨터에선 바로 내려받기, 휴대폰에선 아래 나온 이미지를 길게 눌러 저장하면 돼요.</div>
+      <div class="hint"><span class="only-desktop">저장을 누르면 바로 내려받아져요.</span><span class="only-mobile">저장을 누르면 내려받아지고, 위에 나온 이미지를 길게 눌러 저장할 수도 있어요.</span></div>
     </div>
   </aside>
 
@@ -181,32 +211,44 @@
           <div class="photo-wrap noimg" id="photoWrap">
             <img id="photoImg" alt="" crossorigin="anonymous" style="display:none;">
             <div class="photo-scrim"></div>
-            <div class="eyebrow" id="eyebrowEl" contenteditable="true">오늘의 PICK</div>
+            <div class="eyebrow" id="eyebrowEl" contenteditable="true" data-ed="1">오늘의 PICK</div>
             <div class="name-block">
-              <div class="nm" id="nameEl" contenteditable="true"></div>
-              <div class="cat" id="catEl" contenteditable="true"></div>
+              <div class="nm" id="nameEl" contenteditable="true" data-ed="1"></div>
+              <div class="cat" id="catEl" contenteditable="true" data-ed="1"></div>
             </div>
           </div>
           <div class="body">
             <div class="sentences" id="sentEl"></div>
             <div class="reviews" id="reviewsEl">
-              <div class="reviews-label" contenteditable="true">실제 방문 후기</div>
-              <div class="quote" id="reviewShortEl" contenteditable="true"></div>
-              <div class="quote" id="reviewLongEl" contenteditable="true"></div>
+              <div class="reviews-label" contenteditable="true" data-ed="1">실제 방문 후기</div>
+              <div id="quoteList"></div>
             </div>
             <div class="blurb" id="blurbEl">
-              <div class="note" id="noteEl" contenteditable="true"></div>
-              <div class="closing" id="closingEl" contenteditable="true"></div>
+              <div class="note" id="noteEl" contenteditable="true" data-ed="1"></div>
+              <div class="closing" id="closingEl" contenteditable="true" data-ed="1"></div>
             </div>
             <div class="foot">
               <img class="logo" src="assets/mangrove-goseong-logo.svg" style="filter:invert(1);" alt="맹그로브 고성">
-              <div class="foot-date" id="dateEl" contenteditable="true"></div>
+              <div class="foot-date" id="dateEl" contenteditable="true" data-ed="1"></div>
             </div>
           </div>
         </article>
       </div>
     </div>
   </main>
+</div>
+
+<div class="mobile-bar"><button class="btn primary" id="mobileSave" disabled>PNG 저장</button></div>
+
+<div class="sheet-bg" id="sheetBg"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-title" id="sheetTitle">문구 수정</div>
+  <textarea id="sheetText"></textarea>
+  <div class="btnrow">
+    <button class="btn danger" id="sheetDelete" type="button">지우기</button>
+    <button class="btn" id="sheetCancel" type="button">취소</button>
+    <button class="btn primary" id="sheetApply" type="button">적용</button>
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.13/html-to-image.js"></script>
@@ -296,12 +338,33 @@ function menuSentence(p) {
 function addLine(text, focus) {
   const line = document.createElement('div');
   line.className = 'line';
-  line.innerHTML = `<div class="txt" contenteditable="true"></div><span class="ctl"><button type="button" title="이 문장 지우기">×</button></span>`;
+  line.innerHTML = `<div class="txt" contenteditable="true" data-ed="1"></div><span class="ctl"><button type="button" title="이 문장 지우기">×</button></span>`;
   line.querySelector('.txt').textContent = text;
+  if (isNarrow()) line.querySelector('.txt').contentEditable = 'false';
   line.querySelector('button').addEventListener('click', () => line.remove());
   $('sentEl').appendChild(line);
   if (focus) line.querySelector('.txt').focus();
   return line;
+}
+// 후기 한 줄 추가 (문장 줄과 같은 구조). 비워 두고 편집을 끝내면 그 줄은 사라진다.
+function addQuote(text) {
+  const w = document.createElement('div');
+  w.className = 'qwrap';
+  w.innerHTML = `<div class="quote" contenteditable="true" data-ed="1"></div><span class="ctl"><button type="button" title="이 후기 지우기">×</button></span>`;
+  const q = w.querySelector('.quote');
+  q.textContent = text;
+  if (isNarrow()) q.contentEditable = 'false';
+  q.addEventListener('blur', () => { if (!q.textContent.trim()) w.remove(); });
+  w.querySelector('button').addEventListener('click', () => w.remove());
+  $('quoteList').appendChild(w);
+  return w;
+}
+const currentQuotes = () => [...$('quoteList').querySelectorAll('.quote')].map(q => q.textContent.trim());
+// 아직 안 쓴 후기 하나 고르기 — 짧은 것/긴 것 중 지정, 없으면 전체에서
+function pickUnused(kind) {
+  const used = new Set(currentQuotes());
+  const pool = (kind === 'short' ? reviewPool.short : kind === 'long' ? reviewPool.long : [...reviewPool.short, ...reviewPool.long]).filter(f => !used.has(f));
+  return pool.length ? sample(pool) : (kind ? pickUnused(null) : '');
 }
 function setPhoto(url) {
   const img = $('photoImg');
@@ -322,24 +385,26 @@ function fillCard(p) {
   $('sentEl').innerHTML = '';
   buildSentences(p, date).forEach(s => addLine(s));
   reviewPool = reviewFragments(p);
-  $('reviewShortEl').textContent = sample(reviewPool.short);
-  $('reviewLongEl').textContent = sample(reviewPool.long);
-  $('tgReviews').checked = !!(reviewPool.short.length || reviewPool.long.length);
+  $('quoteList').innerHTML = '';
+  for (const q of [pickUnused('short'), pickUnused('long')]) if (q) addQuote(q);
+  $('tgReviews').checked = currentQuotes().length > 0;
   $('noteEl').textContent = p.note || p.mr || '';
   $('closingEl').textContent = CLOSING_DEFAULT;
-  $('tgBlurb').checked = !!(p.note || p.mr);
+  $('tgNote').checked = !!(p.note || p.mr);
+  $('tgClosing').checked = true;
   applyToggles();
-  $('btnRender').disabled = false;
+  $('btnRender').disabled = false; $('mobileSave').disabled = false;
   $('stageNote').textContent = `${p.n} · ${p.t}${p.c ? ' · ' + p.c : ''} · 리뷰 문장 후보 ${reviewPool.short.length + reviewPool.long.length}개`;
   $('status').textContent = ''; $('status').className = 'status'; $('saved').innerHTML = '';
   loadPhotos(p);
 }
 function applyToggles() {
   $('reviewsEl').classList.toggle('hidden-block', !$('tgReviews').checked);
-  $('blurbEl').classList.toggle('hidden-block', !$('tgBlurb').checked);
-  // 후기 칸이 비어 있으면 그 칸만 접는다(빈 따옴표가 남지 않게)
-  $('reviewShortEl').classList.toggle('hidden-block', !$('reviewShortEl').textContent.trim());
-  $('reviewLongEl').classList.toggle('hidden-block', !$('reviewLongEl').textContent.trim());
+  // 코멘트와 오픈채팅 안내는 따로 켜고 끈다. 둘 다 꺼지면 테두리 블록 자체를 숨긴다.
+  $('noteEl').classList.toggle('hidden-block', !$('tgNote').checked);
+  $('closingEl').classList.toggle('hidden-block', !$('tgClosing').checked);
+  $('closingEl').style.marginTop = $('tgNote').checked ? '' : '0';
+  $('blurbEl').classList.toggle('hidden-block', !$('tgNote').checked && !$('tgClosing').checked);
 }
 
 // ───────── 사진 고르기 ─────────
@@ -413,17 +478,29 @@ function shrinkImage(dataUrl, maxW) {
 $('photo').addEventListener('change', () => { const u = $('photo').value.trim(); if (u) setPhoto(u); });
 
 $('tgReviews').addEventListener('change', applyToggles);
-$('tgBlurb').addEventListener('change', applyToggles);
-$('reviewShortEl').addEventListener('blur', applyToggles);
-$('reviewLongEl').addEventListener('blur', applyToggles);
+$('tgNote').addEventListener('change', applyToggles);
+$('tgClosing').addEventListener('change', applyToggles);
 $('date').addEventListener('change', () => { if (current) { const keep = $('photoImg').getAttribute('src'); fillCard(current); } });
-$('btnAddLine').addEventListener('click', () => addLine('', true));
-$('btnMenuLine').addEventListener('click', () => { if (current) addLine(menuSentence(current), true); });
+$('btnMenuLine').addEventListener('click', () => { if (current) addLine(menuSentence(current), !isNarrow()); });
+$('btnMoreReview').addEventListener('click', () => {
+  if (!current) return;
+  const q = pickUnused(null);
+  if (!q) { const st = $('status'); st.className = 'status'; st.textContent = '더 넣을 후기가 없어요.'; return; }
+  addQuote(q); $('tgReviews').checked = true; applyToggles();
+});
 $('btnReroll').addEventListener('click', () => {
   if (!current) return;
-  const pick = (arr, cur) => { const others = arr.filter(x => x !== cur); return sample(others.length ? others : arr); };
-  $('reviewShortEl').textContent = pick(reviewPool.short, $('reviewShortEl').textContent);
-  $('reviewLongEl').textContent = pick(reviewPool.long, $('reviewLongEl').textContent);
+  // 지금 있는 후기 수만큼 새로 뽑는다 (첫 줄은 짧은 것, 둘째 줄은 긴 것, 그 뒤는 아무거나)
+  const n = Math.max(1, currentQuotes().length);
+  const before = new Set(currentQuotes());
+  $('quoteList').innerHTML = '';
+  for (let i = 0; i < n; i++) {
+    const kind = i === 0 ? 'short' : i === 1 ? 'long' : null;
+    const used = new Set([...currentQuotes(), ...before]);
+    const pool = (kind === 'short' ? reviewPool.short : kind === 'long' ? reviewPool.long : [...reviewPool.short, ...reviewPool.long]).filter(f => !used.has(f));
+    const q = pool.length ? sample(pool) : pickUnused(kind);
+    if (q) addQuote(q);
+  }
   applyToggles();
 });
 $('btnReset').addEventListener('click', () => { if (current) fillCard(current); });
@@ -510,6 +587,47 @@ $('q').addEventListener('keydown', e => {
 $('results').addEventListener('click', e => { const b = e.target.closest('button'); if (b) choose(Number(b.dataset.i)); });
 document.addEventListener('click', e => { if (!e.target.closest('.search')) $('results').classList.remove('on'); });
 
+// ───────── 모바일 배치: 카드를 검색·날짜 바로 아래로 옮기고, 카드 글자는 시트로 편집 ─────────
+function isNarrow() { return window.innerWidth <= 900; }
+let narrowMode = null;
+function applyLayoutMode() {
+  const narrow = isNarrow();
+  if (narrow === narrowMode) return;
+  narrowMode = narrow;
+  const stage = document.querySelector('.stage'), panel = document.querySelector('.panel'), app = document.querySelector('.app');
+  if (narrow) panel.insertBefore(stage, $('date').closest('.field').nextSibling);   // 검색·날짜 다음, 사진 고르기 앞
+  else app.appendChild(stage);
+  document.querySelectorAll('[data-ed]').forEach(el => { el.contentEditable = narrow ? 'false' : 'true'; });
+}
+let sheetTarget = null;
+function openSheet(el) {
+  sheetTarget = el;
+  const removable = el.closest('.line, .qwrap');
+  $('sheetTitle').textContent = el.id === 'nameEl' ? '가게 이름' : el.id === 'catEl' ? '분류' : el.id === 'eyebrowEl' ? '왼쪽 위 배지' : el.id === 'dateEl' ? '날짜' :
+    el.classList.contains('quote') ? '방문 후기' : el.id === 'noteEl' ? '코멘트' : el.id === 'closingEl' ? '오픈채팅 안내' : el.closest('.line') ? '문장' : '문구 수정';
+  $('sheetText').value = el.textContent;
+  $('sheetDelete').style.display = removable ? '' : 'none';
+  $('sheetBg').classList.add('on'); $('sheet').classList.add('on');
+  setTimeout(() => $('sheetText').focus(), 50);
+}
+function closeSheet() { $('sheetBg').classList.remove('on'); $('sheet').classList.remove('on'); sheetTarget = null; }
+$('card').addEventListener('click', e => {
+  if (!isNarrow()) return;
+  const el = e.target.closest('[data-ed]');
+  if (el) { e.preventDefault(); openSheet(el); }
+});
+$('sheetApply').addEventListener('click', () => {
+  if (!sheetTarget) return;
+  const v = $('sheetText').value.replace(/\r/g, '').trim();
+  const removable = sheetTarget.closest('.line, .qwrap');
+  if (!v && removable) removable.remove(); else sheetTarget.textContent = v;
+  applyToggles(); closeSheet();
+});
+$('sheetDelete').addEventListener('click', () => { const r = sheetTarget && sheetTarget.closest('.line, .qwrap'); if (r) r.remove(); closeSheet(); });
+$('sheetCancel').addEventListener('click', closeSheet);
+$('sheetBg').addEventListener('click', closeSheet);
+$('mobileSave').addEventListener('click', () => $('btnRender').click());
+
 // ───────── 화면 맞춤 축소 ─────────
 function fitStage() {
   const narrow = window.innerWidth <= 900;
@@ -520,13 +638,13 @@ function fitStage() {
   sc.style.height = (1560 * k) + 'px';
   sc.style.width = (1080 * k) + 'px';
 }
-window.addEventListener('resize', fitStage);
+window.addEventListener('resize', () => { applyLayoutMode(); fitStage(); });
 
 // ───────── PNG 저장 (브라우저 안에서 직접 굽는다 — html-to-image) ─────────
 $('btnRender').addEventListener('click', async () => {
   if (!current) return;
   const st = $('status'); st.className = 'status'; st.textContent = 'PNG 굽는 중… (5~15초, 처음엔 폰트를 받아서 더 걸려요)';
-  $('btnRender').disabled = true;
+  $('btnRender').disabled = true; $('mobileSave').disabled = true;
   document.activeElement && document.activeElement.blur();
   applyToggles();
   document.body.classList.add('capturing');
@@ -544,11 +662,12 @@ $('btnRender').addEventListener('click', async () => {
     $('saved').innerHTML = `<img src="${dataUrl}" alt="완성된 카드">`;
     const a = document.createElement('a'); a.href = dataUrl; a.download = file; document.body.appendChild(a); a.click(); a.remove();
     st.textContent = `완성: ${file}`;
+    if (isNarrow()) $('saved').scrollIntoView({ behavior: 'smooth', block: 'center' });
   } catch (e) {
     st.className = 'status err'; st.textContent = 'PNG 굽기 실패: ' + (e && e.message || e);
   } finally {
     document.body.classList.remove('capturing');
-    $('btnRender').disabled = false;
+    $('btnRender').disabled = false; $('mobileSave').disabled = false;
   }
 });
 function ymd() { const t = new Date(); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; }
@@ -556,6 +675,7 @@ function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ 
 
 const t0 = new Date();
 $('date').value = `${t0.getFullYear()}-${String(t0.getMonth() + 1).padStart(2, '0')}-${String(t0.getDate()).padStart(2, '0')}`;
+applyLayoutMode();
 fitStage();
 renderPhotoGrid([]);
 </script>
