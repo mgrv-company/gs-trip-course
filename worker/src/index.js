@@ -25,6 +25,8 @@ const CARD_TTL_SEC = 180 * 86400;  // KV 보관 기간 — 슬랙에서 다시 �
 const DRAFT_MAX_BYTES = 4 * 1024 * 1024;  // 임시저장 1건 최대 (내 사진을 넣으면 data: 주소가 포함돼 수백 KB)
 const DRAFT_TTL_SEC = 90 * 86400;  // 임시저장 보관 기간 3개월 (그 뒤 자동 삭제)
 const DRAFT_LIMIT = 60;            // 임시저장 읽기/쓰기: IP당 10분 최대
+const CARD_TPL_KEYS = ['eyebrow', 'move', 'hours', 'closed', 'rating', 'menu', 'reviewLabel', 'closing', 'send'];   // 카드 기본 문구 허용 키
+const CARD_TPL_KV = 'cardmaker/defaults';
 const IMG_HOST_RE = /(^|\.)(pstatic\.net|phinf\.naver\.net)$/;   // 사진 중계 허용 호스트 — 네이버 이미지 CDN만 (열린 프록시 방지)
 const NAVER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36';         // 공개 읽기 메모리 캐시 (남용시 무료한도 소진 방지 — 어드민 저장하면 즉시 비움)
 const SLACK_BOT_NAME = '고성 트립 코스 봇';  // 이 서비스가 #gs-routine 에 보내는 슬랙 알림 표시 이름 (공용 웹훅이라 이름만 덮어씀)
@@ -260,6 +262,17 @@ export default {
         return new Response(value, { status: 200, headers: { 'Content-Type': (metadata && metadata.type) || 'image/jpeg', 'Cache-Control': 'public, max-age=86400', ...corsHeaders(req) } });
       }
 
+      // ── 공개: 카드 만들기 기본 문구 (card-maker.html 이 열릴 때 읽음) ──────
+      if (path === '/public/card-defaults' && req.method === 'GET') {
+        if (!env.CARDS) return json(req, {});
+        const hit = pubCache['card-defaults'];
+        if (hit && Date.now() - hit.at < PUB_CACHE_MS) return json(req, hit.data, 200, { 'Cache-Control': 'no-store' });
+        let data = {};
+        try { data = (await env.CARDS.get(CARD_TPL_KV, { type: 'json' })) || {}; } catch (e) { data = {}; }
+        pubCache['card-defaults'] = { data, at: Date.now() };
+        return json(req, data, 200, { 'Cache-Control': 'no-store' });
+      }
+
       // ── 공개: 조회수 집계 (손님 페이지 로드 시 1회) ──────────
       // 브라우저당 하루 1회는 프론트(localStorage)에서 거른다. KST 날짜별로 누적.
       if (path === '/view' && req.method === 'POST') {
@@ -420,7 +433,7 @@ export default {
       }
 
       // ── 여기부터는 로그인 필요 ────────────────────────────────
-      if (path.startsWith('/admin/') || path === '/logout' || path === '/card/send' || path.startsWith('/card/drafts')) {
+      if (path.startsWith('/admin/') || path === '/logout' || path === '/card/send' || path.startsWith('/card/drafts') || path === '/card/defaults') {
         if (!(await checkAuth(req, db))) return json(req, { error: '로그인이 필요해요.' }, 401);
       }
 
@@ -493,6 +506,18 @@ export default {
         const title = String(state.title || state.name || '').slice(0, 60);
         await env.CARDS.put(key, raw, { expirationTtl: DRAFT_TTL_SEC, metadata: { title, place: String(state.placeName || '').slice(0, 40), at } });
         return json(req, { ok: true, id, at, title });
+      }
+
+      // ── 카드 만들기: 기본 문구 저장 (로그인 필요) ──────
+      if (path === '/card/defaults' && req.method === 'PUT') {
+        if (!env.CARDS) return json(req, { ok: false, error: 'CARDS(KV) 미설정' }, 501);
+        let body;
+        try { body = await req.json(); } catch (e) { return json(req, { ok: false, error: '형식 오류' }, 400); }
+        const clean = {};
+        for (const k of CARD_TPL_KEYS) if (typeof body[k] === 'string') clean[k] = body[k].slice(0, 600);
+        await env.CARDS.put(CARD_TPL_KV, JSON.stringify(clean));
+        pubCache = {};   // 공개 읽기 캐시 비움 → 다른 기기에서 곧바로 새 문구
+        return json(req, { ok: true, saved: Object.keys(clean).length });
       }
 
       if (path === '/logout' && req.method === 'POST') {

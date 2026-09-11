@@ -50,17 +50,32 @@
   .foot .foot-date { font-size: 22px; font-weight: 600; color: var(--gray); font-variant-numeric: tabular-nums; }
 
   /* ───────── 편집 화면 ───────── */
-  .app { display: grid; grid-template-columns: 380px minmax(0, 1fr); min-height: 100vh; }
+  /* PC: 오른쪽에 고정된 설정 패널(아이패드 안내화면 어드민과 같은 구조) + 왼쪽 나머지 영역에 카드를 화면 높이에 맞춰 축소해 가운데 배치 */
+  .app { display: block; min-height: 100vh; }
   /* 카드 원본(1080px)이 축소 전 잠깐이라도 가로 스크롤을 만들면 휴대폰 화면 전체가 넓어져 버린다 → 가로 넘침은 항상 잘라낸다 */
   html, body { overflow-x: hidden; }
   .panel, .stage { min-width: 0; max-width: 100%; }
   .stage { overflow: hidden; }
-  .panel { background: #fff; border-right: 1px solid var(--line); padding: 22px 20px 40px; display: flex; flex-direction: column; gap: 18px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
-  .panel h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; }
-  .panel h1 small { display: block; font-size: 12px; font-weight: 500; color: var(--gray); margin-top: 4px; line-height: 1.5; }
-  .field { display: flex; flex-direction: column; gap: 6px; }
+  .panel { position: fixed; top: 0; right: 0; bottom: 0; width: 340px; z-index: 20; background: #fff; color: var(--ink); border-left: 1px solid var(--line); box-shadow: -8px 0 24px rgba(0,0,0,.12); display: flex; flex-direction: column; overflow: hidden; }
+  .panel h1 { flex: none; padding: 16px 18px 12px; border-bottom: 1px solid var(--line); font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+  .panel h1 small { display: block; font-size: 12px; font-weight: 400; color: var(--gray); margin-top: 4px; line-height: 1.5; }
+  .panel .rows { flex: 1; overflow-y: auto; padding: 4px 0 18px; display: flex; flex-direction: column; gap: 12px; }
+  .sec { padding: 14px 18px 0; font-size: 12px; font-weight: 700; letter-spacing: .04em; color: var(--gray); border-top: 1px solid var(--line); margin-top: 4px; }
+  .rows > .sec:first-child { border-top: none; margin-top: 0; padding-top: 10px; }
+  .panel .btns { flex: none; display: flex; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--line); background: #fff; }
+  .panel .btns .btn { flex: 1; padding: 11px 0; font-size: 14px; }
+  details.field > summary { cursor: pointer; font-size: 13px; font-weight: 700; list-style: none; display: flex; align-items: center; gap: 6px; }
+  details.field > summary::before { content: '▸'; color: var(--gray); font-size: 11px; }
+  details.field[open] > summary::before { content: '▾'; }
+  details.field > summary::-webkit-details-marker { display: none; }
+  .tplrow { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+  .tplrow span { font-size: 12px; font-weight: 700; }
+  .tplrow input, .tplrow textarea { font: inherit; font-size: 13px; line-height: 1.45; padding: 7px 9px; border: 1px solid #d9d4cd; border-radius: 6px; background: #fff; outline: none; width: 100%; }
+  .tplrow textarea { min-height: 64px; resize: vertical; }
+  .tplrow input:focus, .tplrow textarea:focus { border-color: var(--ink); }
+  .field { display: flex; flex-direction: column; gap: 6px; padding: 0 18px; }
   .field label, .field .lbl { font-size: 12px; font-weight: 700; color: var(--gray); }
-  .field input[type=text], .field input[type=date], .field input[type=url] { font: inherit; font-size: 16px; padding: 9px 10px; border: 1px solid var(--line); background: var(--bg); outline: none; width: 100%; }
+  .field input[type=text], .field input[type=date], .field input[type=url] { font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid #d9d4cd; border-radius: 6px; background: #fff; outline: none; width: 100%; }
   .field input:focus { border-color: var(--ink); }
   .search { position: relative; }
   .results { position: absolute; left: 0; right: 0; top: 100%; z-index: 20; background: #fff; border: 1px solid var(--line); border-top: 0; max-height: 320px; overflow-y: auto; display: none; }
@@ -71,10 +86,10 @@
   .toggles { display: flex; flex-direction: column; gap: 8px; }
   .toggles label { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
   .btnrow { display: flex; flex-wrap: wrap; gap: 8px; }
-  .btn { font: inherit; font-size: 13px; font-weight: 700; padding: 9px 12px; border: 1px solid var(--ink); background: #fff; color: var(--ink); cursor: pointer; }
+  .btn { font: inherit; font-size: 13px; font-weight: 700; padding: 8px 12px; border: 1px solid #d9d4cd; border-radius: 8px; background: #fff; color: var(--ink); cursor: pointer; }
   .btn:hover { background: var(--soft); }
-  .btn.primary { background: var(--purple); border-color: var(--purple); color: #fff; font-size: 15px; padding: 12px; }
-  .btn.primary:hover { background: var(--purple-deep); }
+  .btn.primary { background: var(--ink); border-color: var(--ink); color: #fff; font-size: 15px; padding: 12px; }
+  .btn.primary:hover { background: #000; }
   .btn:disabled { opacity: .5; cursor: default; }
   .hint { font-size: 12px; color: var(--gray); line-height: 1.55; }
   .status { font-size: 13px; line-height: 1.5; min-height: 20px; }
@@ -82,7 +97,7 @@
   .status.err { color: #b3261e; }
   .saved img { width: 100%; border: 1px solid var(--line); display: block; margin-top: 8px; }
   .saved .share { width: 100%; margin-top: 8px; }
-  .sendbox { display: none; flex-direction: column; gap: 8px; margin-top: 10px; padding: 12px; border: 1px solid var(--ink); background: #fff; }
+  .sendbox { display: none; flex-direction: column; gap: 8px; margin-top: 10px; padding: 12px; border: 1px solid #d9d4cd; border-radius: 8px; background: #fff; }
   .sendbox.on { display: flex; }
   .sendbox textarea { font: inherit; font-size: 14px; line-height: 1.5; padding: 9px 10px; border: 1px solid var(--line); background: var(--bg); outline: none; width: 100%; min-height: 110px; resize: vertical; }
   .sendbox .btn.send { background: var(--ink); border-color: var(--ink); color: #fff; }
@@ -105,7 +120,7 @@
   .zoomrow { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--gray); }
   .zoomrow input { flex: 1; }
 
-  .stage { padding: 28px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .stage { margin-right: 340px; min-height: 100vh; padding: 20px 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
   .stage .scaler { width: 1080px; height: 1560px; transform-origin: top left; }
   .stage .frame { position: relative; box-shadow: 0 10px 40px rgba(0,0,0,.18); }
   .stage-note { font-size: 12px; color: var(--gray); text-align: center; }
@@ -136,9 +151,13 @@
   .only-mobile { display: none; }
   .mobile-bar { display: none; }
   @media (max-width: 900px) {
-    .app { grid-template-columns: minmax(0, 1fr); }
-    .panel { position: static; height: auto; border-right: 0; padding: 16px 14px 96px; gap: 16px; }
-    .stage { padding: 0; margin: 2px -14px 6px; max-width: calc(100% + 28px); }
+    .panel { position: static; width: auto; height: auto; border-left: 0; box-shadow: none; overflow: visible; padding: 12px 0 96px; }
+    .panel h1 { padding: 4px 14px 10px; }
+    .panel .rows { overflow: visible; padding: 0 0 8px; gap: 14px; }
+    .panel .btns { display: none; }
+    .field { padding: 0 14px; }
+    .sec { padding: 12px 14px 0; }
+    .stage { margin: 2px 0 6px; min-height: 0; padding: 0; }
     .stage .frame { box-shadow: 0 6px 24px rgba(0,0,0,.14); }
     .photo-grid { grid-template-columns: repeat(5, 1fr); }
     .only-desktop { display: none; }
@@ -173,7 +192,8 @@
 <div class="app">
   <aside class="panel">
     <h1>고성 추천 카드 만들기<small><span class="only-desktop">가게를 고르면 카드가 채워지고, 카드 위 글자는 바로 클릭해서 고칠 수 있어요.</span><span class="only-mobile">가게를 고르면 카드가 채워지고, 카드 위 글자를 누르면 고칠 수 있어요.</span></small></h1>
-
+    <div class="rows">
+    <div class="sec">가게</div>
     <div class="field search">
       <label for="q">가게 검색</label>
       <input type="text" id="q" placeholder="가게 이름을 입력하세요" autocomplete="off">
@@ -190,6 +210,7 @@
       <div class="linkrow"><a id="naverLink" href="#" target="_blank" rel="noopener"></a><button class="btn" id="btnCopyLink" type="button">복사</button></div>
     </div>
 
+    <div class="sec">사진</div>
     <div class="field">
       <div class="lbl">사진 고르기</div>
       <div class="photo-grid" id="photoGrid"></div>
@@ -200,6 +221,7 @@
       <input type="url" id="photo" placeholder="또는 사진 주소 직접 입력 (https://...)">
     </div>
 
+    <div class="sec">내용</div>
     <div class="field">
       <div class="lbl">보일 항목</div>
       <div class="toggles">
@@ -220,8 +242,22 @@
       <div class="hint"><span class="only-desktop">문장·후기 위에 마우스를 올리면 오른쪽에 삭제(×) 버튼이 나와요. </span><span class="only-mobile">문장·후기를 누르면 고치거나 지울 수 있어요. </span>후기는 네이버 리뷰에서 긍정 문장만 골라 넣어요.</div>
     </div>
 
+    <div class="sec">기본 문구</div>
+    <details class="field" id="tplBox">
+      <summary>기본 문구 바꾸기</summary>
+      <div class="hint">새 카드를 만들 때 자동으로 채워지는 문구예요. 중괄호 부분은 가게 정보로 바뀌어요. 서버에 저장되어 폰·PC 모두 같은 문구를 써요.</div>
+      <div id="tplRows"></div>
+      <div class="btnrow" style="margin-top:8px">
+        <button class="btn" id="btnTplSave" type="button">서버에 저장</button>
+        <button class="btn" id="btnTplReset" type="button">기본값으로</button>
+        <button class="btn" id="btnTplApply" type="button">지금 카드에 적용</button>
+      </div>
+      <div class="status" id="tplStatus"></div>
+    </details>
+
+    <div class="sec">임시저장</div>
     <div class="field">
-      <div class="lbl">임시저장 (서버에 보관 — 폰·PC 어디서든 이어서 편집)</div>
+      <div class="lbl">서버에 보관 — 폰·PC 어디서든 이어서 편집</div>
       <div class="btnrow">
         <button class="btn" id="btnDraftSave" disabled>지금 상태 임시저장</button>
         <button class="btn" id="btnDraftList">목록 새로고침</button>
@@ -230,8 +266,8 @@
       <div class="status" id="draftStatus"></div>
     </div>
 
+    <div class="sec">결과</div>
     <div class="field">
-      <button class="btn primary" id="btnRender" disabled>이미지 저장</button>
       <div class="status" id="status"></div>
       <div class="saved" id="saved"></div>
       <div class="sendbox" id="sendbox">
@@ -242,6 +278,8 @@
       </div>
       <div class="hint"><span class="only-desktop">저장을 누르면 바로 내려받아져요.</span><span class="only-mobile">저장을 누르면 카드가 만들어지고, 그 아래 "사진첩에 저장 / 공유" 버튼으로 사진첩에 넣을 수 있어요. (버튼이 안 뜨는 기기는 이미지를 길게 눌러 저장)</span></div>
     </div>
+    </div>
+    <div class="btns"><button class="btn primary" id="btnRender" disabled>이미지 저장</button></div>
   </aside>
 
   <main class="stage">
@@ -306,7 +344,33 @@ const proxied = u => NAVER_IMG_RE.test(u) ? `${ADMIN_API}/public/img?u=${encodeU
 // daily_pick.py 의 move_parts()/build_card_data()/pick_review_quotes() 를 그대로 옮겼다.
 // (자동 카드와 손으로 만든 카드가 같은 문장 규칙을 쓰게)
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
-const CLOSING_DEFAULT = '혼자 오셨거나 동행이 필요하다면 오픈채팅방 안에서 자유롭게 말을 건네보세요.';
+// 기본 문구(템플릿). 오른쪽 패널 '기본 문구 바꾸기'에서 고쳐 서버(워커 KV)에 저장하면 모든 기기에 적용된다.
+// {…} 자리는 가게 정보로 바뀐다. 보내기 문구는 값이 빈 자리표시자가 있는 줄을 통째로 뺀다(daily_pick.py 규칙과 동일).
+const TPL_FIELDS = [
+  ['eyebrow', '왼쪽 위 배지', 'input', {}],
+  ['move', '이동 문장', 'input', { '{아이콘}': '🚶/🚲/🚗', '{수단}': '도보로/자전거로/차로', '{분}': '분' }],
+  ['hours', '영업시간 문장', 'input', { '{시작}': '오전 9시', '{끝}': '오후 3시' }],
+  ['closed', '휴무 문장', 'input', {}],
+  ['rating', '별점 문장', 'input', { '{별점}': '4.21', '{리뷰수}': '295' }],
+  ['menu', '대표 메뉴 문장', 'input', { '{메뉴}': '메뉴 1, 메뉴 2' }],
+  ['reviewLabel', '후기 제목', 'input', {}],
+  ['closing', '오픈채팅 안내', 'textarea', {}],
+  ['send', '트립코스 보내기 문구', 'textarea', { '{가게}': '가게명', '{분류}': '분류', '{코멘트}': '코멘트', '{링크}': '네이버 링크' }],
+];
+const TPL_BUILTIN = {
+  eyebrow: '오늘의 PICK',
+  move: '맹그로브 고성에서 {아이콘} {수단} {분}분 걸려요.',
+  hours: '오늘 ⏰ {시작}부터 {끝}까지 운영해요. 방문 전 유선으로 문의해보세요.',
+  closed: '오늘은 쉬는 날이에요.',
+  rating: '네이버 지도 별점은 ⭐{별점}점이고, 오늘까지 ✍️ 리뷰는 {리뷰수}건 달렸어요.',
+  menu: '🍽 대표 메뉴는 {메뉴}이에요.',
+  reviewLabel: '실제 방문 후기',
+  closing: '혼자 오셨거나 동행이 필요하다면 오픈채팅방 안에서 자유롭게 말을 건네보세요.',
+  send: '🍜 오늘의 고성 근처 추천\n\n{가게} ({분류})\n💬 {코멘트}\n🔗 {링크}',
+};
+let TPL = { ...TPL_BUILTIN };
+const CLOSING_DEFAULT = TPL_BUILTIN.closing;
+function tpl(key, vars) { let s = TPL[key] != null ? String(TPL[key]) : TPL_BUILTIN[key]; for (const [k, v] of Object.entries(vars || {})) s = s.split(k).join(v == null ? '' : String(v)); return s; }
 const REVIEW_SENTENCE_SPLIT = /[\n.!?~]+/;
 const REVIEW_SHORT_LEN = [8, 22], REVIEW_LONG_LEN = [28, 60];
 const REVIEW_NEGATIVE_PAT = /별루|별로|아쉽|실망|비추|최악|후회|맛없|불친절|재방문\s*안|다신\s*안|두\s*번\s*다시|돈\s*아깝|시간\s*아깝|그닥|글쎄|보통이|평범하|그냥\s*그런|기대\s*이하|안\s*되는|안\s*돼|불편|부족한|소통이\s*안|않(?:았|아요|네요)/;
@@ -363,17 +427,17 @@ function buildSentences(p, date) {
   const [mode, min] = moveParts(p);
   const icon = mode === '도보' ? '🚶' : mode === '차로' ? '🚗' : '🚲';
   const phrase = mode === '차로' ? '차로' : `${mode}로`;
-  const out = [`맹그로브 고성에서 ${icon} ${phrase} ${min}분 걸려요.`];
+  const out = [tpl('move', { '{아이콘}': icon, '{수단}': phrase, '{분}': min })];
   if (day in h) {
-    if (h[day] === null) out.push('오늘은 쉬는 날이에요.');
-    else { const [s, e] = h[day].split('-'); if (s && e) out.push(`오늘 ⏰ ${to12h(s)}부터 ${to12h(e)}까지 운영해요. 방문 전 유선으로 문의해보세요.`); }
+    if (h[day] === null) out.push(tpl('closed', {}));
+    else { const [s, e] = h[day].split('-'); if (s && e) out.push(tpl('hours', { '{시작}': to12h(s), '{끝}': to12h(e) })); }
   }
-  if (p.rv) out.push(`네이버 지도 별점은 ⭐${p.rv[0]}점이고, 오늘까지 ✍️ 리뷰는 ${p.rv[1]}건 달렸어요.`);
-  return out;
+  if (p.rv) out.push(tpl('rating', { '{별점}': p.rv[0], '{리뷰수}': p.rv[1] }));
+  return out.filter(s => s.trim());
 }
 function menuSentence(p) {
   const m = (p.m || []).slice(0, 2).map(s => s.replace(/\s*[\d,]+원$/, '').trim()).filter(Boolean);
-  return m.length ? `🍽 대표 메뉴는 ${m.join(', ')}이에요.` : '🍽 대표 메뉴를 적어주세요.';
+  return m.length ? tpl('menu', { '{메뉴}': m.join(', ') }) : tpl('menu', { '{메뉴}': '(메뉴를 적어주세요)' });
 }
 
 // ───────── 카드 채우기 ─────────
@@ -421,7 +485,7 @@ function setPhoto(url) {
 function fillCard(p) {
   current = p;
   const date = pickDate();
-  $('eyebrowEl').textContent = '오늘의 PICK';
+  $('eyebrowEl').textContent = tpl('eyebrow', {});
   $('nameEl').textContent = p.n || '';
   $('catEl').textContent = p.c || p.t || '';
   $('dateEl').textContent = fmtDate(date);
@@ -433,7 +497,8 @@ function fillCard(p) {
   for (const q of [pickUnused('short'), pickUnused('long')]) if (q) addQuote(q);
   $('tgReviews').checked = currentQuotes().length > 0;
   $('noteEl').textContent = p.note || p.mr || '';
-  $('closingEl').textContent = CLOSING_DEFAULT;
+  $('closingEl').textContent = tpl('closing', {});
+  $('reviewsEl').querySelector('.reviews-label').textContent = tpl('reviewLabel', {});
   $('tgNote').checked = !!(p.note || p.mr);
   $('tgClosing').checked = true;
   applyToggles();
@@ -642,7 +707,7 @@ function applyLayoutMode() {
   if (narrow === narrowMode) return;
   narrowMode = narrow;
   const stage = document.querySelector('.stage'), panel = document.querySelector('.panel'), app = document.querySelector('.app');
-  if (narrow) panel.insertBefore(stage, $('date').closest('.field').nextSibling);   // 검색·날짜 다음, 사진 고르기 앞
+  if (narrow) { const df = $('date').closest('.field'); df.parentNode.insertBefore(stage, df.nextSibling); }   // 검색·날짜 다음, 링크·사진 앞
   else app.appendChild(stage);
   document.querySelectorAll('[data-ed]').forEach(el => { el.contentEditable = narrow ? 'false' : 'true'; });
 }
@@ -686,8 +751,11 @@ $('btnCopyLink').addEventListener('click', async () => {
 function fitStage() {
   const narrow = window.innerWidth <= 900;
   const vw = document.documentElement.clientWidth || window.innerWidth;
-  const avail = Math.min(narrow ? vw - 28 : vw - 380 - 56, 1080);
-  const k = Math.min(1, avail / 1080);
+  const vh = window.innerHeight;
+  // PC: 오른쪽 패널(340px)을 뺀 영역에서 가로·세로 모두 들어가게 (세로가 보통 더 빡빡함 → 화면 높이에 맞춰 작아진다)
+  const availW = narrow ? vw - 28 : vw - 340 - 48;
+  const availH = narrow ? Infinity : vh - 40 - 28;
+  const k = Math.min(1, availW / 1080, availH / 1560);
   const sc = $('scaler');
   sc.style.transform = `scale(${k})`;
   sc.style.height = (1560 * k) + 'px';
@@ -728,7 +796,7 @@ $('btnRender').addEventListener('click', async () => {
     if (!canShare || !isNarrow()) { const a = document.createElement('a'); a.href = dataUrl; a.download = file; document.body.appendChild(a); a.click(); a.remove(); }
     st.textContent = canShare && isNarrow() ? `완성: ${file} — 아래 버튼으로 사진첩에 저장하세요` : `완성: ${file}`;
     openSendBox();
-    if (isNarrow()) $('saved').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    $('saved').scrollIntoView({ behavior: 'smooth', block: isNarrow() ? 'center' : 'nearest' });
   } catch (e) {
     st.className = 'status err'; st.textContent = '이미지 굽기 실패: ' + (e && e.message || e);
   } finally {
@@ -736,6 +804,48 @@ $('btnRender').addEventListener('click', async () => {
     $('btnRender').disabled = false; $('mobileSave').disabled = false;
   }
 });
+// ───────── 기본 문구: 화면 + 서버 저장 ─────────
+function renderTplRows() {
+  const box = $('tplRows'); box.innerHTML = '';
+  for (const [key, label, kind, ph] of TPL_FIELDS) {
+    const row = document.createElement('label'); row.className = 'tplrow';
+    const hint = Object.keys(ph).length ? ` <small style="font-weight:500;color:var(--gray)">${esc(Object.keys(ph).join(' '))}</small>` : '';
+    row.innerHTML = `<span>${esc(label)}${hint}</span>` + (kind === 'textarea' ? `<textarea data-tpl="${key}"></textarea>` : `<input type="text" data-tpl="${key}">`);
+    row.querySelector('[data-tpl]').value = TPL[key] != null ? TPL[key] : TPL_BUILTIN[key];
+    box.appendChild(row);
+  }
+}
+function readTplForm() {
+  const out = {};
+  for (const el of $('tplRows').querySelectorAll('[data-tpl]')) out[el.dataset.tpl] = el.value.replace(/\r/g, '');
+  return out;
+}
+async function loadTpl() {
+  try {
+    const r = await fetch(`${ADMIN_API}/public/card-defaults`, { cache: 'no-store' });   // 브라우저 캐시에 옛 문구가 남지 않게
+    const j = r.ok ? await r.json() : {};
+    if (j && typeof j === 'object') { for (const [k] of TPL_FIELDS) if (typeof j[k] === 'string' && j[k].trim()) TPL[k] = j[k]; }
+  } catch (e) { /* 서버가 안 되면 내장 기본값 그대로 */ }
+  renderTplRows();
+}
+$('btnTplSave').addEventListener('click', async () => {
+  const st = $('tplStatus'); st.className = 'status'; st.textContent = '저장 중…';
+  try {
+    const body = readTplForm();
+    const r = await draftFetch('/card/defaults', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if (!r) { st.textContent = ''; return; }
+    const j = await r.json(); if (!r.ok || !j.ok) throw new Error(j.error || 'HTTP ' + r.status);
+    TPL = { ...TPL_BUILTIN, ...body };
+    st.textContent = '저장했어요. 다음에 만드는 카드부터 이 문구로 채워져요.';
+  } catch (e) { st.className = 'status err'; st.textContent = '저장 실패: ' + (e && e.message || e); }
+});
+$('btnTplReset').addEventListener('click', () => { TPL = { ...TPL_BUILTIN }; renderTplRows(); $('tplStatus').className = 'status'; $('tplStatus').textContent = '기본값으로 되돌렸어요. 서버에 남기려면 "서버에 저장"을 누르세요.'; });
+$('btnTplApply').addEventListener('click', () => {
+  TPL = { ...TPL_BUILTIN, ...readTplForm() };
+  if (current) { fillCard(current); $('tplStatus').className = 'status'; $('tplStatus').textContent = '지금 카드를 이 문구로 다시 채웠어요 (직접 고친 내용은 초기화됨).'; }
+  else { $('tplStatus').className = 'status'; $('tplStatus').textContent = '가게를 고르면 이 문구로 채워져요.'; }
+});
+loadTpl();
+
 // ───────── 임시저장 (서버) ─────────
 // 편집 상태를 통째로 JSON 으로 만들어 워커(KV)에 둔다. 불러오면 가게를 다시 채운 뒤 저장된 문구·사진 위치를 덮어쓴다.
 let currentDraftId = null;     // 불러온 초안이면 그 id — '임시저장'이 같은 초안을 덮어쓴다
@@ -866,13 +976,16 @@ if (localStorage.getItem('gs-card-maker-token')) setTimeout(() => listDrafts(tru
 // 어드민 비밀번호로 한 번 로그인하면(토큰은 이 기기에 저장) 이후엔 바로 보내진다. 자동 추천(매일 11시)은 껐고 이 버튼이 그 자리를 대신한다.
 const TOKEN_KEY = 'gs-card-maker-token';
 function sendMessageDefault() {
-  const name = $('nameEl').textContent.trim() || (current && current.n) || '';
-  const cat = $('catEl').textContent.trim();
-  const lines = [`🍜 오늘의 고성 근처 추천`, ``, `${name}${cat ? ' (' + cat + ')' : ''}`];
-  const note = $('tgNote').checked ? $('noteEl').textContent.trim() : '';
-  if (note) lines.push(`💬 ${note}`);
-  if (current && current.u) lines.push(`🔗 ${current.u}`);
-  return lines.join('\n');
+  const vars = {
+    '{가게}': $('nameEl').textContent.trim() || (current && current.n) || '',
+    '{분류}': $('catEl').textContent.trim(),
+    '{코멘트}': $('tgNote').checked ? $('noteEl').textContent.trim() : '',
+    '{링크}': (current && current.u) || '',
+  };
+  const src = TPL.send != null ? String(TPL.send) : TPL_BUILTIN.send;
+  // 값이 빈 자리표시자가 들어 있는 줄은 통째로 뺀다 (코멘트 없는 가게에서 '💬 ' 만 남지 않게)
+  return src.split('\n').filter(line => !Object.entries(vars).some(([k, v]) => line.includes(k) && !v))
+    .map(line => Object.entries(vars).reduce((s, [k, v]) => s.split(k).join(v), line)).join('\n');
 }
 function openSendBox() {
   if (!lastFile) return;
