@@ -50,7 +50,11 @@
   .foot .foot-date { font-size: 22px; font-weight: 600; color: var(--gray); font-variant-numeric: tabular-nums; }
 
   /* ───────── 편집 화면 ───────── */
-  .app { display: grid; grid-template-columns: 380px 1fr; min-height: 100vh; }
+  .app { display: grid; grid-template-columns: 380px minmax(0, 1fr); min-height: 100vh; }
+  /* 카드 원본(1080px)이 축소 전 잠깐이라도 가로 스크롤을 만들면 휴대폰 화면 전체가 넓어져 버린다 → 가로 넘침은 항상 잘라낸다 */
+  html, body { overflow-x: hidden; }
+  .panel, .stage { min-width: 0; max-width: 100%; }
+  .stage { overflow: hidden; }
   .panel { background: #fff; border-right: 1px solid var(--line); padding: 22px 20px 40px; display: flex; flex-direction: column; gap: 18px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
   .panel h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; }
   .panel h1 small { display: block; font-size: 12px; font-weight: 500; color: var(--gray); margin-top: 4px; line-height: 1.5; }
@@ -77,6 +81,7 @@
   .status a { color: var(--purple-deep); font-weight: 700; }
   .status.err { color: #b3261e; }
   .saved img { width: 100%; border: 1px solid var(--line); display: block; margin-top: 8px; }
+  .saved .share { width: 100%; margin-top: 8px; }
 
   /* 확대·이동한 사진이 사진칸 밖으로 삐져나오지 않게 (template.html 은 object-fit 이라 필요 없던 규칙) */
   #photoWrap { overflow: hidden; }
@@ -89,6 +94,9 @@
   .photo-grid .up { display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--gray); border: 1px dashed var(--gray); }
   .photo-grid .up:hover { color: var(--ink); border-color: var(--ink); }
   .photo-note { font-size: 12px; color: var(--gray); }
+  .linkrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; max-width: 100%; }
+  .linkrow a { display: block; min-width: 0; font-size: 13px; color: var(--purple-deep); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .field { min-width: 0; max-width: 100%; }
   .zoomrow { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--gray); }
   .zoomrow input { flex: 1; }
 
@@ -123,9 +131,9 @@
   .only-mobile { display: none; }
   .mobile-bar { display: none; }
   @media (max-width: 900px) {
-    .app { grid-template-columns: 1fr; }
+    .app { grid-template-columns: minmax(0, 1fr); }
     .panel { position: static; height: auto; border-right: 0; padding: 16px 14px 96px; gap: 16px; }
-    .stage { padding: 0; margin: 2px -14px 6px; }
+    .stage { padding: 0; margin: 2px -14px 6px; max-width: calc(100% + 28px); }
     .stage .frame { box-shadow: 0 6px 24px rgba(0,0,0,.14); }
     .photo-grid { grid-template-columns: repeat(5, 1fr); }
     .only-desktop { display: none; }
@@ -165,6 +173,11 @@
       <input type="date" id="date">
     </div>
 
+    <div class="field" id="linkField" hidden>
+      <div class="lbl">네이버 지도 링크 (카드와 같이 올릴 때 붙여넣기)</div>
+      <div class="linkrow"><a id="naverLink" href="#" target="_blank" rel="noopener"></a><button class="btn" id="btnCopyLink" type="button">복사</button></div>
+    </div>
+
     <div class="field">
       <div class="lbl">사진 고르기</div>
       <div class="photo-grid" id="photoGrid"></div>
@@ -199,7 +212,7 @@
       <button class="btn primary" id="btnRender" disabled>PNG 저장</button>
       <div class="status" id="status"></div>
       <div class="saved" id="saved"></div>
-      <div class="hint"><span class="only-desktop">저장을 누르면 바로 내려받아져요.</span><span class="only-mobile">저장을 누르면 내려받아지고, 위에 나온 이미지를 길게 눌러 저장할 수도 있어요.</span></div>
+      <div class="hint"><span class="only-desktop">저장을 누르면 바로 내려받아져요.</span><span class="only-mobile">저장을 누르면 카드가 만들어지고, 그 아래 "사진첩에 저장 / 공유" 버튼으로 사진첩에 넣을 수 있어요. (버튼이 안 뜨는 기기는 이미지를 길게 눌러 저장)</span></div>
     </div>
   </aside>
 
@@ -277,6 +290,7 @@ let current = null;          // 지금 고른 가게 (PLACES 항목)
 let reviewPool = { short: [], long: [] };
 let photoReq = 0;            // 사진 목록 요청 순번 (늦게 온 옛 응답 무시)
 let fontCSS = null;          // html-to-image 가 쓸 폰트 CSS (한 번만 만들어 재사용)
+let lastFile = null;         // 마지막으로 구운 PNG (휴대폰 공유 저장용)
 
 fetch('data/reviews_stats.json').then(r => r.ok ? r.json() : {}).then(j => { REVIEWS = j || {}; }).catch(() => {});
 
@@ -396,6 +410,8 @@ function fillCard(p) {
   $('btnRender').disabled = false; $('mobileSave').disabled = false;
   $('stageNote').textContent = `${p.n} · ${p.t}${p.c ? ' · ' + p.c : ''} · 리뷰 문장 후보 ${reviewPool.short.length + reviewPool.long.length}개`;
   $('status').textContent = ''; $('status').className = 'status'; $('saved').innerHTML = '';
+  $('linkField').hidden = !p.u;
+  if (p.u) { $('naverLink').href = p.u; $('naverLink').textContent = p.u; }
   loadPhotos(p);
 }
 function applyToggles() {
@@ -588,7 +604,7 @@ $('results').addEventListener('click', e => { const b = e.target.closest('button
 document.addEventListener('click', e => { if (!e.target.closest('.search')) $('results').classList.remove('on'); });
 
 // ───────── 모바일 배치: 카드를 검색·날짜 바로 아래로 옮기고, 카드 글자는 시트로 편집 ─────────
-function isNarrow() { return window.innerWidth <= 900; }
+function isNarrow() { return (document.documentElement.clientWidth || window.innerWidth) <= 900; }
 let narrowMode = null;
 function applyLayoutMode() {
   const narrow = isNarrow();
@@ -627,11 +643,19 @@ $('sheetDelete').addEventListener('click', () => { const r = sheetTarget && shee
 $('sheetCancel').addEventListener('click', closeSheet);
 $('sheetBg').addEventListener('click', closeSheet);
 $('mobileSave').addEventListener('click', () => $('btnRender').click());
+$('btnCopyLink').addEventListener('click', async () => {
+  const u = current && current.u; if (!u) return;
+  const b = $('btnCopyLink');
+  try { await navigator.clipboard.writeText(u); b.textContent = '복사됨'; }
+  catch (e) { window.prompt('링크를 길게 눌러 복사하세요', u); }
+  setTimeout(() => { b.textContent = '복사'; }, 1500);
+});
 
 // ───────── 화면 맞춤 축소 ─────────
 function fitStage() {
   const narrow = window.innerWidth <= 900;
-  const avail = Math.min(narrow ? window.innerWidth - 28 : window.innerWidth - 380 - 56, 1080);
+  const vw = document.documentElement.clientWidth || window.innerWidth;
+  const avail = Math.min(narrow ? vw - 28 : vw - 380 - 56, 1080);
   const k = Math.min(1, avail / 1080);
   const sc = $('scaler');
   sc.style.transform = `scale(${k})`;
@@ -659,9 +683,18 @@ $('btnRender').addEventListener('click', async () => {
     if (isIOS) await htmlToImage.toPng(card, opts);
     const dataUrl = await htmlToImage.toPng(card, opts);
     const file = `${ymd()}-${($('nameEl').textContent.trim() || current.n).replace(/[\\/:*?"<>|\s]+/g, '_').slice(0, 40)}.png`;
-    $('saved').innerHTML = `<img src="${dataUrl}" alt="완성된 카드">`;
-    const a = document.createElement('a'); a.href = dataUrl; a.download = file; document.body.appendChild(a); a.click(); a.remove();
-    st.textContent = `완성: ${file}`;
+    // 휴대폰: 이미지 길게 누르기는 기기마다 안 되는 경우가 있어(특히 아이폰) 공유 시트로 사진첩에 바로 저장하는 버튼을 준다
+    const blob = await (await fetch(dataUrl)).blob();
+    lastFile = new File([blob], file, { type: 'image/png' });
+    const canShare = !!(navigator.canShare && navigator.canShare({ files: [lastFile] }));
+    $('saved').innerHTML = `<img src="${dataUrl}" alt="완성된 카드">` +
+      (canShare ? `<button class="btn primary share" id="btnShare" type="button">사진첩에 저장 / 공유</button>` : '');
+    if (canShare) $('btnShare').addEventListener('click', async () => {
+      try { await navigator.share({ files: [lastFile], title: file }); }
+      catch (e) { if (e && e.name !== 'AbortError') { st.className = 'status err'; st.textContent = '공유 실패: ' + e.message; } }
+    });
+    if (!canShare || !isNarrow()) { const a = document.createElement('a'); a.href = dataUrl; a.download = file; document.body.appendChild(a); a.click(); a.remove(); }
+    st.textContent = canShare && isNarrow() ? `완성: ${file} — 아래 버튼으로 사진첩에 저장하세요` : `완성: ${file}`;
     if (isNarrow()) $('saved').scrollIntoView({ behavior: 'smooth', block: 'center' });
   } catch (e) {
     st.className = 'status err'; st.textContent = 'PNG 굽기 실패: ' + (e && e.message || e);
