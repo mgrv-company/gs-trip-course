@@ -19,6 +19,9 @@ const PUB_CACHE_MS = 15000;
 const IMG_LIMIT = 400;             // 사진 중계(/public/img): IP당 10분 최대 (카드 만들기 썸네일·본사진 — 캐시 히트는 안 셈)
 const NAVER_PHOTO_LIMIT = 40;      // 네이버 사진 목록(/public/naver-photos): IP당 10분 최대 (네이버 차단 방지)
 const NAVER_PHOTO_CACHE_MS = 3600000; // 네이버 사진 목록 메모리 캐시 1시간
+const CARD_SEND_LIMIT = 20;        // 카드 트립코스 발송: IP당 10분 최대 (로그인 필요하지만 실수 연타 방지)
+const CARD_MAX_BYTES = 6 * 1024 * 1024;   // 카드 이미지 최대 크기 (JPEG 0.9 기준 1MB 안팎, 여유 있게)
+const CARD_TTL_SEC = 180 * 86400;  // KV 보관 기간 — 슬랙에서 다시 열어볼 수 있게 6개월
 const IMG_HOST_RE = /(^|\.)(pstatic\.net|phinf\.naver\.net)$/;   // 사진 중계 허용 호스트 — 네이버 이미지 CDN만 (열린 프록시 방지)
 const NAVER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36';         // 공개 읽기 메모리 캐시 (남용시 무료한도 소진 방지 — 어드민 저장하면 즉시 비움)
 const SLACK_BOT_NAME = '고성 트립 코스 봇';  // 이 서비스가 #gs-routine 에 보내는 슬랙 알림 표시 이름 (공용 웹훅이라 이름만 덮어씀)
@@ -244,6 +247,16 @@ export default {
         return json(req, data);
       }
 
+      // ── 공개: 카드 이미지 서빙 (카드 만들기 → 트립코스 발송분, KV 보관) ──────
+      if (path.startsWith('/public/card/') && req.method === 'GET') {
+        if (!env.CARDS) return json(req, { ok: false, error: 'CARDS 미설정' }, 501);
+        const key = path.slice('/public/card/'.length);
+        if (!/^[0-9a-zA-Z._-]{8,80}$/.test(key)) return json(req, { ok: false, error: 'bad key' }, 400);
+        const { value, metadata } = await env.CARDS.getWithMetadata(key, { type: 'arrayBuffer' });
+        if (!value) return json(req, { ok: false, error: 'not found' }, 404);
+        return new Response(value, { status: 200, headers: { 'Content-Type': (metadata && metadata.type) || 'image/jpeg', 'Cache-Control': 'public, max-age=86400', ...corsHeaders(req) } });
+      }
+
       // ── 공개: 조회수 집계 (손님 페이지 로드 시 1회) ──────────
       // 브라우저당 하루 1회는 프론트(localStorage)에서 거른다. KST 날짜별로 누적.
       if (path === '/view' && req.method === 'POST') {
@@ -404,8 +417,44 @@ export default {
       }
 
       // ── 여기부터는 로그인 필요 ────────────────────────────────
-      if (path.startsWith('/admin/') || path === '/logout') {
+      if (path.startsWith('/admin/') || path === '/logout' || path === '/card/send') {
         if (!(await checkAuth(req, db))) return json(req, { error: '로그인이 필요해요.' }, 401);
+      }
+
+      // ── 카드 만들기: 확정한 카드를 트립코스 슬랙으로 보내기 (2026-09-11) ──────
+      // 사용자가 card-maker.html 에서 만든 이미지를 KV 에 보관하고, 그 공개 주소를 incoming webhook 의
+      // image 블록으로 붙여 보낸다(웹훅은 파일 업로드가 안 되므로 daily_pick.py 와 같은 방식).
+      // 매일 11시 자동 추천(GS_DailyPick)은 이날부로 끄고 이 수동 발송으로 대체.
+      if (path === '/card/send' && req.method === 'POST') {
+        if (!env.CARDS) return json(req, { ok: false, error: 'CARDS(KV) 미설정' }, 501);
+        if (!env.CARD_WEBHOOK) return json(req, { ok: false, error: 'CARD_WEBHOOK 미설정' }, 501);
+        const ip = req.headers.get('CF-Connecting-IP') || 'local';
+        if (await overLimit(db, 'cardsend@' + ip, CARD_SEND_LIMIT)) return json(req, { ok: false, error: '발송이 너무 잦아요. 10분 뒤 다시 해주세요.' }, 429);
+        let form;
+        try { form = await req.formData(); } catch (e) { return json(req, { ok: false, error: '형식 오류' }, 400); }
+        const file = form.get('image');
+        const text = String(form.get('text') || '').trim().slice(0, 2000);
+        const name = String(form.get('name') || '').trim().slice(0, 80);
+        if (!file || typeof file === 'string' || !file.size) return json(req, { ok: false, error: '이미지가 없어요' }, 400);
+        if (file.size > CARD_MAX_BYTES) return json(req, { ok: false, error: '이미지가 너무 커요 (6MB 초과)' }, 413);
+        if (!text) return json(req, { ok: false, error: '보낼 문구가 비어 있어요' }, 400);
+        const type = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        const key = `${kstDay()}-${crypto.randomUUID().slice(0, 8)}.${type === 'image/png' ? 'png' : 'jpg'}`;
+        await env.CARDS.put(key, await file.arrayBuffer(), { expirationTtl: CARD_TTL_SEC, metadata: { type, name, at: new Date().toISOString() } });
+        const imageUrl = `${url.origin}/public/card/${key}`;
+        const payload = {
+          text,
+          blocks: [
+            { type: 'section', text: { type: 'mrkdwn', text } },
+            { type: 'image', image_url: imageUrl, alt_text: name || '고성 추천 카드' },
+          ],
+        };
+        const r = await fetch(env.CARD_WEBHOOK, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        if (!r.ok) {
+          const body = (await r.text()).slice(0, 200);
+          return json(req, { ok: false, error: `슬랙 발송 실패 (${r.status}) ${body}`, imageUrl }, 502);
+        }
+        return json(req, { ok: true, imageUrl });
       }
 
       if (path === '/logout' && req.method === 'POST') {

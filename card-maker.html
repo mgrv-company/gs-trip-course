@@ -82,6 +82,11 @@
   .status.err { color: #b3261e; }
   .saved img { width: 100%; border: 1px solid var(--line); display: block; margin-top: 8px; }
   .saved .share { width: 100%; margin-top: 8px; }
+  .sendbox { display: none; flex-direction: column; gap: 8px; margin-top: 10px; padding: 12px; border: 1px solid var(--ink); background: #fff; }
+  .sendbox.on { display: flex; }
+  .sendbox textarea { font: inherit; font-size: 14px; line-height: 1.5; padding: 9px 10px; border: 1px solid var(--line); background: var(--bg); outline: none; width: 100%; min-height: 110px; resize: vertical; }
+  .sendbox .btn.send { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .sendbox .btn.send:hover { background: #000; }
 
   /* 확대·이동한 사진이 사진칸 밖으로 삐져나오지 않게 (template.html 은 object-fit 이라 필요 없던 규칙) */
   #photoWrap { overflow: hidden; }
@@ -209,9 +214,15 @@
     </div>
 
     <div class="field">
-      <button class="btn primary" id="btnRender" disabled>PNG 저장</button>
+      <button class="btn primary" id="btnRender" disabled>이미지 저장</button>
       <div class="status" id="status"></div>
       <div class="saved" id="saved"></div>
+      <div class="sendbox" id="sendbox">
+        <div class="lbl">트립코스 채널로 보내기 — 같이 나갈 문구 (고쳐도 돼요)</div>
+        <textarea id="sendText"></textarea>
+        <button class="btn send" id="btnSend" type="button">이 카드 트립코스로 보내기</button>
+        <div class="status" id="sendStatus"></div>
+      </div>
       <div class="hint"><span class="only-desktop">저장을 누르면 바로 내려받아져요.</span><span class="only-mobile">저장을 누르면 카드가 만들어지고, 그 아래 "사진첩에 저장 / 공유" 버튼으로 사진첩에 넣을 수 있어요. (버튼이 안 뜨는 기기는 이미지를 길게 눌러 저장)</span></div>
     </div>
   </aside>
@@ -251,7 +262,7 @@
   </main>
 </div>
 
-<div class="mobile-bar"><button class="btn primary" id="mobileSave" disabled>PNG 저장</button></div>
+<div class="mobile-bar"><button class="btn primary" id="mobileSave" disabled>이미지 저장</button></div>
 
 <div class="sheet-bg" id="sheetBg"></div>
 <div class="sheet" id="sheet">
@@ -667,7 +678,7 @@ window.addEventListener('resize', () => { applyLayoutMode(); fitStage(); });
 // ───────── PNG 저장 (브라우저 안에서 직접 굽는다 — html-to-image) ─────────
 $('btnRender').addEventListener('click', async () => {
   if (!current) return;
-  const st = $('status'); st.className = 'status'; st.textContent = 'PNG 굽는 중… (5~15초, 처음엔 폰트를 받아서 더 걸려요)';
+  const st = $('status'); st.className = 'status'; st.textContent = '이미지 굽는 중… (5~15초, 처음엔 폰트를 받아서 더 걸려요)';
   $('btnRender').disabled = true; $('mobileSave').disabled = true;
   document.activeElement && document.activeElement.blur();
   applyToggles();
@@ -677,15 +688,16 @@ $('btnRender').addEventListener('click', async () => {
     const img = $('photoImg');
     if (img.getAttribute('src') && !img.complete) await new Promise(r => { img.onload = img.onerror = r; });
     if (!fontCSS) fontCSS = await htmlToImage.getFontEmbedCSS(card);
-    const opts = { pixelRatio: 2, width: 1080, height: 1560, fontEmbedCSS: fontCSS, cacheBust: false, style: { transform: 'none' } };
+    // includeQueryParams: 중계 주소(/public/img?u=…)는 ?u= 뒤만 다르다. 기본값(false)은 ?를 떼고 캐시해서 두 번째 카드부터 이전 가게 사진이 박혔다(2026-09-11).
+    const opts = { pixelRatio: 2, width: 1080, height: 1560, fontEmbedCSS: fontCSS, cacheBust: false, includeQueryParams: true, quality: 0.9, backgroundColor: '#fbfaf8', style: { transform: 'none' } };
     // iOS 사파리는 첫 번째 굽기에서 사진이 빠지는 버그가 있어 한 번 더 굽는다
     const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    if (isIOS) await htmlToImage.toPng(card, opts);
-    const dataUrl = await htmlToImage.toPng(card, opts);
-    const file = `${ymd()}-${($('nameEl').textContent.trim() || current.n).replace(/[\\/:*?"<>|\s]+/g, '_').slice(0, 40)}.png`;
+    if (isIOS) await htmlToImage.toJpeg(card, opts);
+    const dataUrl = await htmlToImage.toJpeg(card, opts);   // 웹 공유용이라 JPEG(0.9)로 — PNG 4MB → 1MB 아래
+    const file = `${ymd()}-${($('nameEl').textContent.trim() || current.n).replace(/[\\/:*?"<>|\s]+/g, '_').slice(0, 40)}.jpg`;
     // 휴대폰: 이미지 길게 누르기는 기기마다 안 되는 경우가 있어(특히 아이폰) 공유 시트로 사진첩에 바로 저장하는 버튼을 준다
     const blob = await (await fetch(dataUrl)).blob();
-    lastFile = new File([blob], file, { type: 'image/png' });
+    lastFile = new File([blob], file, { type: 'image/jpeg' });
     const canShare = !!(navigator.canShare && navigator.canShare({ files: [lastFile] }));
     $('saved').innerHTML = `<img src="${dataUrl}" alt="완성된 카드">` +
       (canShare ? `<button class="btn primary share" id="btnShare" type="button">사진첩에 저장 / 공유</button>` : '');
@@ -695,14 +707,72 @@ $('btnRender').addEventListener('click', async () => {
     });
     if (!canShare || !isNarrow()) { const a = document.createElement('a'); a.href = dataUrl; a.download = file; document.body.appendChild(a); a.click(); a.remove(); }
     st.textContent = canShare && isNarrow() ? `완성: ${file} — 아래 버튼으로 사진첩에 저장하세요` : `완성: ${file}`;
+    openSendBox();
     if (isNarrow()) $('saved').scrollIntoView({ behavior: 'smooth', block: 'center' });
   } catch (e) {
-    st.className = 'status err'; st.textContent = 'PNG 굽기 실패: ' + (e && e.message || e);
+    st.className = 'status err'; st.textContent = '이미지 굽기 실패: ' + (e && e.message || e);
   } finally {
     document.body.classList.remove('capturing');
     $('btnRender').disabled = false; $('mobileSave').disabled = false;
   }
 });
+// ───────── 트립코스 채널로 보내기 ─────────
+// 어드민 비밀번호로 한 번 로그인하면(토큰은 이 기기에 저장) 이후엔 바로 보내진다. 자동 추천(매일 11시)은 껐고 이 버튼이 그 자리를 대신한다.
+const TOKEN_KEY = 'gs-card-maker-token';
+function sendMessageDefault() {
+  const name = $('nameEl').textContent.trim() || (current && current.n) || '';
+  const cat = $('catEl').textContent.trim();
+  const lines = [`🍜 오늘의 고성 근처 추천`, ``, `${name}${cat ? ' (' + cat + ')' : ''}`];
+  const note = $('tgNote').checked ? $('noteEl').textContent.trim() : '';
+  if (note) lines.push(`💬 ${note}`);
+  if (current && current.u) lines.push(`🔗 ${current.u}`);
+  return lines.join('\n');
+}
+function openSendBox() {
+  if (!lastFile) return;
+  $('sendText').value = sendMessageDefault();
+  $('sendStatus').textContent = ''; $('sendStatus').className = 'status';
+  $('sendbox').classList.add('on');
+}
+async function ensureToken(force) {
+  let tok = force ? '' : (localStorage.getItem(TOKEN_KEY) || '');
+  if (tok) return tok;
+  const pw = window.prompt('트립코스 어드민 비밀번호를 입력하세요 (이 기기에 한 번만 저장돼요)');
+  if (!pw) return '';
+  const r = await fetch(`${ADMIN_API}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || !j.token) throw new Error(j.error || '로그인 실패');
+  localStorage.setItem(TOKEN_KEY, j.token);
+  return j.token;
+}
+$('btnSend').addEventListener('click', async () => {
+  if (!lastFile) return;
+  const text = $('sendText').value.trim();
+  if (!text) { $('sendStatus').className = 'status err'; $('sendStatus').textContent = '문구가 비어 있어요.'; return; }
+  if (!window.confirm('트립코스 채널로 지금 보낼까요?')) return;
+  const b = $('btnSend'), st = $('sendStatus');
+  b.disabled = true; st.className = 'status'; st.textContent = '보내는 중…';
+  try {
+    let tok = await ensureToken(false);
+    if (!tok) { st.textContent = ''; return; }
+    const post = async (token) => {
+      const fd = new FormData();
+      fd.append('image', lastFile, lastFile.name);
+      fd.append('text', text);
+      fd.append('name', $('nameEl').textContent.trim());
+      return fetch(`${ADMIN_API}/card/send`, { method: 'POST', headers: { Authorization: 'Bearer ' + token }, body: fd });
+    };
+    let r = await post(tok);
+    if (r.status === 401) { localStorage.removeItem(TOKEN_KEY); tok = await ensureToken(true); if (!tok) { st.textContent = ''; return; } r = await post(tok); }
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) throw new Error(j.error || ('HTTP ' + r.status));
+    st.textContent = '트립코스 채널로 보냈어요.';
+    b.textContent = '보냄 (다시 보내려면 클릭)';
+  } catch (e) {
+    st.className = 'status err'; st.textContent = '발송 실패: ' + (e && e.message || e);
+  } finally { b.disabled = false; }
+});
+
 function ymd() { const t = new Date(); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 

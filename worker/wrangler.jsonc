@@ -11,6 +11,9 @@
       "database_id": "d1ea807b-5461-4d9c-a839-4cf1cd66d63e"
     }
   ],
+  "kv_namespaces": [
+    { "binding": "CARDS", "id": "42c413b00d92430ba530e773aeb4ebe1" }   // 카드 만들기 → 트립코스 발송 이미지 보관 (gs-trip-cards)
+  ],
   "vars": {
     // 피드백 장난 방지용 공개 토큰 (home.js FB_TOKEN과 동일해야 함 — 비밀값 아님)
     "FB_TOKEN": "gst-2026a"
@@ -18,4 +21,5 @@
   // 비밀값(코드에 안 들어감, 배포 후 1회 설정):
   //   npx wrangler secret put ADMIN_PASSWORD   ← 어드민 로그인 비밀번호
   //   npx wrangler secret put SLACK_WEBHOOK    ← #gs-routine 웹훅 주소
+  //   npx wrangler secret put CARD_WEBHOOK     ← 트립코스 채널 웹훅 (data/.refresh_config.json 의 daily_pick_webhook 과 동일)
 }
