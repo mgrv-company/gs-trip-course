@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <!-- CSP: 우리 파일 + 어드민 백엔드 연결만 허용. 인라인 스크립트 금지(스크립트는 admin.js) -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https://gs-trip-admin.mangrove-goseong.workers.dev; manifest-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https://gs-trip-admin.mangrove-goseong.workers.dev; frame-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'">
 <title>트립 코스 · 가게 관리</title>
 <meta name="theme-color" content="#1f1e1d">
 <link rel="manifest" href="admin-manifest.json">
@@ -163,6 +163,14 @@
   #toast.show { opacity: 1; }
   #toast.err { background: var(--red); }
   .hidden { display: none !important; }
+
+  /* 카드 만들기 — 어드민 폭(560px)이 좁아 카드 화면이 휴대폰 모양으로 눌리므로 탭 안이 아니라 화면 전체로 띄운다 */
+  #cardOverlay { position: fixed; inset: 0; z-index: 60; background: var(--bg); display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
+  #cardOverlay .cardbar { flex: none; display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: var(--ink); color: #fff; }
+  #cardOverlay .cardbar b { font-size: 14px; }
+  #cardClose { margin-left: auto; border: 0; background: #3a3937; color: #fff; border-radius: 8px; padding: 6px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+  #cardFrame { flex: 1; width: 100%; border: 0; background: var(--bg); }
+  body.card-open { overflow: hidden; }
 </style>
 </head>
 <body>
@@ -194,6 +202,7 @@
       <div class="tab on" data-tab="manage">가게 관리</div>
       <div class="tab" data-tab="copy">✏️ 문구</div>
       <div class="tab" data-tab="views">📊 조회수</div>
+      <div class="tab" data-tab="card">🃏 카드</div>
     </div>
 
     <!-- 관리 탭 -->
@@ -375,7 +384,12 @@
 </div>
 
 <div id="toast"></div>
+<div id="cardOverlay" class="hidden">
+  <div class="cardbar"><b>🃏 카드 만들기</b><button id="cardClose" type="button">✕ 어드민으로</button></div>
+  <iframe id="cardFrame" title="카드 만들기"></iframe>
+</div>
+
 <script src="places.js?v=7"></script>
-<script src="admin.js?v=20"></script>
+<script src="admin.js?v=21"></script>
 </body>
 </html>

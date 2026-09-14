@@ -353,6 +353,7 @@ $('#list').addEventListener('click', async e => {
 
 // ── 탭 ──────────────────────────────────────────────
 $$('.tab').forEach(t => t.addEventListener('click', () => {
+  if (t.dataset.tab === 'card') { openCardMaker(); return; }
   $$('.tab').forEach(x => x.classList.remove('on'));
   t.classList.add('on');
   $('#tabManage').classList.toggle('hidden', t.dataset.tab !== 'manage');
@@ -363,6 +364,20 @@ $$('.tab').forEach(t => t.addEventListener('click', () => {
   }
   if (t.dataset.tab === 'views') loadViews();
 }));
+
+// ── 카드 만들기 (card-maker.html 을 화면 전체로 띄움) ──────
+// 처음 열 때만 불러오고 닫을 땐 숨기기만 한다 — 만들던 카드가 닫았다 열어도 남아 있게
+function openCardMaker() {
+  const frame = $('#cardFrame');
+  if (!frame.getAttribute('src')) frame.setAttribute('src', 'card-maker.html');
+  $('#cardOverlay').classList.remove('hidden');
+  document.body.classList.add('card-open');
+}
+function closeCardMaker() {
+  $('#cardOverlay').classList.add('hidden');
+  document.body.classList.remove('card-open');
+}
+$('#cardClose').addEventListener('click', closeCardMaker);
 
 // ── 대시보드 (조회수·인기 가게, 나만 보기) ─────────────
 const _ymd = d => { const p = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); };
