@@ -8767,5 +8767,62 @@
   "thumb": "",
   "naver": "https://map.naver.com/p/entry/place/1466176514",
   "guessed": false
+ },
+ {
+  "name": "스지명당 속초점",
+  "type": "술집",
+  "list": "술집",
+  "category": "술집",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.36,
+  "address": "강원 속초시 청대로 210",
+  "lat": 38.1880678,
+  "lng": 128.5790702,
+  "sid": "2001591541",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2001591541",
+  "guessed": false
+ },
+ {
+  "name": "연탄불생구이3호점",
+  "type": "술집",
+  "list": "술집",
+  "category": "술집",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.45,
+  "address": "강원 속초시 먹거리5길 18",
+  "lat": 38.195474,
+  "lng": 128.5736726,
+  "sid": "2014753701",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2014753701",
+  "guessed": false
+ },
+ {
+  "name": "지랄닭발 강원본점",
+  "type": "술집",
+  "list": "술집",
+  "category": "술집",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.58,
+  "address": "강원 속초시 먹거리5길 2-1",
+  "lat": 38.1942206,
+  "lng": 128.5737245,
+  "sid": "933290652",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/933290652",
+  "guessed": false
  }
 ]
