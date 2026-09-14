@@ -125,6 +125,38 @@
   .stage .frame { position: relative; box-shadow: 0 10px 40px rgba(0,0,0,.18); }
   .stage-note { font-size: 12px; color: var(--gray); text-align: center; }
 
+  /* ── 카드 묶음 띠 (날짜별 칸, 최대 7칸) ── */
+  .strip { align-self: stretch; display: flex; align-items: stretch; gap: 8px; padding: 0 4px 4px; overflow-x: auto; scrollbar-width: thin; }
+  .slot { flex: 0 0 auto; width: 132px; border: 1px solid #d9d4cd; background: #fff; border-radius: 10px; padding: 8px 10px 9px; cursor: pointer; text-align: left; color: var(--ink); display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 8px; align-items: center; position: relative; user-select: none; }
+  .slot:hover { border-color: var(--gray); }
+  .slot.on { border-color: var(--purple); box-shadow: 0 0 0 2px var(--purple-light); }
+  .slot .thumb { width: 34px; height: 46px; border-radius: 5px; background: var(--soft); overflow: hidden; }
+  .slot .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .slot .txt { min-width: 0; }
+  .slot .d { display: block; font-size: 11px; font-weight: 700; color: var(--gray); letter-spacing: .02em; }
+  .slot .n { display: block; font-size: 12.5px; font-weight: 700; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .slot .s { display: block; font-size: 11px; color: var(--gray); }
+  .slot .s.sent { color: #1f7a5c; font-weight: 700; }
+  .slot .s.made { color: var(--purple-deep); font-weight: 700; }
+  .slot.empty { border-style: dashed; }
+  .slot.empty .n { color: var(--gray); font-weight: 500; }
+  .slot .x { position: absolute; top: -7px; right: -7px; width: 20px; height: 20px; border-radius: 50%; border: 1px solid #d9d4cd; background: #fff; color: var(--gray); font-size: 13px; line-height: 18px; text-align: center; display: none; }
+  .slot:hover .x { display: block; }
+  .slot .x:hover { color: #b3261e; border-color: #b3261e; }
+  .slot.add { width: 44px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--gray); border-style: dashed; }
+  .slot.add:hover { color: var(--ink); }
+  .strip .arrows { margin-left: auto; display: flex; gap: 6px; align-self: center; flex: none; }
+  .strip .arrows button { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #d9d4cd; background: #fff; color: var(--ink); cursor: pointer; font-size: 15px; }
+  .strip .arrows button:disabled { opacity: .35; cursor: default; }
+  .dots { display: none; justify-content: center; gap: 5px; padding: 2px 0; }
+  .dots i { width: 6px; height: 6px; border-radius: 50%; background: #d9d4cd; transition: width .15s; }
+  .dots i.on { background: var(--purple); width: 18px; border-radius: 3px; }
+  /* 빈 칸일 때 카드 위에 안내 */
+  .card-empty { position: absolute; inset: 0; z-index: 3; display: none; align-items: center; justify-content: center; text-align: center; padding: 60px; background: rgba(251,250,248,.94); color: var(--gray); font-size: 26px; line-height: 1.6; }
+  .card-empty b { display: block; color: var(--ink); font-size: 40px; margin-bottom: 10px; }
+  .frame.is-empty .card-empty { display: flex; }
+  body.capturing .card-empty { display: none !important; }
+
   [contenteditable] { outline: none; cursor: text; }
   [contenteditable]:hover { box-shadow: 0 0 0 2px rgba(176,59,212,.35); }
   [contenteditable]:focus { box-shadow: 0 0 0 2px var(--purple); }
@@ -157,7 +189,14 @@
     .panel .btns { display: none; }
     .field { padding: 0 14px; }
     .sec { padding: 12px 14px 0; }
-    .stage { margin: 2px 0 6px; min-height: 0; padding: 0; }
+    .stage { margin: 2px 0 6px; min-height: 0; padding: 0; gap: 6px; }
+    .strip { padding: 0 14px 2px; gap: 6px; }
+    .slot { width: 96px; grid-template-columns: minmax(0, 1fr); padding: 6px 8px 7px; }
+    .slot .thumb, .slot .x { display: none !important; }
+    .slot .n { font-size: 11.5px; }
+    .slot.add { width: 36px; }
+    .strip .arrows { display: none; }
+    .dots { display: flex; }
     .stage .frame { box-shadow: 0 6px 24px rgba(0,0,0,.14); }
     .photo-grid { grid-template-columns: repeat(5, 1fr); }
     .only-desktop { display: none; }
@@ -257,9 +296,9 @@
 
     <div class="sec">임시저장</div>
     <div class="field">
-      <div class="lbl">서버에 보관 — 폰·PC 어디서든 이어서 편집</div>
+      <div class="lbl">띠에 있는 카드 전부를 한 묶음으로 서버에 보관 — 폰·PC 어디서든 이어서 편집</div>
       <div class="btnrow">
-        <button class="btn" id="btnDraftSave" disabled>지금 상태 임시저장</button>
+        <button class="btn" id="btnDraftSave">묶음 임시저장</button>
         <button class="btn" id="btnDraftList">목록 새로고침</button>
       </div>
       <div class="drafts" id="drafts"><div class="empty">아직 불러온 목록이 없어요. 어드민 비밀번호로 한 번 로그인하면 목록이 보여요.</div></div>
@@ -279,14 +318,16 @@
       <div class="hint"><span class="only-desktop">저장을 누르면 바로 내려받아져요.</span><span class="only-mobile">저장을 누르면 카드가 만들어지고, 그 아래 "사진첩에 저장 / 공유" 버튼으로 사진첩에 넣을 수 있어요. (버튼이 안 뜨는 기기는 이미지를 길게 눌러 저장)</span></div>
     </div>
     </div>
-    <div class="btns"><button class="btn primary" id="btnRender" disabled>이미지 저장</button></div>
+    <div class="btns"><button class="btn" id="btnRenderAll" disabled>전체 저장</button><button class="btn primary" id="btnRender" disabled>이미지 저장</button></div>
   </aside>
 
   <main class="stage">
+    <div class="strip" id="strip"></div>
     <div class="stage-note" id="stageNote">가게를 검색해서 골라주세요.</div>
     <div class="scaler" id="scaler">
-      <div class="frame">
+      <div class="frame is-empty" id="frame">
         <article class="card" id="card">
+          <div class="card-empty" id="cardEmpty"><div><b id="cardEmptyDate"></b>아직 비어 있는 칸이에요.<br>가게를 검색해서 고르면 이 날짜 카드로 채워져요.</div></div>
           <div class="photo-wrap noimg" id="photoWrap">
             <img id="photoImg" alt="" crossorigin="anonymous" style="display:none;">
             <div class="photo-scrim"></div>
@@ -314,6 +355,8 @@
         </article>
       </div>
     </div>
+    <div class="dots" id="dots"></div>
+    <div class="stage-note only-mobile">← 카드 아래쪽을 옆으로 밀면 다음 카드 →</div>
   </main>
 </div>
 
@@ -503,7 +546,8 @@ function fillCard(p) {
   $('tgClosing').checked = true;
   applyToggles();
   $('btnRender').disabled = false; $('mobileSave').disabled = false; $('btnDraftSave').disabled = false;
-  if (!restoringDraft) currentDraftId = null;
+  $('frame').classList.remove('is-empty');
+  if (!restoringDraft) { if (slots[active]) { slots[active].sent = false; slots[active].made = false; } captureActive(); renderStrip(); persistLocal(); }
   $('stageNote').textContent = `${p.n} · ${p.t}${p.c ? ' · ' + p.c : ''} · 리뷰 문장 후보 ${reviewPool.short.length + reviewPool.long.length}개`;
   $('status').textContent = ''; $('status').className = 'status'; $('saved').innerHTML = '';
   $('linkField').hidden = !p.u;
@@ -592,7 +636,7 @@ $('photo').addEventListener('change', () => { const u = $('photo').value.trim();
 $('tgReviews').addEventListener('change', applyToggles);
 $('tgNote').addEventListener('change', applyToggles);
 $('tgClosing').addEventListener('change', applyToggles);
-$('date').addEventListener('change', () => { if (current) { const keep = $('photoImg').getAttribute('src'); fillCard(current); } });
+$('date').addEventListener('change', () => { if (slots[active]) slots[active].date = $('date').value || slots[active].date; if (current) fillCard(current); else { $('dateEl').textContent = fmtDate(pickDate()); renderStrip(); persistLocal(); } });
 $('btnMenuLine').addEventListener('click', () => { if (current) addLine(menuSentence(current), !isNarrow()); });
 $('btnMoreReview').addEventListener('click', () => {
   if (!current) return;
@@ -724,7 +768,7 @@ function openSheet(el) {
 }
 function closeSheet() { $('sheetBg').classList.remove('on'); $('sheet').classList.remove('on'); sheetTarget = null; }
 $('card').addEventListener('click', e => {
-  if (!isNarrow()) return;
+  if (!isNarrow() || Date.now() < suppressClickUntil) return;
   const el = e.target.closest('[data-ed]');
   if (el) { e.preventDefault(); openSheet(el); }
 });
@@ -754,7 +798,8 @@ function fitStage() {
   const vh = window.innerHeight;
   // PC: 오른쪽 패널(340px)을 뺀 영역에서 가로·세로 모두 들어가게 (세로가 보통 더 빡빡함 → 화면 높이에 맞춰 작아진다)
   const availW = narrow ? vw - 28 : vw - 340 - 48;
-  const availH = narrow ? Infinity : vh - 40 - 28;
+  const stripH = ($('strip') && $('strip').offsetHeight) || 0;
+  const availH = narrow ? Infinity : vh - 40 - 28 - stripH - 10;
   const k = Math.min(1, availW / 1080, availH / 1560);
   const sc = $('scaler');
   sc.style.transform = `scale(${k})`;
@@ -764,9 +809,9 @@ function fitStage() {
 window.addEventListener('resize', () => { applyLayoutMode(); fitStage(); });
 
 // ───────── PNG 저장 (브라우저 안에서 직접 굽는다 — html-to-image) ─────────
-$('btnRender').addEventListener('click', async () => {
-  if (!current) return;
-  const st = $('status'); st.className = 'status'; st.textContent = '이미지 굽는 중… (5~15초, 처음엔 폰트를 받아서 더 걸려요)';
+async function renderCurrent(batch) {
+  if (!current) return false;
+  const st = $('status'); st.className = 'status'; st.textContent = batch ? `이미지 굽는 중… (${active + 1}/${slots.length})` : '이미지 굽는 중… (5~15초, 처음엔 폰트를 받아서 더 걸려요)';
   $('btnRender').disabled = true; $('mobileSave').disabled = true;
   document.activeElement && document.activeElement.blur();
   applyToggles();
@@ -782,7 +827,7 @@ $('btnRender').addEventListener('click', async () => {
     const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     if (isIOS) await htmlToImage.toJpeg(card, opts);
     const dataUrl = await htmlToImage.toJpeg(card, opts);   // 웹 공유용이라 JPEG(0.9)로 — PNG 4MB → 1MB 아래
-    const file = `${ymd()}-${($('nameEl').textContent.trim() || current.n).replace(/[\\/:*?"<>|\s]+/g, '_').slice(0, 40)}.jpg`;
+    const file = `${(slots[active] && slots[active].date) || ymd()}-${($('nameEl').textContent.trim() || current.n).replace(/[\\/:*?"<>|\s]+/g, '_').slice(0, 40)}.jpg`;
     // 휴대폰: 이미지 길게 누르기는 기기마다 안 되는 경우가 있어(특히 아이폰) 공유 시트로 사진첩에 바로 저장하는 버튼을 준다
     const blob = await (await fetch(dataUrl)).blob();
     lastFile = new File([blob], file, { type: 'image/jpeg' });
@@ -795,13 +840,37 @@ $('btnRender').addEventListener('click', async () => {
     });
     if (!canShare || !isNarrow()) { const a = document.createElement('a'); a.href = dataUrl; a.download = file; document.body.appendChild(a); a.click(); a.remove(); }
     st.textContent = canShare && isNarrow() ? `완성: ${file} — 아래 버튼으로 사진첩에 저장하세요` : `완성: ${file}`;
-    openSendBox();
-    $('saved').scrollIntoView({ behavior: 'smooth', block: isNarrow() ? 'center' : 'nearest' });
+    slots[active].made = true; renderStrip(); persistLocal();
+    if (!batch) { openSendBox(); $('saved').scrollIntoView({ behavior: 'smooth', block: isNarrow() ? 'center' : 'nearest' }); }
+    return true;
   } catch (e) {
     st.className = 'status err'; st.textContent = '이미지 굽기 실패: ' + (e && e.message || e);
+    return false;
   } finally {
     document.body.classList.remove('capturing');
     $('btnRender').disabled = false; $('mobileSave').disabled = false;
+  }
+}
+$('btnRender').addEventListener('click', () => renderCurrent(false));
+// 전체 저장: 채워진 칸을 차례로 열어 한 장씩 굽고 내려받는다 (PC 용 — 파일이 따로따로 떨어짐)
+$('btnRenderAll').addEventListener('click', async () => {
+  captureActive();
+  const targets = slots.map((s, i) => s.state ? i : -1).filter(i => i >= 0);
+  if (!targets.length) return;
+  if (!window.confirm(`채워진 카드 ${targets.length}장을 차례로 저장할까요? (한 장에 5~10초)`)) return;
+  const orig = active; let ok = 0;
+  $('btnRenderAll').disabled = true;
+  try {
+    for (const i of targets) {
+      activate(i, false);
+      await waitPhoto();
+      if (await renderCurrent(true)) ok++;
+      await new Promise(r => setTimeout(r, 400));   // 브라우저가 내려받기를 처리할 틈
+    }
+  } finally {
+    activate(orig, false);
+    $('btnRenderAll').disabled = false;
+    const st = $('status'); st.className = 'status'; st.textContent = `전체 저장 끝: ${ok}/${targets.length}장`;
   }
 });
 // ───────── 기본 문구: 화면 + 서버 저장 ─────────
@@ -846,7 +915,130 @@ $('btnTplApply').addEventListener('click', () => {
 });
 loadTpl();
 
-// ───────── 임시저장 (서버) ─────────
+// ───────── 카드 묶음 (띠) ─────────
+// 칸마다 {date, state(편집 상태 JSON), made(이미지 저장함), sent(트립코스로 보냄)} 를 들고 있고, 보고 있는 칸의 편집은 DOM 이 진실이다.
+// 칸을 바꿀 때 DOM → 현재 칸 state 로 옮겨 담고(captureActive), 새 칸 state 를 DOM 에 풀어 놓는다(activate).
+const MAX_SLOTS = 7;
+const LOCAL_BUNDLE_KEY = 'gs-card-maker-bundle';
+let slots = [];
+let active = 0;
+function ymdOf(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+function parseYmd(s) { const [y, m, d] = String(s || '').split('-').map(Number); return (y && m && d) ? new Date(y, m - 1, d) : new Date(); }
+function nextDate(s) { const d = parseYmd(s); d.setDate(d.getDate() + 1); return ymdOf(d); }
+function slotLabel(s) { const d = parseYmd(s.date); return `${d.getMonth() + 1}/${d.getDate()} (${DAY_NAMES[d.getDay()]})`; }
+function slotName(s) { return s.state ? (String(s.state.name || s.state.placeName || '').trim()) : ''; }
+function slotStatus(s) { return s.sent ? ['sent', '보냄'] : s.made ? ['made', '만듦'] : s.state ? ['edit', '편집 중'] : ['empty', '비어 있음']; }
+function newSlot(date) { return { id: Math.random().toString(36).slice(2, 8), date, state: null, made: false, sent: false }; }
+function captureActive() {
+  const s = slots[active]; if (!s) return;
+  s.date = $('date').value || s.date;
+  s.state = current ? collectState() : null;
+}
+function clearCard() {
+  photoReq++;   // 진행 중인 사진 목록 요청은 무시
+  current = null; currentPhotoUrl = '';
+  $('q').value = '';
+  $('eyebrowEl').textContent = tpl('eyebrow', {}); $('nameEl').textContent = ''; $('catEl').textContent = '';
+  $('dateEl').textContent = fmtDate(pickDate());
+  $('sentEl').innerHTML = ''; $('quoteList').innerHTML = ''; $('noteEl').textContent = ''; $('closingEl').textContent = '';
+  setPhoto(''); renderPhotoGrid([]); $('photoNote').textContent = '가게를 고르면 네이버에 등록된 사진을 불러와요.'; $('photo').value = '';
+  $('linkField').hidden = true;
+  $('btnRender').disabled = true; $('mobileSave').disabled = true;
+  $('stageNote').textContent = '가게를 검색해서 골라주세요.';
+  $('status').textContent = ''; $('status').className = 'status'; $('saved').innerHTML = ''; $('sendbox').classList.remove('on'); lastFile = null;
+  $('frame').classList.add('is-empty');
+}
+function restoreState(st) {
+  const p = PLACES.find(x => String(x.s) === String(st.sid));
+  if (!p) { clearCard(); return false; }
+  $('q').value = p.n;
+  fillCard(p);          // 기본값으로 채운 뒤(사진 목록 로드 시작) 저장된 상태로 덮어쓴다
+  applyState(st);
+  return true;
+}
+function activate(i, capture) {
+  if (capture !== false) captureActive();
+  active = Math.max(0, Math.min(slots.length - 1, i));
+  const s = slots[active];
+  restoringDraft = true;
+  try {
+    $('date').value = s.date;
+    if (s.state) { if (!restoreState(s.state)) { const st = $('status'); st.className = 'status err'; st.textContent = '이 칸의 가게를 목록에서 찾지 못해 비웠어요.'; } }
+    else clearCard();
+  } finally { restoringDraft = false; }
+  renderStrip(); persistLocal();
+}
+function addSlot() {
+  if (slots.length >= MAX_SLOTS) { const st = $('status'); st.className = 'status'; st.textContent = `칸은 최대 ${MAX_SLOTS}개까지예요.`; return; }
+  captureActive();
+  slots.push(newSlot(nextDate(slots[slots.length - 1].date)));
+  activate(slots.length - 1, false);
+}
+function removeSlot(i) {
+  const s = slots[i];
+  if (s.state && !window.confirm(`${slotLabel(s)} ${slotName(s)} 칸을 지울까요? (이 칸의 편집 내용이 사라져요)`)) return;
+  if (slots.length === 1) { slots[0] = newSlot(slots[0].date); activate(0, false); return; }
+  if (i !== active) captureActive();
+  slots.splice(i, 1);
+  activate(i < active ? active - 1 : Math.min(active, slots.length - 1), false);
+}
+function renderStrip() {
+  const strip = $('strip');
+  strip.innerHTML = slots.map((s, i) => {
+    const [cls, label] = slotStatus(s);
+    const photo = s.state && s.state.photo && s.state.photo.url ? proxied(s.state.photo.url) : '';
+    return `<div class="slot${i === active ? ' on' : ''}${s.state ? '' : ' empty'}" data-i="${i}" role="button" tabindex="0">` +
+      `<span class="thumb">${photo ? `<img src="${esc(photo)}" alt="" loading="lazy">` : ''}</span>` +
+      `<span class="txt"><span class="d">${esc(slotLabel(s))}</span><span class="n">${esc(slotName(s) || '가게를 골라주세요')}</span><span class="s ${cls}">${label}</span></span>` +
+      `<span class="x" data-del="${i}" title="이 칸 지우기">×</span></div>`;
+  }).join('') +
+    (slots.length < MAX_SLOTS ? `<div class="slot add" data-add="1" role="button" tabindex="0" title="다음 날 칸 추가">+</div>` : '') +
+    `<div class="arrows"><button type="button" data-step="-1" ${active === 0 ? 'disabled' : ''}>‹</button><button type="button" data-step="1" ${active >= slots.length - 1 ? 'disabled' : ''}>›</button></div>`;
+  $('dots').innerHTML = slots.map((_, i) => `<i class="${i === active ? 'on' : ''}"></i>`).join('');
+  $('cardEmptyDate').textContent = slotLabel(slots[active]);
+  const filled = slots.filter(s => s.state).length;
+  $('btnRenderAll').textContent = `전체 저장 (${filled}장)`; $('btnRenderAll').disabled = filled === 0;
+  const on = strip.querySelector('.slot.on'); if (on && on.scrollIntoView) on.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  fitStage();
+}
+$('strip').addEventListener('click', e => {
+  const del = e.target.closest('[data-del]'); if (del) { e.stopPropagation(); removeSlot(Number(del.dataset.del)); return; }
+  if (e.target.closest('[data-add]')) { addSlot(); return; }
+  const step = e.target.closest('[data-step]'); if (step) { activate(active + Number(step.dataset.step)); return; }
+  const s = e.target.closest('.slot[data-i]'); if (s) activate(Number(s.dataset.i));
+});
+// 사진이 다 들어올 때까지 (전체 저장·불러오기 뒤에 쓴다)
+function waitPhoto() {
+  const img = $('photoImg');
+  if (!img.getAttribute('src') || (img.complete && img.naturalWidth)) return Promise.resolve();
+  return new Promise(r => { const done = () => r(); img.addEventListener('load', done, { once: true }); img.addEventListener('error', done, { once: true }); setTimeout(done, 15000); });
+}
+function persistLocal() {
+  try { localStorage.setItem(LOCAL_BUNDLE_KEY, JSON.stringify({ slots, active, draftId: currentDraftId })); } catch (e) { /* 저장 공간 부족 등 — 서버 임시저장이 본체라 무시 */ }
+}
+function bundleTitle() {
+  const filled = slots.filter(s => s.state);
+  const names = filled.map(slotName).filter(Boolean);
+  return `${slotLabel(slots[0])}~${slotLabel(slots[slots.length - 1])} · ${filled.length}장${names.length ? ' · ' + names.slice(0, 3).join(', ') : ''}`;
+}
+// 휴대폰: 카드 아래쪽(사진 아닌 곳)을 옆으로 밀면 이전/다음 칸
+(function () {
+  const stage = document.querySelector('.stage');
+  let start = null;
+  stage.addEventListener('pointerdown', e => {
+    if (!isNarrow() || e.target.closest('.photo-wrap, .strip, .dots')) { start = null; return; }
+    start = { x: e.clientX, y: e.clientY };
+  });
+  stage.addEventListener('pointerup', e => {
+    if (!start) return;
+    const dx = e.clientX - start.x, dy = e.clientY - start.y; start = null;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) { suppressClickUntil = Date.now() + 500; activate(active + (dx < 0 ? 1 : -1)); }
+  });
+})();
+let suppressClickUntil = 0;
+window.addEventListener('pagehide', () => { captureActive(); persistLocal(); });
+
+// ───────── 임시저장 (서버, 묶음 단위) ─────────
 // 편집 상태를 통째로 JSON 으로 만들어 워커(KV)에 둔다. 불러오면 가게를 다시 채운 뒤 저장된 문구·사진 위치를 덮어쓴다.
 let currentDraftId = null;     // 불러온 초안이면 그 id — '임시저장'이 같은 초안을 덮어쓴다
 let restoringDraft = false;
@@ -924,11 +1116,13 @@ async function listDrafts(silent) {
   } catch (e) { st.className = 'status err'; st.textContent = '목록 실패: ' + (e && e.message || e); }
 }
 async function saveDraft() {
-  if (!current) return;
+  captureActive();
+  if (!slots.some(s => s.state)) { const st = $('draftStatus'); st.className = 'status'; st.textContent = '저장할 카드가 없어요. 가게를 먼저 골라주세요.'; return; }
   const st = $('draftStatus'); st.className = 'status'; st.textContent = '저장 중…';
   try {
     const id = currentDraftId || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-    const state = collectState();
+    const state = { v: 2, kind: 'bundle', title: bundleTitle(), placeName: slots.filter(s => s.state).map(slotName).filter(Boolean).join(', '), active,
+      slots: slots.map(s => ({ date: s.date, state: s.state, made: !!s.made, sent: !!s.sent })) };
     const r = await draftFetch(`/card/drafts/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(state) }); if (!r) { st.textContent = ''; return; }
     const j = await r.json(); if (!r.ok || !j.ok) throw new Error(j.error || 'HTTP ' + r.status);
     currentDraftId = id;
@@ -943,17 +1137,19 @@ async function loadDraft(id) {
   try {
     const r = await draftFetch(`/card/drafts/${id}`); if (!r) { st.textContent = ''; return; }
     const s = await r.json(); if (!r.ok || s.ok === false) throw new Error(s.error || 'HTTP ' + r.status);
-    const p = PLACES.find(x => String(x.s) === String(s.sid));
-    if (!p) throw new Error('이 초안의 가게를 목록에서 찾지 못했어요');
-    restoringDraft = true;
-    try {
-      if (s.date) $('date').value = s.date;
-      $('q').value = p.n;
-      fillCard(p);                 // 기본값으로 채운 뒤(사진 목록 로드 시작) 저장된 상태로 덮어쓴다
-      applyState(s);
-    } finally { restoringDraft = false; }
-    currentDraftId = id; renderDrafts();
-    st.textContent = '불러왔어요. 이어서 고친 뒤 "지금 상태 임시저장"을 누르면 같은 초안에 덮어써요.';
+    if (s.kind === 'bundle' && Array.isArray(s.slots) && s.slots.length) {
+      slots = s.slots.slice(0, MAX_SLOTS).map(x => ({ ...newSlot(x.date || ymdOf(new Date())), state: x.state || null, made: !!x.made, sent: !!x.sent }));
+      currentDraftId = id;
+      activate(Math.min(Number(s.active) || 0, slots.length - 1), false);
+    } else {
+      // 예전 낱장 초안 → 한 칸짜리 묶음으로
+      if (!PLACES.some(x => String(x.s) === String(s.sid))) throw new Error('이 초안의 가게를 목록에서 찾지 못했어요');
+      slots = [{ ...newSlot(s.date || ymdOf(new Date())), state: s }];
+      currentDraftId = id;
+      activate(0, false);
+    }
+    renderDrafts();
+    st.textContent = '불러왔어요. 이어서 고친 뒤 "묶음 임시저장"을 누르면 같은 초안에 덮어써요.';
     if (isNarrow()) document.querySelector('.stage').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) { st.className = 'status err'; st.textContent = '불러오기 실패: ' + (e && e.message || e); }
 }
@@ -1009,7 +1205,7 @@ $('btnSend').addEventListener('click', async () => {
   if (!lastFile) return;
   const text = $('sendText').value.trim();
   if (!text) { $('sendStatus').className = 'status err'; $('sendStatus').textContent = '문구가 비어 있어요.'; return; }
-  if (!window.confirm('트립코스 채널로 지금 보낼까요?')) return;
+  if (!window.confirm(slots[active] && slots[active].sent ? '이미 보낸 카드예요. 다시 보낼까요?' : '트립코스 채널로 지금 보낼까요?')) return;
   const b = $('btnSend'), st = $('sendStatus');
   b.disabled = true; st.className = 'status'; st.textContent = '보내는 중…';
   try {
@@ -1027,6 +1223,7 @@ $('btnSend').addEventListener('click', async () => {
     const j = await r.json().catch(() => ({}));
     if (!r.ok || !j.ok) throw new Error(j.error || ('HTTP ' + r.status));
     st.textContent = '트립코스 채널로 보냈어요.';
+    slots[active].sent = true; renderStrip(); persistLocal();
     b.textContent = '보냄 (다시 보내려면 클릭)';
   } catch (e) {
     st.className = 'status err'; st.textContent = '발송 실패: ' + (e && e.message || e);
@@ -1039,8 +1236,21 @@ function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ 
 const t0 = new Date();
 $('date').value = `${t0.getFullYear()}-${String(t0.getMonth() + 1).padStart(2, '0')}-${String(t0.getDate()).padStart(2, '0')}`;
 applyLayoutMode();
-fitStage();
 renderPhotoGrid([]);
+// 띠 초기화 — 이 기기에 남겨둔 묶음이 있으면 그대로, 없으면 오늘 날짜 빈 칸 하나
+(function () {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(LOCAL_BUNDLE_KEY) || 'null'); } catch (e) { saved = null; }
+  if (saved && Array.isArray(saved.slots) && saved.slots.length) {
+    slots = saved.slots.slice(0, MAX_SLOTS).map(x => ({ ...newSlot(x.date || ymdOf(new Date())), state: x.state || null, made: !!x.made, sent: !!x.sent }));
+    currentDraftId = saved.draftId || null;
+    activate(Math.min(Number(saved.active) || 0, slots.length - 1), false);
+  } else {
+    slots = [newSlot($('date').value || ymdOf(new Date()))];
+    activate(0, false);
+  }
+})();
+fitStage();
 </script>
 </body>
 </html>
