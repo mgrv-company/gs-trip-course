@@ -112,7 +112,7 @@ function inType(p, t) { return p.t === t || (Array.isArray(p.t2) && p.t2.include
 function zoneRank(z) { return z === '도보' ? 1.5 : 0; }
 function scoreNow(p, now) {
   let s = Math.random() * 2.5;        // 변동 폭 키움 (매번 다르게)
-  s += zoneRank(p.z) * 0.7;           // 도보권 +1.05, 나머지 0
+  if (curMove !== 'car') s += zoneRank(p.z) * 0.7;   // 도보권 +1.05 — '차로'를 고른 손님에겐 거리 우대 없음
   if (p.ca) s += 1.8;                 // CA 강추 — 비중 낮춤(반복 완화)
   if (p.rv) { const [r, c] = p.rv; s += Math.max(-1, Math.min(1.4, (r - 4.2) * 2)); s += Math.min(1.2, Math.log10(c + 1) * 0.5); }
   const peak = (now.getHours() >= 12 && now.getHours() < 13) || (now.getHours() >= 18 && now.getHours() < 20);
@@ -134,8 +134,14 @@ function weightedSample(items, n) {
 
 function moveText(p) {
   const walk = Math.max(3, Math.round(p.d * 15));        // 도보 ≈ 4km/h
-  if (p.d <= 1.2) return '🚶 ' + walk + '분';
   const car = Math.round(p.d / 50 * 60) + 3;
+  // 이동 방식을 고른 손님에겐 고른 쪽 시간을 먼저 보여준다
+  if (curMove === 'car') return walk <= 30 ? '🚗 ' + car + '분 · 🚶 ' + walk + '분' : '🚗 ' + car + '분';
+  if (curMove === 'walk') {
+    if (walk > 30) return '🚗 ' + car + '분';             // 가까운 곳이 모자라 채운 가게 — 걸어가긴 멀다는 게 드러나게
+    return '🚶 ' + walk + '분' + (p.d > 1.2 ? ' · 🚗 ' + car + '분' : '');
+  }
+  if (p.d <= 1.2) return '🚶 ' + walk + '분';
   if (walk <= 30) return '🚗 ' + car + '분 · 🚶 ' + walk + '분';   // 도보 30분 이내면 도보도 표기
   return '🚗 ' + car + '분';
 }
@@ -349,6 +355,12 @@ document.addEventListener('error', function (e) {
 let curSlot = 'meal';
 let curFilter = null;   // 선택된 옵션 태그 (식성/분위기), null=전체
 let recent = [];        // 최근 보여준 가게 이름 — 중복 방지(돌아가며 노출)
+// 2026-09-14: 이동 방식(걸어서/차로). null=안 고름 → 기존 추천 그대로. 고른 값은 그 기기에 기억.
+// 1.3km 이내 가게가 적어서(식사 23·카페 7·술집 0곳, places.js 실측) '걸어서'도 1.3km 이내만 고집하면 탭이 빈다
+// → 가까운 구간부터 채운다: 1.3km 이내 → 3km 이내 → 그 밖(카드엔 차로 시간이 그대로 보임).
+let curMove = null;
+try { const m = localStorage.getItem('gsMove'); if (m === 'walk' || m === 'car') curMove = m; } catch (e) {}
+function walkTier(p) { return p.d == null ? 2 : p.d <= 1.3 ? 0 : p.d <= 3 ? 1 : 2; }
 
 function activeSlot() { return curSlot === 'auto' ? autoSlot(new Date()) : curSlot; }
 function filtersFor(slot) {
@@ -391,9 +403,24 @@ function renderNow() {
   // 풀 전체를 한 바퀴 다 돌 때까지 중복 0 — 다 돌면 초기화하고 새 순환
   let fresh = ranked.filter(p => !recent.includes(p.n));
   if (fresh.length < limit) { recent = []; fresh = ranked; }
-  const topPool = fresh.slice(0, Math.min(fresh.length, Math.max(limit + 5, 12)));
-  const picks = weightedSample(topPool, limit)
-    .sort((a, b) => (openNow(b, now) === true ? 1 : 0) - (openNow(a, now) === true ? 1 : 0));
+  let picks;
+  if (curMove === 'walk') {
+    // 가까운 구간부터 채우고, 구간 안에서는 기존처럼 가중 추첨. 모자랄 때만 다음 구간으로 넘어간다.
+    // 구간 안에서는 안 본 곳을 앞에 두되 본 곳도 뒤에 남긴다 — '다른 곳'을 눌렀다고 가까운 곳 대신 먼 곳이 나오면 안 되므로.
+    picks = [];
+    for (const tier of [0, 1, 2]) {
+      const need = limit - picks.length;
+      if (need <= 0) break;
+      const inTier = ranked.filter(p => walkTier(p) === tier);
+      const ordered = inTier.filter(p => !recent.includes(p.n)).concat(inTier.filter(p => recent.includes(p.n)));
+      picks = picks.concat(weightedSample(ordered.slice(0, Math.max(need + 5, 12)), need));
+    }
+    picks.sort((a, b) => walkTier(a) - walkTier(b) || (openNow(b, now) === true ? 1 : 0) - (openNow(a, now) === true ? 1 : 0));
+  } else {
+    const topPool = fresh.slice(0, Math.min(fresh.length, Math.max(limit + 5, 12)));
+    picks = weightedSample(topPool, limit)
+      .sort((a, b) => (openNow(b, now) === true ? 1 : 0) - (openNow(a, now) === true ? 1 : 0));
+  }
   recent = recent.concat(picks.map(p => p.n));   // 누적: 한 바퀴 다 돌 때까지 계속 제외
 
   $('#slotLabel').textContent = isAuto ? COPY['seg.auto'] : COPY['seg.' + slot];
@@ -453,6 +480,20 @@ $('#optChips').addEventListener('click', e => {
   curFilter = c.dataset.tag || null;
   recent = [];
   renderChips();
+  renderNow();
+});
+
+// 이동 방식 칩 — 같은 칩을 다시 누르면 선택 해제(기존 추천으로)
+function renderMoveChips() { $$('#moveChips .chip').forEach(c => c.classList.toggle('on', c.dataset.move === curMove)); }
+const moveChipsEl = $('#moveChips');
+if (moveChipsEl) moveChipsEl.addEventListener('click', e => {
+  const c = e.target.closest('.chip');
+  if (!c) return;
+  curMove = curMove === c.dataset.move ? null : c.dataset.move;
+  try { if (curMove) localStorage.setItem('gsMove', curMove); else localStorage.removeItem('gsMove'); } catch (err) { console.debug('이동 방식 저장 실패(이번 화면에만 적용):', err && err.message); }
+  recent = [];
+  sendEvent('move:' + (curMove || 'none'));
+  renderMoveChips();
   renderNow();
 });
 
@@ -909,6 +950,7 @@ $$('.miniarrow').forEach(btn => btn.addEventListener('click', () => {
 
 // 시작: 스냅샷으로 즉시 그리고, 최신 편집이 도착하면 한 번 갱신
 renderContext();
+renderMoveChips();
 renderChips();
 renderNow();
 renderBottomSections();
