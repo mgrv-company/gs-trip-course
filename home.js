@@ -363,8 +363,12 @@ try { const m = localStorage.getItem('gsMove'); if (m === 'walk' || m === 'car')
 function walkTier(p) { return p.d == null ? 2 : p.d <= 1.3 ? 0 : p.d <= 3 ? 1 : 2; }
 
 function activeSlot() { return curSlot === 'auto' ? autoSlot(new Date()) : curSlot; }
+// 2026-09-15: 한 끼 종류 칩(전체·한식·아시안·양식·해산물·고기)은 이동 방식 버튼·탭과 겹쳐 복잡해 보여서 숨김.
+// 사용자가 나중에 다시 살릴 수 있다고 해서 FOOD_GROUPS·필터 로직은 그대로 두었다.
+// 되살리려면 SHOW_FOOD_CHIPS 를 true 로만 바꾸면 된다.
+const SHOW_FOOD_CHIPS = false;
 function filtersFor(slot) {
-  if (slot === 'meal') return FOOD_GROUPS.map(g => g.label);
+  if (slot === 'meal' && SHOW_FOOD_CHIPS) return FOOD_GROUPS.map(g => g.label);
   return [];   // 카페·술: 옵션 없음
 }
 
