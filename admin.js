@@ -532,6 +532,19 @@ async function loadViews() {
     $('#vCardLinks').textContent = '불러오기 실패: ' + e.message;
   }
 }
+const _btnWeeklyReport = $('#btnWeeklyReport');
+if (_btnWeeklyReport) _btnWeeklyReport.addEventListener('click', async () => {
+  if (!confirm('지난 7일 카드 링크 클릭 보고를 #gs-routine 으로 지금 보낼까요?')) return;
+  _btnWeeklyReport.disabled = true;
+  try {
+    const r = await api('/admin/weekly-link-report', { method: 'POST' });
+    toast('✅ 주간 보고 보냄 (' + r.range + ')');
+  } catch (e) {
+    toast('보내기 실패: ' + e.message, true);
+  } finally {
+    _btnWeeklyReport.disabled = false;
+  }
+});
 let _ratingsAll = [];
 const _vRateCountBox = $('#vRateCountBox');
 if (_vRateCountBox) _vRateCountBox.addEventListener('click', () => {

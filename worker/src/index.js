@@ -157,6 +157,91 @@ async function visitorHash(env, day, req) {
   return Array.from(new Uint8Array(buf).slice(0, 8), b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// ── 카드 링크 주간 보고 (2026-09-15) ──────
+// 매주 화 10:00 KST(wrangler.jsonc cron)에 지난 7일(어제까지) 클릭을 #gs-routine 으로 보낸다.
+// PC 가 꺼져 있어도 돌도록 워커에서 실행하고, 결과를 settings 에 남겨 PC 루틴 감시(gs-deadman.sh 23번)가 빠짐을 잡는다.
+const REPORT_STATUS_KEY = 'weekly_link_report';
+const USER_MENTION = '<@U0AG0G63PTR>';
+const shiftDay = (ymd, n) => { const d = new Date(ymd + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+// 슬랙 코드 블록 정렬용 — 한글은 고정폭 글꼴에서 두 칸을 차지한다
+const dispWidth = s => Array.from(String(s)).reduce((w, ch) => w + (/[가-힣ㄱ-ㅎㅏ-ㅣ]/.test(ch) ? 2 : 1), 0);
+function padW(s, w) {
+  let t = String(s);
+  while (dispWidth(t) > w) t = Array.from(t).slice(0, -1).join('');
+  return t + ' '.repeat(w - dispWidth(t));
+}
+
+async function buildWeeklyLinkReport(db) {
+  const end = shiftDay(kstDay(), -1), start = shiftDay(end, -6);
+  const prevEnd = shiftDay(start, -1), prevStart = shiftDay(prevEnd, -6);
+  const totals = (a, b) => db.prepare('SELECT COALESCE(SUM(n), 0) AS clicks, COUNT(*) AS devices FROM card_link_hits WHERE day >= ? AND day <= ?').bind(a, b).first();
+  const cur = await totals(start, end), prev = await totals(prevStart, prevEnd);
+  // 이번 주에 만든 링크 수(보냄/복사)와 그중 지금까지 한 번도 안 눌린 수
+  const made = await db.prepare(
+    'SELECT source, COUNT(*) AS n, SUM(CASE WHEN EXISTS (SELECT 1 FROM card_link_hits h WHERE h.id = l.id) THEN 0 ELSE 1 END) AS zero ' +
+    "FROM card_links l WHERE date(datetime(l.created_at, '+9 hours')) BETWEEN ? AND ? GROUP BY source"
+  ).bind(start, end).all();
+  // 이번 주에 만들었거나 이번 주에 눌린 링크
+  const rows = await db.prepare(
+    'SELECT l.id, l.name, l.source, l.created_at, ' +
+    'COALESCE((SELECT SUM(n) FROM card_link_hits h WHERE h.id = l.id AND h.day >= ? AND h.day <= ?), 0) AS week, ' +
+    'COALESCE((SELECT SUM(n) FROM card_link_hits h WHERE h.id = l.id), 0) AS total ' +
+    "FROM card_links l WHERE date(datetime(l.created_at, '+9 hours')) BETWEEN ? AND ? " +
+    'OR EXISTS (SELECT 1 FROM card_link_hits h WHERE h.id = l.id AND h.day >= ? AND h.day <= ?) ' +
+    'ORDER BY week DESC, l.created_at DESC LIMIT 15'
+  ).bind(start, end, start, end, start, end).all();
+
+  const src = Object.fromEntries(made.results.map(r => [r.source, r]));
+  const sent = src.send ? src.send.n : 0, copied = src.copy ? src.copy.n : 0;
+  const zero = made.results.reduce((s, r) => s + (r.zero || 0), 0);
+  const diff = (a, b) => (a - b >= 0 ? '+' : '') + (a - b);
+  const md = ymd => ymd.slice(5).replace('-', '/');
+  const lines = [
+    `${USER_MENTION} *🔗 카드 링크 주간 클릭 (${md(start)}~${md(end)})*`,
+    '',
+    '*요약*',
+    `• 만든 링크: 보냄 ${sent}개 · 복사 ${copied}개`,
+    `• 클릭 ${cur.clicks}회 (지난주 ${prev.clicks}회, ${diff(cur.clicks, prev.clicks)}) · 기기 ${cur.devices}대 (지난주 ${prev.devices}대, ${diff(cur.devices, prev.devices)})`,
+    `• 이번 주에 만든 링크 중 한 번도 안 눌린 링크: ${zero}개`,
+    '',
+  ];
+  if (rows.results.length) {
+    const table = [padW('만든 날', 8) + padW('구분', 6) + padW('가게', 20) + padW('이번주', 8) + '누적'];
+    for (const r of rows.results) {
+      const made = md(new Date(new Date(r.created_at).getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10));
+      table.push(padW(made, 8) + padW(r.source === 'copy' ? '복사' : '보냄', 6) + padW(r.name || '(이름 없음)', 18) + '  ' + padW(r.week, 8) + r.total);
+    }
+    lines.push('*링크별 (이번 주 클릭 많은 순, 최대 15개)*', '```' + table.join('\n') + '```', '');
+  } else {
+    lines.push('*링크별*', '• 이번 주에 만들었거나 눌린 링크 없음', '');
+  }
+  lines.push('• m.site.naver.com/2euku(트립코스 짧은 주소) 클릭 수: 자동 집계 대상 아님, 업무용 네이버 계정에서 조회');
+  return { text: lines.join('\n'), start, end };
+}
+
+// source: 'cron'(정기) | 'manual'(어드민 버튼). 감시는 cron 기록만 본다 — 수동 발송이 정기 실행 고장을 가리지 않게.
+async function runWeeklyLinkReport(env, source) {
+  const at = new Date().toISOString();
+  let status;
+  try {
+    if (!env.SLACK_WEBHOOK) throw new Error('SLACK_WEBHOOK 미설정');
+    const { text, start, end } = await buildWeeklyLinkReport(env.DB);
+    const r = await fetch(env.SLACK_WEBHOOK, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, username: SLACK_BOT_NAME }) });
+    if (!r.ok) throw new Error(`슬랙 발송 실패 (${r.status}) ${(await r.text()).slice(0, 200)}`);
+    status = { at, ok: true, range: `${start}~${end}` };
+  } catch (e) {
+    status = { at, ok: false, error: String((e && e.message) || e).slice(0, 300) };
+    console.error('weekly link report failed', source, status.error);
+  }
+  const row = await env.DB.prepare('SELECT value FROM settings WHERE key = ?').bind(REPORT_STATUS_KEY).first();
+  let all = {};
+  try { all = row && row.value ? JSON.parse(row.value) : {}; } catch (e) { all = {}; }
+  all[source] = status;
+  await env.DB.prepare('INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at')
+    .bind(REPORT_STATUS_KEY, JSON.stringify(all), at).run();
+  return status;
+}
+
 // 네이버 플레이스 홈 페이지에서 가게 등록 사진 목록을 뽑는다 (카드 만들기 사진 고르기용).
 // data/fetch_photos.py 의 fetch() 와 같은 규칙: placeDetail 대표사진 → 등록사진(클립보다 사진 우선, 표시순서) — https 만.
 async function fetchNaverPhotos(sid) {
@@ -306,6 +391,14 @@ export default {
         try { data = (await env.CARDS.get(CARD_TPL_KV, { type: 'json' })) || {}; } catch (e) { data = {}; }
         pubCache['card-defaults'] = { data, at: Date.now() };
         return json(req, data, 200, { 'Cache-Control': 'no-store' });
+      }
+
+      // ── 공개: 카드 링크 주간 보고 실행 결과 (PC 루틴 감시가 읽음) ──────
+      if (path === '/public/report-status' && req.method === 'GET') {
+        const row = await db.prepare('SELECT value FROM settings WHERE key = ?').bind(REPORT_STATUS_KEY).first();
+        let data = {};
+        try { data = row && row.value ? JSON.parse(row.value) : {}; } catch (e) { data = {}; }
+        return json(req, { cron: data.cron || null, manual: data.manual || null }, 200, { 'Cache-Control': 'no-store' });
       }
 
       // ── 공개: 카드 링크 거쳐 가기 (2026-09-15) ──────
@@ -853,6 +946,14 @@ export default {
         return json(req, { clicks: rows.results, from, to });
       }
 
+      // 어드민: 카드 링크 주간 보고 지금 보내기 (시험·수동 발송용)
+      if (path === '/admin/weekly-link-report' && req.method === 'POST') {
+        const ip = req.headers.get('CF-Connecting-IP') || 'local';
+        if (await overLimit(db, 'report@' + ip, 5)) return json(req, { ok: false, error: '너무 잦아요. 10분 뒤 다시 해주세요.' }, 429);
+        const status = await runWeeklyLinkReport(env, 'manual');
+        return json(req, status, status.ok ? 200 : 502);
+      }
+
       // 어드민: 카드 만들기에서 만든 링크별 클릭 수 — 최근 100개
       // devices 는 (날짜, 기기) 줄 수라 같은 기기가 다른 날 또 누르면 1 더해진다
       if (path === '/admin/card-links' && req.method === 'GET') {
@@ -883,5 +984,10 @@ export default {
       console.error('worker error:', e.message, e.stack);
       return json(req, { error: '서버 오류가 났어요. 잠시 후 다시 시도해주세요.' }, 500);
     }
+  },
+
+  // 예약 실행 (wrangler.jsonc triggers) — 지금은 화 10:00 KST 카드 링크 주간 보고 하나뿐
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(runWeeklyLinkReport(env, 'cron'));
   },
 };

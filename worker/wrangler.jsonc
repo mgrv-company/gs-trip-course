@@ -11,6 +11,8 @@
       "database_id": "d1ea807b-5461-4d9c-a839-4cf1cd66d63e"
     }
   ],
+  // 카드 링크 주간 클릭 보고 → #gs-routine. 매주 화 10:00 KST (= 화 01:00 UTC)
+  "triggers": { "crons": ["0 1 * * 2"] },
   "kv_namespaces": [
     { "binding": "CARDS", "id": "42c413b00d92430ba530e773aeb4ebe1" }   // 카드 만들기 → 트립코스 발송 이미지 보관 (gs-trip-cards)
   ],
