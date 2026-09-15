@@ -89,7 +89,8 @@
   .shuffle:active { background: var(--soft); }
 
   #nowList { border-top: 1px solid var(--line); margin-top: 12px; }
-  .card { background: #fff; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; margin-top: 0; display: flex; gap: 13px; padding: 16px 0; align-items: flex-start; }
+  /* 2026-09-15: 카드만 흰 바탕이라 페이지 바탕(--bg)과 경계가 어색해서 바탕을 비움 — 카드 구분은 아래 구분선으로 */
+  .card { background: transparent; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; margin-top: 0; display: flex; gap: 13px; padding: 16px 0; align-items: flex-start; }
   .card .ph { width: 110px; height: 110px; border-radius: 0; object-fit: cover; display: block; flex: 0 0 auto; }
   .card .body { flex: 1; min-width: 0; padding: 0; }
   .card .rk { display: flex; align-items: center; gap: 8px; row-gap: 5px; flex-wrap: wrap; }
@@ -104,6 +105,10 @@
   .card .links a { flex: 1; text-align: center; }
   .card .links a, .card .links .sharebtn { font-size: 13px; color: var(--ink); text-decoration: none; border: 1px solid var(--line); border-radius: 0; padding: 7px 14px; display: inline-block; font-weight: 600; background: #fff; cursor: pointer; }
   .card .links .sharebtn { flex: 0 0 auto; }
+  .card .links a, .card .links .sharebtn { white-space: nowrap; padding-left: 10px; padding-right: 10px; }
+  .card .links a { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  /* 320px 급 작은 폰: 버튼 칸이 좁아 "네이버"를 빼야 별점까지 한 줄에 들어간다 */
+  @media (max-width: 359px) { .card .links .nvword { display: none; } }
   .card .links .sharebtn.done { border-color: var(--green); color: var(--green-deep); }
   .b { font-size: 11px; padding: 3px 8px; border-radius: 0; font-weight: 600; background: var(--soft); color: #55564e; }
   .b.open .dot { color: var(--green); }
@@ -474,7 +479,7 @@
 
 <script src="places.js?v=8"></script>
 <script src="tour.js?v=1"></script>
-<script src="home.js?v=59"></script>
+<script src="home.js?v=60"></script>
 <!-- PC 배경 순환 스크립트는 home.js 끝으로 이동 (CSP 강화: 인라인 스크립트 금지) -->
 <script src="rating-popup.js?v=2"></script>
 </body>

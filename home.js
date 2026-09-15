@@ -183,7 +183,8 @@ function cardHTML(p, idx) {
   const catMenu = menuTxt ? `${catTag} ${menuTxt}` : catTag;
   const line3body = wt ? (catMenu ? `${catMenu} · ${esc(wt)}` : esc(wt)) : catMenu;
   const line3 = line3body ? `<div class="ct3">${line3body}</div>` : '';
-  const rvSuffix = p.rv ? ` <span class="num-mono">(★${esc(p.rv[0])})</span>` : '';
+  // 2026-09-15: 모바일에서 "네이버 지도에서 열기 (★4.6)" 이 두 줄로 꺾여 버튼 칸이 커져서, 문구를 줄이고 한 줄로 고정
+  const rvSuffix = p.rv ? ` <span class="num-mono">★${esc(p.rv[0])}</span>` : '';
   const shareBtn = p.u ? `<button type="button" class="sharebtn" data-share-name="${esc(p.n)}" data-share-url="${esc(p.u)}">공유</button>` : '';
   return `<div class="card">
     ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : ''}
@@ -192,7 +193,7 @@ function cardHTML(p, idx) {
       ${line1}
       ${line3}
       ${cacmt}
-      <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">네이버 지도에서 열기${rvSuffix}</a>` : ''}${shareBtn}</div>
+      <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}"><span class="nvword">네이버 </span>지도${rvSuffix}</a>` : ''}${shareBtn}</div>
     </div>
   </div>`;
 }
