@@ -29,6 +29,10 @@ const CARD_TPL_KEYS = ['eyebrow', 'move', 'hours', 'closed', 'rating', 'menu', '
 const CARD_TPL_KV = 'cardmaker/defaults';
 const IMG_HOST_RE = /(^|\.)(pstatic\.net|phinf\.naver\.net)$/;   // 사진 중계 허용 호스트 — 네이버 이미지 CDN만 (열린 프록시 방지)
 const NAVER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36';         // 공개 읽기 메모리 캐시 (남용시 무료한도 소진 방지 — 어드민 저장하면 즉시 비움)
+const GO_LIMIT = 300;              // 카드 링크 클릭 집계(/go/): IP당 10분 최대 — 넘으면 넘겨주기만 하고 세지 않음
+const GO_HOST_RE = /(^|\.)(naver\.com|naver\.me)$/;   // /go/ 로 넘겨줄 수 있는 곳 — 네이버 지도만 (열린 리다이렉트 방지)
+// 링크 미리보기를 만들려고 주소를 여는 프로그램(슬랙·카카오톡 스크랩·페북 등) — 사람 클릭이 아니라 세지 않는다
+const PREVIEW_BOT_RE = /bot|crawl|spider|slurp|scrap|preview|facebookexternalhit|embedly|slack-imgproxy|whatsapp|headless|curl|wget|python|go-http|okhttp|java\/|axios|node-fetch|undici|^node\b/i;
 const SLACK_BOT_NAME = '고성 트립 코스 봇';  // 이 서비스가 #gs-routine 에 보내는 슬랙 알림 표시 이름 (공용 웹훅이라 이름만 덮어씀)
 
 // KST 날짜(YYYY-MM-DD) — 조회수 버킷 등 날짜 집계에 공용 사용
@@ -120,6 +124,37 @@ function parseAlso(raw) {
     const a = JSON.parse(raw);
     return Array.isArray(a) ? a.filter(t => typeof t === 'string' && t) : [];
   } catch (e) { return []; }
+}
+
+// 짧은 링크 번호 — 헷갈리는 글자(0/O, 1/l/I) 제외
+function randomId(len) {
+  const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+  return Array.from(crypto.getRandomValues(new Uint8Array(len)), x => abc[x % abc.length]).join('');
+}
+
+// 카드 링크 1개 등록 → 번호 반환. 네이버 지도 주소가 아니면 null.
+async function createCardLink(db, { target, sid, name, source, card }) {
+  let t;
+  try { t = new URL(String(target || '').slice(0, 500)); } catch (e) { return null; }
+  if (t.protocol !== 'https:' || !GO_HOST_RE.test(t.hostname)) return null;
+  for (let i = 0; i < 3; i++) {
+    const id = randomId(7);
+    try {
+      await db.prepare('INSERT INTO card_links (id, sid, name, target, source, card, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)')
+        .bind(id, String(sid || '').slice(0, 20), String(name || '').slice(0, 80), t.href, source, card || '', new Date().toISOString()).run();
+      return id;
+    } catch (e) {
+      if (!/UNIQUE|constraint/i.test(String(e && e.message))) throw e;   // 번호가 겹칠 때만 다시 뽑는다
+    }
+  }
+  throw new Error('링크 번호를 만들지 못했어요');
+}
+
+// 같은 날 같은 기기를 한 줄로 묶는 값. 공개 저장소라 코드에 있는 값만 섞으면 IP 를 역산할 수 있어 비밀값을 섞는다.
+async function visitorHash(env, day, req) {
+  const raw = [day, req.headers.get('CF-Connecting-IP') || 'local', req.headers.get('User-Agent') || '', env.ADMIN_PASSWORD || ''].join('|');
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+  return Array.from(new Uint8Array(buf).slice(0, 8), b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // 네이버 플레이스 홈 페이지에서 가게 등록 사진 목록을 뽑는다 (카드 만들기 사진 고르기용).
@@ -271,6 +306,30 @@ export default {
         try { data = (await env.CARDS.get(CARD_TPL_KV, { type: 'json' })) || {}; } catch (e) { data = {}; }
         pubCache['card-defaults'] = { data, at: Date.now() };
         return json(req, data, 200, { 'Cache-Control': 'no-store' });
+      }
+
+      // ── 공개: 카드 링크 거쳐 가기 (2026-09-15) ──────
+      // 카드 만들기에서 보내거나 복사한 가게 링크. 1회 기록하고 네이버 지도로 넘긴다.
+      // 기록은 응답 뒤에 해서(waitUntil) 넘어가는 속도에 영향이 없게 하고, 미리보기 봇은 넘겨주기만 한다.
+      if (path.startsWith('/go/') && (req.method === 'GET' || req.method === 'HEAD')) {
+        const notFound = () => new Response('링크를 찾을 수 없어요.', { status: 404, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+        const id = path.slice('/go/'.length);
+        if (!/^[0-9A-Za-z]{6,12}$/.test(id)) return notFound();
+        const row = await db.prepare('SELECT target FROM card_links WHERE id = ?').bind(id).first();
+        if (!row) return notFound();
+        const ua = req.headers.get('User-Agent') || '';
+        if (req.method === 'GET' && ua && !PREVIEW_BOT_RE.test(ua)) {
+          const ip = req.headers.get('CF-Connecting-IP') || 'local';
+          const record = (async () => {
+            if (await overLimit(db, 'go@' + ip, GO_LIMIT)) return;
+            const day = kstDay();
+            const visitor = await visitorHash(env, day, req);
+            await db.prepare('INSERT INTO card_link_hits (id, day, visitor, n) VALUES (?, ?, ?, 1) ON CONFLICT(id, day, visitor) DO UPDATE SET n = n + 1')
+              .bind(id, day, visitor).run();
+          })().catch(e => console.error('card link hit record failed', id, e && e.message));
+          if (ctx) ctx.waitUntil(record); else await record;
+        }
+        return new Response(null, { status: 302, headers: { Location: row.target, 'Cache-Control': 'no-store' } });
       }
 
       // ── 공개: 조회수 집계 (손님 페이지 로드 시 1회) ──────────
@@ -433,7 +492,7 @@ export default {
       }
 
       // ── 여기부터는 로그인 필요 ────────────────────────────────
-      if (path.startsWith('/admin/') || path === '/logout' || path === '/card/send' || path.startsWith('/card/drafts') || path === '/card/defaults') {
+      if (path.startsWith('/admin/') || path === '/logout' || path === '/card/send' || path === '/card/link' || path.startsWith('/card/drafts') || path === '/card/defaults') {
         if (!(await checkAuth(req, db))) return json(req, { error: '로그인이 필요해요.' }, 401);
       }
 
@@ -458,19 +517,39 @@ export default {
         const key = `${kstDay()}-${crypto.randomUUID().slice(0, 8)}.${type === 'image/png' ? 'png' : 'jpg'}`;
         await env.CARDS.put(key, await file.arrayBuffer(), { expirationTtl: CARD_TTL_SEC, metadata: { type, name, at: new Date().toISOString() } });
         const imageUrl = `${url.origin}/public/card/${key}`;
+        // 문구 속 네이버 링크를 클릭 수를 세는 /go/ 주소로 바꾼다 (사용자가 링크를 지웠으면 그대로 보냄)
+        const link = String(form.get('link') || '').trim();
+        let linkId = null, sendText = text;
+        if (link && text.includes(link)) {
+          linkId = await createCardLink(db, { target: link, sid: form.get('sid'), name, source: 'send', card: key });
+          if (linkId) sendText = text.split(link).join(`${url.origin}/go/${linkId}`);
+        }
         const payload = {
-          text,
+          text: sendText,
           blocks: [
-            { type: 'section', text: { type: 'mrkdwn', text } },
+            { type: 'section', text: { type: 'mrkdwn', text: sendText } },
             { type: 'image', image_url: imageUrl, alt_text: name || '고성 추천 카드' },
           ],
         };
         const r = await fetch(env.CARD_WEBHOOK, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if (!r.ok) {
           const body = (await r.text()).slice(0, 200);
+          // 안 나간 카드의 링크가 어드민 목록에 '보냄'으로 남지 않게 지운다
+          if (linkId) await db.prepare('DELETE FROM card_links WHERE id = ?').bind(linkId).run();
           return json(req, { ok: false, error: `슬랙 발송 실패 (${r.status}) ${body}`, imageUrl }, 502);
         }
-        return json(req, { ok: true, imageUrl });
+        return json(req, { ok: true, imageUrl, goUrl: linkId ? `${url.origin}/go/${linkId}` : null });
+      }
+
+      // ── 카드 만들기: '복사' 버튼용 추적 링크 만들기 (2026-09-15) ──────
+      if (path === '/card/link' && req.method === 'POST') {
+        const ip = req.headers.get('CF-Connecting-IP') || 'local';
+        if (await overLimit(db, 'cardlink@' + ip, DRAFT_LIMIT)) return json(req, { ok: false, error: '너무 잦아요. 10분 뒤 다시 해주세요.' }, 429);
+        let b;
+        try { b = await req.json(); } catch (e) { return json(req, { ok: false, error: '형식 오류' }, 400); }
+        const id = await createCardLink(db, { target: b.link, sid: b.sid, name: b.name, source: 'copy', card: '' });
+        if (!id) return json(req, { ok: false, error: '네이버 지도 주소만 쓸 수 있어요' }, 400);
+        return json(req, { ok: true, id, url: `${url.origin}/go/${id}` });
       }
 
       // ── 카드 만들기: 임시저장 (서버 보관 — 폰·PC 어디서든 이어서 편집, 2026-09-11) ──────
@@ -772,6 +851,16 @@ export default {
           'ORDER BY c.n DESC LIMIT 10'
         ).bind(from, to, from, to).all();
         return json(req, { clicks: rows.results, from, to });
+      }
+
+      // 어드민: 카드 만들기에서 만든 링크별 클릭 수 — 최근 100개
+      // devices 는 (날짜, 기기) 줄 수라 같은 기기가 다른 날 또 누르면 1 더해진다
+      if (path === '/admin/card-links' && req.method === 'GET') {
+        const rows = await db.prepare(
+          'SELECT l.id, l.name, l.source, l.card, l.created_at, COALESCE(SUM(h.n), 0) AS clicks, COUNT(h.visitor) AS devices ' +
+          'FROM card_links l LEFT JOIN card_link_hits h ON h.id = l.id GROUP BY l.id ORDER BY l.created_at DESC LIMIT 100'
+        ).all();
+        return json(req, { links: rows.results });
       }
 
       // 어드민: 가게 피드백(한줄 의견) 최근 목록 — 나만 보기

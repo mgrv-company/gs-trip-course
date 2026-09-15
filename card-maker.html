@@ -312,6 +312,7 @@
       <div class="sendbox" id="sendbox">
         <div class="lbl">트립코스 채널로 보내기 — 같이 나갈 문구 (고쳐도 돼요)</div>
         <textarea id="sendText"></textarea>
+        <div class="hint">🔗 네이버 링크는 보낼 때 클릭 수를 세는 주소로 바뀌어요. (어드민 📊 조회수 탭에서 확인)</div>
         <button class="btn send" id="btnSend" type="button">이 카드 트립코스로 보내기</button>
         <div class="status" id="sendStatus"></div>
       </div>
@@ -783,11 +784,24 @@ $('sheetDelete').addEventListener('click', () => { const r = sheetTarget && shee
 $('sheetCancel').addEventListener('click', closeSheet);
 $('sheetBg').addEventListener('click', closeSheet);
 $('mobileSave').addEventListener('click', () => $('btnRender').click());
+const copyLinks = {};   // 가게(sid)별로 만든 추적 주소 — 복사를 여러 번 눌러도 링크를 새로 만들지 않게
 $('btnCopyLink').addEventListener('click', async () => {
   const u = current && current.u; if (!u) return;
   const b = $('btnCopyLink');
-  try { await navigator.clipboard.writeText(u); b.textContent = '복사됨'; }
-  catch (e) { window.prompt('링크를 길게 눌러 복사하세요', u); }
+  const sid = String(current.s);
+  let out = copyLinks[sid];
+  if (!out) {
+    try {
+      out = copyLinks[sid] = await makeTrackedLink(current);
+    } catch (e) {
+      // 못 만들면 네이버 주소라도 복사하되, 클릭이 안 세진다는 걸 화면에 남긴다
+      out = u;
+      $('status').className = 'status err';
+      $('status').textContent = '클릭 세는 주소를 못 만들어 네이버 주소를 복사했어요 (이 링크는 클릭 수 안 셈): ' + (e && e.message || e);
+    }
+  }
+  try { await navigator.clipboard.writeText(out); b.textContent = '복사됨'; }
+  catch (e) { window.prompt('링크를 길게 눌러 복사하세요', out); }
   setTimeout(() => { b.textContent = '복사'; }, 1500);
 });
 
@@ -1201,6 +1215,17 @@ async function ensureToken(force) {
   localStorage.setItem(TOKEN_KEY, j.token);
   return j.token;
 }
+// '복사' 버튼용 — 서버에 클릭 세는 주소(/go/번호)를 만들어 받는다 (로그인 필요)
+async function makeTrackedLink(p) {
+  let tok = await ensureToken(false);
+  if (!tok) throw new Error('로그인하지 않음');
+  const post = token => fetch(`${ADMIN_API}/card/link`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ link: p.u, sid: String(p.s), name: p.n }) });
+  let r = await post(tok);
+  if (r.status === 401) { localStorage.removeItem(TOKEN_KEY); tok = await ensureToken(true); if (!tok) throw new Error('로그인하지 않음'); r = await post(tok); }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || !j.ok) throw new Error(j.error || ('HTTP ' + r.status));
+  return j.url;
+}
 $('btnSend').addEventListener('click', async () => {
   if (!lastFile) return;
   const text = $('sendText').value.trim();
@@ -1216,6 +1241,8 @@ $('btnSend').addEventListener('click', async () => {
       fd.append('image', lastFile, lastFile.name);
       fd.append('text', text);
       fd.append('name', $('nameEl').textContent.trim());
+      fd.append('link', (current && current.u) || '');   // 서버가 문구 속 이 주소를 클릭 세는 주소로 바꿈
+      fd.append('sid', current ? String(current.s) : '');
       return fetch(`${ADMIN_API}/card/send`, { method: 'POST', headers: { Authorization: 'Bearer ' + token }, body: fd });
     };
     let r = await post(tok);

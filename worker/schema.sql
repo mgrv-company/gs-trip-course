@@ -122,6 +122,26 @@ CREATE TABLE IF NOT EXISTS feedback (
   at    TEXT NOT NULL DEFAULT ''
 );
 
+-- 카드 만들기에서 보내거나 복사한 가게 링크 (2026-09-15) — /go/<id> 로 거쳐 가게 해서 클릭 수를 센다
+CREATE TABLE IF NOT EXISTS card_links (
+  id         TEXT PRIMARY KEY,              -- 짧은 번호 (/go/<id>)
+  sid        TEXT NOT NULL DEFAULT '',
+  name       TEXT NOT NULL DEFAULT '',
+  target     TEXT NOT NULL,                 -- 넘겨줄 네이버 지도 주소 (만들 때 고정 — 열린 리다이렉트 방지)
+  source     TEXT NOT NULL DEFAULT '',      -- 'send'(트립코스로 보내기) | 'copy'(복사 버튼)
+  card       TEXT NOT NULL DEFAULT '',      -- 같이 보낸 카드 이미지 KV 키 (복사는 빈 값)
+  created_at TEXT NOT NULL
+);
+
+-- 링크 클릭 기록 — visitor 는 IP 원본이 아니라 날마다 바뀌는 해시라 같은 날 같은 기기만 한 줄로 묶인다
+CREATE TABLE IF NOT EXISTS card_link_hits (
+  id      TEXT NOT NULL,
+  day     TEXT NOT NULL,
+  visitor TEXT NOT NULL,
+  n       INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (id, day, visitor)
+);
+
 -- 어드민 로그인 세션 (비밀번호 확인 후 발급되는 임시 열쇠)
 CREATE TABLE IF NOT EXISTS sessions (
   token      TEXT PRIMARY KEY,

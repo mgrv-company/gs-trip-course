@@ -519,6 +519,18 @@ async function loadViews() {
   } catch (e) {
     $('#vFeedback').textContent = '불러오기 실패: ' + e.message;
   }
+  // 9) 카드 만들기에서 보낸·복사한 가게 링크 클릭
+  try {
+    const links = (await api('/admin/card-links')).links || [];
+    const kst = iso => { const d = new Date(new Date(iso).getTime() + 9 * 3600 * 1000); return d.toISOString().slice(5, 16).replace('-', '/').replace('T', ' '); };
+    $('#vCardLinks').innerHTML = links.length
+      ? links.map(x => '<div class="lowitem"><b>' + esc(x.name || '(이름 없음)') + '</b> · ' + (x.source === 'copy' ? '복사' : '보냄')
+          + '<div class="lowmemo">👆 ' + x.clicks + '회 · 기기 ' + x.devices + '대</div>'
+          + '<div class="lowat">' + esc(kst(x.created_at)) + ' · /go/' + esc(x.id) + '</div></div>').join('')
+      : '<div class="lowitem small">아직 만든 링크가 없어요.</div>';
+  } catch (e) {
+    $('#vCardLinks').textContent = '불러오기 실패: ' + e.message;
+  }
 }
 let _ratingsAll = [];
 const _vRateCountBox = $('#vRateCountBox');
