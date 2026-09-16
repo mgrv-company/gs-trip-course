@@ -184,7 +184,10 @@ function cardHTML(p, idx) {
   const line3body = wt ? (catMenu ? `${catMenu} · ${esc(wt)}` : esc(wt)) : catMenu;
   const line3 = line3body ? `<div class="ct3">${line3body}</div>` : '';
   // 2026-09-15: 모바일에서 "네이버 지도에서 열기 (★4.6)" 이 두 줄로 꺾여 버튼 칸이 커져서, 문구를 줄이고 한 줄로 고정
-  const rvSuffix = p.rv ? ` <span class="num-mono">★${esc(p.rv[0])}</span>` : '';
+  // 네이버 지도 링크 버튼: 초록 N 아이콘(코드로 그린 도형 — 파일 요청 없음) + 문구 + 괄호 별점.
+  // 아이콘·괄호가 자리를 먹어 360px 에서 4px 가 모자랐다 → 별점 글자만 12px(.rvsm), 좁은 폰은 index.html 미디어쿼리가 처리.
+  const NV_ICON = '<svg class="nvic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><rect width="24" height="24" rx="4" fill="#03C75A"></rect><path d="M13.6 12.3 10.2 7.2H7.2v9.6h3.2v-5.1l3.4 5.1h3V7.2h-3.2z" fill="#fff"></path></svg>';
+  const rvSuffix = p.rv ? ` <span class="num-mono rvsm">(★${esc(p.rv[0])})</span>` : '';
   const shareBtn = p.u ? `<button type="button" class="sharebtn" data-share-name="${esc(p.n)}" data-share-url="${esc(p.u)}">공유</button>` : '';
   return `<div class="card">
     ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : ''}
@@ -193,7 +196,7 @@ function cardHTML(p, idx) {
       ${line1}
       ${line3}
       ${cacmt}
-      <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}"><span class="nvword">네이버 </span>지도${rvSuffix}</a>` : ''}${shareBtn}</div>
+      <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">${NV_ICON}지도 열기${rvSuffix}</a>` : ''}${shareBtn}</div>
     </div>
   </div>`;
 }

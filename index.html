@@ -107,8 +107,11 @@
   .card .links .sharebtn { flex: 0 0 auto; }
   .card .links a, .card .links .sharebtn { white-space: nowrap; padding-left: 10px; padding-right: 10px; }
   .card .links a { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-  /* 320px 급 작은 폰: 버튼 칸이 좁아 "네이버"를 빼야 별점까지 한 줄에 들어간다 */
-  @media (max-width: 359px) { .card .links .nvword { display: none; } }
+  .card .links .nvic { vertical-align: -2px; margin-right: 4px; }
+  .card .links .rvsm { font-size: 12px; }
+  /* 좁은 폰: 먼저 버튼 좌우 여백을 줄이고(4px 확보), 그래도 모자란 320px 급은 별점을 숨겨 한 줄을 지킨다 */
+  @media (max-width: 379px) { .card .links a, .card .links .sharebtn { padding-left: 8px; padding-right: 8px; } }
+  @media (max-width: 359px) { .card .links .rvsm { display: none; } }
   .card .links .sharebtn.done { border-color: var(--green); color: var(--green-deep); }
   .b { font-size: 11px; padding: 3px 8px; border-radius: 0; font-weight: 600; background: var(--soft); color: #55564e; }
   .b.open .dot { color: var(--green); }
@@ -479,7 +482,7 @@
 
 <script src="places.js?v=8"></script>
 <script src="tour.js?v=1"></script>
-<script src="home.js?v=60"></script>
+<script src="home.js?v=61"></script>
 <!-- PC 배경 순환 스크립트는 home.js 끝으로 이동 (CSP 강화: 인라인 스크립트 금지) -->
 <script src="rating-popup.js?v=2"></script>
 </body>
