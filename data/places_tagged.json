@@ -2204,27 +2204,6 @@
   "guessed": false
  },
  {
-  "name": "자매순대국",
-  "type": "식사",
-  "list": "식사",
-  "category": "순대,순댓국",
-  "food": [
-   "한식"
-  ],
-  "vibe": [
-   "로컬·노포"
-  ],
-  "zone": "고성권(차 10~15분)",
-  "dist_km": 3.62,
-  "address": "강원 고성군 토성면 토성로 121",
-  "lat": 38.2561739,
-  "lng": 128.5605208,
-  "sid": "15068123",
-  "thumb": "https://ldb-phinf.pstatic.net/20170421_69/1492755083507X8xTz_JPEG/userRegistration_6483eae09dad4c57865f32e44a3f26c9_IMG_6543.jpg",
-  "naver": "https://map.naver.com/p/entry/place/15068123",
-  "guessed": false
- },
- {
   "name": "속초별미순대국 본점",
   "type": "식사",
   "list": "식사",
@@ -7724,25 +7703,6 @@
   "guessed": false
  },
  {
-  "name": "민옥네장칼국수",
-  "type": "식사",
-  "list": "식사",
-  "category": "음식점",
-  "food": [],
-  "vibe": [
-   "무난"
-  ],
-  "zone": "고성권(차 10~15분)",
-  "dist_km": 3.25,
-  "address": "강원 고성군 토성면 토성로 163",
-  "lat": 38.25894,
-  "lng": 128.55718,
-  "sid": "1058595807",
-  "thumb": "",
-  "naver": "https://map.naver.com/p/entry/place/1058595807",
-  "guessed": false
- },
- {
   "name": "파파스튜",
   "type": "식사",
   "list": "식사",
@@ -8823,6 +8783,25 @@
   "sid": "933290652",
   "thumb": "",
   "naver": "https://map.naver.com/p/entry/place/933290652",
+  "guessed": false
+ },
+ {
+  "name": "호호앤트",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 12.13,
+  "address": "강원 속초시 동해대로 3940",
+  "lat": 38.1866171,
+  "lng": 128.6015145,
+  "sid": "1691628985",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1691628985",
   "guessed": false
  }
 ]
