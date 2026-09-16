@@ -106,6 +106,14 @@ const SLOT_LABEL = { meal: '🍚 지금은 밥때', cafe: '☕ 카페 타임', b
 const TYPE_OF = { meal: '식사', cafe: '카페', bar: '술집' };
 // 가게가 해당 섹션(type)에 속하는지 — 원래 type(t) 또는 추가 노출(t2) 목록에 있으면 참.
 // 한 가게를 식사·카페·술집 등 여러 섹션에 동시 노출시키기 위한 것 (어드민 '추가 노출' 편집).
+// 카카오맵에 등록이 없는 가게 — 눌러도 "검색 결과 없음"만 뜨므로 카카오 버튼을 숨긴다(네이버만 노출).
+// 카카오는 robots.txt 로 자동 조회를 막아놔서 452곳 전수 점검이 불가능하다 → 발견되는 대로 sid 를 추가한다.
+// (어드민 토글이 붙으면 D1 overrides 의 kx 가 이 목록보다 우선한다)
+const KAKAO_OFF = new Set([
+  '2044783313',   // 바다별 양조장(속초 철새길) — 2026-09-16 확인: 카카오 검색 결과 0건
+]);
+function hasKakao(p) { return !p.kx && !KAKAO_OFF.has(String(p.s || '')); }
+
 function inType(p, t) { return p.t === t || (Array.isArray(p.t2) && p.t2.includes(t)); }
 
 // 도보권만 살짝 우대, 차로 거리(고성/속초)는 점수 차 없이 동일 취급 (차 15분 이내는 다 비슷)
@@ -190,18 +198,17 @@ function cardHTML(p, idx) {
   const NV_ICON = '<svg class="nvic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><rect width="24" height="24" rx="4" fill="#03C75A"></rect><path d="M13.6 12.3 10.2 7.2H7.2v9.6h3.2v-5.1l3.4 5.1h3V7.2h-3.2z" fill="#fff"></path></svg>';
   const KA_ICON = '<svg class="kaic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><rect width="24" height="24" rx="4" fill="#FEE500"></rect><path d="M12 6.4c-3.4 0-6.1 2.1-6.1 4.7 0 1.7 1.1 3.1 2.8 3.9l-.7 2.6 2.9-1.7c.4.05.8.08 1.1.08 3.4 0 6.1-2.1 6.1-4.8S15.4 6.4 12 6.4z" fill="#3A1D1D"></path></svg>';
   const SHARE_ICON = '<svg class="shic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 8a3 3 0 10-2.82-4 3 3 0 00.2 1.2L8.9 8.8a3 3 0 100 6.4l6.3 3.6A3 3 0 1016.4 17l-6.3-3.6a3 3 0 000-2.8L16.4 7c.45.6 1 1 1.6 1z" fill="currentColor"></path></svg>';
-  const rvName = p.rv ? ` <span class="rvname num-mono">★${esc(p.rv[0])}</span>` : '';
   // 같은 이름의 다른 지역 가게가 먼저 잡히므로 지역을 앞에 붙인다 (주소로 판정)
   const kakaoUrl = 'https://map.kakao.com/link/search/' + encodeURIComponent(((p.a || '').includes('속초') ? '속초 ' : '고성 ') + (p.n || ''));
   const shareBtn = p.u ? `<button type="button" class="sharebtn" aria-label="공유하기" title="공유하기" data-share-name="${esc(p.n)}" data-share-url="${esc(p.u)}">${SHARE_ICON}</button>` : '';
   return `<div class="card">
     ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : ''}
     <div class="body">
-      <div class="rk">${num}<span class="nm">${esc(p.n)}</span>${rvName}${badges.length ? ` <span class="badges">${badges.join('')}</span>` : ''}</div>
+      <div class="rk">${num}<span class="nm">${esc(p.n)}</span>${badges.length ? ` <span class="badges">${badges.join('')}</span>` : ''}</div>
       ${line1}
       ${line3}
       ${cacmt}
-      <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">${NV_ICON}<span class="mapword">네이버</span></a>` : ''}<a href="${kakaoUrl}" target="_blank" rel="noopener" data-kmap="1" data-name="${esc(p.n || '')}">${KA_ICON}<span class="mapword">카카오</span></a>${shareBtn}</div>
+      <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">${NV_ICON}<span class="mapword">네이버</span></a>` : ''}${hasKakao(p) ? `<a href="${kakaoUrl}" target="_blank" rel="noopener" data-kmap="1" data-name="${esc(p.n || '')}">${KA_ICON}<span class="mapword">카카오</span></a>` : ''}${shareBtn}</div>
     </div>
   </div>`;
 }
@@ -739,6 +746,7 @@ function applyOverrideTo(pl, o) {
   pl.to = o.to ? 1 : 0;
   pl.r = (o.r || pl.ra) ? 1 : 0;   // 자동감지(ra) 예약은 유지, 수동 예약만 편집을 따름
   if (o.nat != null) pl.nat = o.nat ? 1 : 0;   // 자연명소 수동 지정(어드민) — 없으면 주간 빌드 기본값 유지
+  if (o.kx != null) pl.kx = o.kx ? 1 : 0;       // 카카오에 없는 가게 — 어드민에서 끄면 카카오 버튼 숨김
   pl.t2 = Array.isArray(o.a2) ? o.a2 : [];      // 추가 노출 섹션 — 라이브 편집이 스냅샷(t2)보다 우선
   pl.note = o.note || '';
 }
