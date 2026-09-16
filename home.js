@@ -197,10 +197,10 @@ function cardHTML(p, idx) {
   // 지역을 빼면 3곳만 맞아서 지역을 반드시 붙인다. 회사 카카오 계정이 생기면 장소 번호 링크로 승격 예정.
   const NV_ICON = '<svg class="nvic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><rect width="24" height="24" rx="4" fill="#03C75A"></rect><path d="M13.6 12.3 10.2 7.2H7.2v9.6h3.2v-5.1l3.4 5.1h3V7.2h-3.2z" fill="#fff"></path></svg>';
   const KA_ICON = '<svg class="kaic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><rect width="24" height="24" rx="4" fill="#FEE500"></rect><path d="M12 6.4c-3.4 0-6.1 2.1-6.1 4.7 0 1.7 1.1 3.1 2.8 3.9l-.7 2.6 2.9-1.7c.4.05.8.08 1.1.08 3.4 0 6.1-2.1 6.1-4.8S15.4 6.4 12 6.4z" fill="#3A1D1D"></path></svg>';
+  // (2026-09-16) 가게별 공유 버튼은 뺐다 — 페이지 전체 공유로 대체 예정. 아이콘은 그때 재사용.
   const SHARE_ICON = '<svg class="shic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 8a3 3 0 10-2.82-4 3 3 0 00.2 1.2L8.9 8.8a3 3 0 100 6.4l6.3 3.6A3 3 0 1016.4 17l-6.3-3.6a3 3 0 000-2.8L16.4 7c.45.6 1 1 1.6 1z" fill="currentColor"></path></svg>';
   // 같은 이름의 다른 지역 가게가 먼저 잡히므로 지역을 앞에 붙인다 (주소로 판정)
   const kakaoUrl = 'https://map.kakao.com/link/search/' + encodeURIComponent(((p.a || '').includes('속초') ? '속초 ' : '고성 ') + (p.n || ''));
-  const shareBtn = p.u ? `<button type="button" class="sharebtn" aria-label="공유하기" title="공유하기" data-share-name="${esc(p.n)}" data-share-url="${esc(p.u)}">${SHARE_ICON}</button>` : '';
   return `<div class="card">
     ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : ''}
     <div class="body">
@@ -208,7 +208,7 @@ function cardHTML(p, idx) {
       ${line1}
       ${line3}
       ${cacmt}
-      <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">${NV_ICON}<span class="mapword">네이버</span></a>` : ''}${hasKakao(p) ? `<a href="${kakaoUrl}" target="_blank" rel="noopener" data-kmap="1" data-name="${esc(p.n || '')}">${KA_ICON}<span class="mapword">카카오</span></a>` : ''}${shareBtn}</div>
+      <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">${NV_ICON}<span class="mapword">네이버</span></a>` : ''}${hasKakao(p) ? `<a href="${kakaoUrl}" target="_blank" rel="noopener" data-kmap="1" data-name="${esc(p.n || '')}">${KA_ICON}<span class="mapword">카카오</span></a>` : ''}</div>
     </div>
   </div>`;
 }
