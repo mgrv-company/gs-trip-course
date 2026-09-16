@@ -183,20 +183,25 @@ function cardHTML(p, idx) {
   const catMenu = menuTxt ? `${catTag} ${menuTxt}` : catTag;
   const line3body = wt ? (catMenu ? `${catMenu} · ${esc(wt)}` : esc(wt)) : catMenu;
   const line3 = line3body ? `<div class="ct3">${line3body}</div>` : '';
-  // 2026-09-15: 모바일에서 "네이버 지도에서 열기 (★4.6)" 이 두 줄로 꺾여 버튼 칸이 커져서, 문구를 줄이고 한 줄로 고정
-  // 네이버 지도 링크 버튼: 초록 N 아이콘(코드로 그린 도형 — 파일 요청 없음) + 문구 + 괄호 별점.
-  // 아이콘·괄호가 자리를 먹어 360px 에서 4px 가 모자랐다 → 별점 글자만 12px(.rvsm), 좁은 폰은 index.html 미디어쿼리가 처리.
+  // 지도 버튼 두 칸(네이버·카카오) + 공유는 아이콘 — 2026-09-16 A안.
+  // 아이콘은 코드로 그린 도형이라 파일 요청이 없다. 별점은 자리가 모자라 버튼에서 가게 이름 옆으로 옮겼다.
+  // 카카오는 장소 번호 대신 지역+가게이름 검색 링크다(키·계정 불필요). 표본 12곳 중 11곳이 첫 줄에 정확히 그 가게였고,
+  // 지역을 빼면 3곳만 맞아서 지역을 반드시 붙인다. 회사 카카오 계정이 생기면 장소 번호 링크로 승격 예정.
   const NV_ICON = '<svg class="nvic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><rect width="24" height="24" rx="4" fill="#03C75A"></rect><path d="M13.6 12.3 10.2 7.2H7.2v9.6h3.2v-5.1l3.4 5.1h3V7.2h-3.2z" fill="#fff"></path></svg>';
-  const rvSuffix = p.rv ? ` <span class="num-mono rvsm">(★${esc(p.rv[0])})</span>` : '';
-  const shareBtn = p.u ? `<button type="button" class="sharebtn" data-share-name="${esc(p.n)}" data-share-url="${esc(p.u)}">공유</button>` : '';
+  const KA_ICON = '<svg class="kaic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><rect width="24" height="24" rx="4" fill="#FEE500"></rect><path d="M12 6.4c-3.4 0-6.1 2.1-6.1 4.7 0 1.7 1.1 3.1 2.8 3.9l-.7 2.6 2.9-1.7c.4.05.8.08 1.1.08 3.4 0 6.1-2.1 6.1-4.8S15.4 6.4 12 6.4z" fill="#3A1D1D"></path></svg>';
+  const SHARE_ICON = '<svg class="shic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 8a3 3 0 10-2.82-4 3 3 0 00.2 1.2L8.9 8.8a3 3 0 100 6.4l6.3 3.6A3 3 0 1016.4 17l-6.3-3.6a3 3 0 000-2.8L16.4 7c.45.6 1 1 1.6 1z" fill="currentColor"></path></svg>';
+  const rvName = p.rv ? ` <span class="rvname num-mono">★${esc(p.rv[0])}</span>` : '';
+  // 같은 이름의 다른 지역 가게가 먼저 잡히므로 지역을 앞에 붙인다 (주소로 판정)
+  const kakaoUrl = 'https://map.kakao.com/link/search/' + encodeURIComponent(((p.a || '').includes('속초') ? '속초 ' : '고성 ') + (p.n || ''));
+  const shareBtn = p.u ? `<button type="button" class="sharebtn" aria-label="공유하기" title="공유하기" data-share-name="${esc(p.n)}" data-share-url="${esc(p.u)}">${SHARE_ICON}</button>` : '';
   return `<div class="card">
     ${p.img ? `<img class="ph" src="${esc(p.img)}" loading="lazy" alt="" referrerpolicy="no-referrer">` : ''}
     <div class="body">
-      <div class="rk">${num}<span class="nm">${esc(p.n)}</span>${badges.length ? ` <span class="badges">${badges.join('')}</span>` : ''}</div>
+      <div class="rk">${num}<span class="nm">${esc(p.n)}</span>${rvName}${badges.length ? ` <span class="badges">${badges.join('')}</span>` : ''}</div>
       ${line1}
       ${line3}
       ${cacmt}
-      <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">${NV_ICON}지도 열기${rvSuffix}</a>` : ''}${shareBtn}</div>
+      <div class="links">${p.u ? `<a href="${esc(p.u)}" target="_blank" rel="noopener" data-clk="1" data-sid="${esc(p.s || '')}" data-name="${esc(p.n || '')}">${NV_ICON}<span class="mapword">네이버</span></a>` : ''}<a href="${kakaoUrl}" target="_blank" rel="noopener" data-kmap="1" data-name="${esc(p.n || '')}">${KA_ICON}<span class="mapword">카카오</span></a>${shareBtn}</div>
     </div>
   </div>`;
 }
@@ -1020,6 +1025,11 @@ document.addEventListener('click', function (e) {
   // text/plain 기본 → 프리플라이트 없는 단순요청. keepalive 로 새 탭 열려도 전송 보장.
   fetch(ADMIN_API + '/click', { method: 'POST', keepalive: true, body: JSON.stringify({ sid: sid, name: name }) })
     .catch(function (err) { console.debug('click beacon 실패(무시 가능):', err && err.message); });
+}, true);
+
+// ── 카카오맵 버튼 클릭 집계 — 손님이 실제로 쓰는지 확인용(어드민 이벤트 순위) ──
+document.addEventListener('click', function (e) {
+  if (e.target.closest('a[data-kmap]')) sendEvent('map:kakao');
 }, true);
 
 // ── 마음에 든 가게 공유 — Web Share API, 없으면 링크 복사로 대체 ──
