@@ -331,7 +331,12 @@ function miniRowHTML(p) {
 // 노출 집계 — 추천 리스트에 보여진 가게들을 렌더마다 1회(디바운스) 비콘. 손님만(어드민 제외).
 // 클릭÷노출 = CTR(어드민 '인기 가게'에서 확인). 로드 시 여러 번 렌더돼도 디바운스로 1회만 전송.
 let _impTimer = null, _impItems = [];
+// 로컬 파일로 연 페이지(PC에서 직접 연 테스트)는 집계 신호를 보내지 않는다.
+// 2026-09-16 PC 테스트가 조회 54회·이벤트 92회를 실제 통계에 섞은 뒤 추가. 손님은 항상 https 주소로 들어오므로 영향 없음.
+const NO_STATS = location.protocol === 'file:';
+
 function queueImpressions(picks) {
+  if (NO_STATS) return;   // PC 로컬 테스트는 집계 안 함
   try { if (localStorage.getItem('gstAdminSession')) return; } catch (e) { return; }   // 어드민 방문은 노출 집계 제외
   _impItems = picks.map(p => ({ sid: String(p.s || ''), name: String(p.n || '') })).filter(x => x.sid || x.name);
   if (_impTimer) clearTimeout(_impTimer);
@@ -345,6 +350,7 @@ function queueImpressions(picks) {
 
 // 화면 UI 이벤트(탭 전환·하단 모음 열람) 집계 — 손님만(어드민 제외), 어떤 진입점이 실제로 쓰이는지 확인용
 function sendEvent(key) {
+  if (NO_STATS) return;   // PC 로컬 테스트는 집계 안 함
   try { if (localStorage.getItem('gstAdminSession')) return; } catch (e) { return; }
   fetch(ADMIN_API + '/event', { method: 'POST', keepalive: true, body: JSON.stringify({ key: key }) })
     .catch(function (e) { console.debug('event beacon 실패(무시 가능):', e && e.message); });
@@ -1013,6 +1019,7 @@ document.addEventListener('visibilitychange', () => {
 // ── 조회수 집계 (손님만, 브라우저당 하루 1회) ─────────
 (function () {
   try {
+    if (NO_STATS) return;   // PC 로컬 테스트는 집계 안 함
     if (localStorage.getItem('gstAdminSession')) return;   // 어드민 본인 방문은 카운트 안 함
     const d = new Date();
     const key = 'gsHit:' + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
@@ -1026,6 +1033,7 @@ document.addEventListener('visibilitychange', () => {
 document.addEventListener('click', function (e) {
   const a = e.target.closest('a[data-clk]');
   if (!a) return;
+  if (NO_STATS) return;   // PC 로컬 테스트는 집계 안 함
   try { if (localStorage.getItem('gstAdminSession')) return; } catch (e2) {}   // 어드민 본인 클릭은 제외
   const sid = a.getAttribute('data-sid') || '';
   const name = a.getAttribute('data-name') || '';
