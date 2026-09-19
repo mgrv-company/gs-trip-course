@@ -377,9 +377,16 @@ export default {
         if (!env.CARDS) return json(req, { ok: false, error: 'CARDS 미설정' }, 501);
         const key = path.slice('/public/card/'.length);
         if (!/^[0-9a-zA-Z._-]{8,80}$/.test(key)) return json(req, { ok: false, error: 'bad key' }, 400);
+        // 슬랙은 메시지를 받은 직후 이 주소로 사진을 가지러 온다. KV 를 매번 읽으면 1초 가까이 걸려
+        // 슬랙이 기다려주지 않고 거부(invalid_blocks)하는 일이 있었다 → 엣지 캐시에 올려 두 번째부터는 즉시 내려준다.
+        const imgCache = caches.default;
+        const cached = await imgCache.match(req);
+        if (cached) return cached;
         const { value, metadata } = await env.CARDS.getWithMetadata(key, { type: 'arrayBuffer' });
         if (!value) return json(req, { ok: false, error: 'not found' }, 404);
-        return new Response(value, { status: 200, headers: { 'Content-Type': (metadata && metadata.type) || 'image/jpeg', 'Cache-Control': 'public, max-age=86400', ...corsHeaders(req) } });
+        const cardResp = new Response(value, { status: 200, headers: { 'Content-Type': (metadata && metadata.type) || 'image/jpeg', 'Cache-Control': 'public, max-age=31536000, immutable', ...corsHeaders(req) } });
+        if (ctx) ctx.waitUntil(imgCache.put(req, cardResp.clone()));
+        return cardResp;
       }
 
       // ── 공개: 카드 만들기 기본 문구 (card-maker.html 이 열릴 때 읽음) ──────
@@ -637,6 +644,8 @@ export default {
           attachments: [{ fallback: name || '고성 추천 카드', image_url: imageUrl, color: '#b23bd6' }],
         };
         const sleep = (ms) => new Promise(s => setTimeout(s, ms));
+        // 슬랙이 사진을 바로 가져갈 수 있게 먼저 한 번 불러 엣지 캐시를 데운다(실패해도 발송은 계속)
+        await fetch(imageUrl).catch(() => {});
         let r = await postSlack(withImage);
         let mode = 'image-block', firstErr = '';
         if (!r.ok) {
