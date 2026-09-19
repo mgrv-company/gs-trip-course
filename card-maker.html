@@ -517,6 +517,22 @@ function pickUnused(kind) {
   return pool.length ? sample(pool) : (kind ? pickUnused(null) : '');
 }
 let currentPhotoUrl = '';
+// 2026-09-19: 아이폰에서 카드를 구울 때 사진이 통째로 빠지는 일이 있었다(모바일 486KB=사진없음 vs PC 749KB=사진있음).
+// 네이버 원본이 2874x2874·1.94MB 로 커서 굽는 중 사진이 버려지는 것으로 보고, 카드에 넣기 전에 1200px 로 줄여 데이터 주소로 바꿔 끼운다.
+// (데이터 주소면 굽는 단계에서 이미지를 다시 받아올 필요가 없어 실패 여지도 줄어든다)
+const photoDataCache = new Map();
+async function photoForCard(url) {
+  if (!url) return '';
+  if (url.startsWith('data:')) return url;
+  if (photoDataCache.has(url)) return photoDataCache.get(url);
+  const r = await fetch(proxied(url), { cache: 'force-cache' });
+  if (!r.ok) throw new Error('사진 받기 실패 (' + r.status + ')');
+  const blob = await r.blob();
+  const raw = await new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = () => rej(new Error('사진 읽기 실패')); fr.readAsDataURL(blob); });
+  const small = await shrinkImage(raw, 1200);
+  photoDataCache.set(url, small);
+  return small;
+}
 function setPhoto(url) {
   currentPhotoUrl = url || '';
   const img = $('photoImg');
@@ -525,6 +541,11 @@ function setPhoto(url) {
   if (url) { img.src = proxied(url); img.style.display = 'block'; $('photoWrap').classList.remove('noimg'); }
   else { img.removeAttribute('src'); img.style.display = 'none'; $('photoWrap').classList.add('noimg'); }
   [...$('photoGrid').querySelectorAll('button[data-url]')].forEach(b => b.classList.toggle('on', b.dataset.url === url));
+  // 원격 사진은 줄인 사진이 준비되는 대로 갈아끼운다 — 화면은 그대로, 굽기만 가벼워진다
+  if (url && !url.startsWith('data:')) {
+    photoForCard(url).then(small => { if (currentPhotoUrl === url && small) { img.src = small; } })
+      .catch(e => console.debug('사진 줄이기 실패(원본 그대로 사용):', e && e.message));
+  }
 }
 function fillCard(p) {
   current = p;
@@ -823,6 +844,30 @@ function fitStage() {
 window.addEventListener('resize', () => { applyLayoutMode(); fitStage(); });
 
 // ───────── PNG 저장 (브라우저 안에서 직접 굽는다 — html-to-image) ─────────
+// 구운 카드에서 사진이 빠졌는지 검사 — 사진 영역의 가로 한 줄을 훑어 색 변화를 본다.
+// 사진이 없으면 그 자리는 세로 그라데이션뿐이라 가로로는 거의 단색이다.
+// 원본 사진 자체가 단색(하늘·흰 벽)일 수도 있으므로, 원본도 같은 방식으로 재서 비교한다.
+async function photoLooksMissing(cardDataUrl) {
+  const im = $('photoImg');
+  if (!currentPhotoUrl || !im || !im.naturalWidth) return false;   // 사진을 안 쓰는 카드면 검사 안 함
+  const spread = (image, y0, y1) => {
+    const c = document.createElement('canvas'); c.width = 120; c.height = 1;
+    const g = c.getContext('2d');
+    const sy = Math.round(image.naturalHeight * y0), sh = Math.max(1, Math.round(image.naturalHeight * (y1 - y0)));
+    g.drawImage(image, Math.round(image.naturalWidth * 0.08), sy, Math.round(image.naturalWidth * 0.84), sh, 0, 0, 120, 1);
+    const d = g.getImageData(0, 0, 120, 1).data;
+    let min = 255, max = 0;
+    for (let i = 0; i < d.length; i += 4) { const v = (d[i] + d[i + 1] + d[i + 2]) / 3; if (v < min) min = v; if (v > max) max = v; }
+    return max - min;
+  };
+  try {
+    const baked = await new Promise(r => { const x = new Image(); x.onload = () => r(x); x.onerror = () => r(null); x.src = cardDataUrl; });
+    if (!baked) return false;
+    const inCard = spread(baked, 0.16, 0.17);        // 카드에서 사진이 차지하는 자리
+    const inSource = spread(im, 0.35, 0.36);         // 원본 사진의 비슷한 높이
+    return inCard < 12 && inSource > 25;             // 원본은 알록달록한데 카드 자리만 단색 = 사진이 빠짐
+  } catch (e) { console.debug('사진 확인 건너뜀:', e && e.message); return false; }
+}
 async function renderCurrent(batch) {
   if (!current) return false;
   const st = $('status'); st.className = 'status'; st.textContent = batch ? `이미지 굽는 중… (${active + 1}/${slots.length})` : '이미지 굽는 중… (5~15초, 처음엔 폰트를 받아서 더 걸려요)';
@@ -833,6 +878,11 @@ async function renderCurrent(batch) {
   try {
     const card = $('card');
     const img = $('photoImg');
+    // 굽기 직전: 원격 주소면 줄인 사진으로 바꿔 끼우고, 다 받을 때까지 기다린다
+    if (currentPhotoUrl) {
+      try { const small = await photoForCard(currentPhotoUrl); if (small && img.getAttribute('src') !== small) { img.src = small; img.style.display = 'block'; } }
+      catch (e) { console.debug('사진 줄이기 실패(원본 그대로 사용):', e && e.message); }
+    }
     if (img.getAttribute('src') && !img.complete) await new Promise(r => { img.onload = img.onerror = r; });
     if (!fontCSS) fontCSS = await htmlToImage.getFontEmbedCSS(card);
     // includeQueryParams: 중계 주소(/public/img?u=…)는 ?u= 뒤만 다르다. 기본값(false)은 ?를 떼고 캐시해서 두 번째 카드부터 이전 가게 사진이 박혔다(2026-09-11).
@@ -845,6 +895,15 @@ async function renderCurrent(batch) {
     // 휴대폰: 이미지 길게 누르기는 기기마다 안 되는 경우가 있어(특히 아이폰) 공유 시트로 사진첩에 바로 저장하는 버튼을 준다
     const blob = await (await fetch(dataUrl)).blob();
     lastFile = new File([blob], file, { type: 'image/jpeg' });
+    // 사진이 빠진 카드가 그대로 나가는 걸 막는다 (아이폰에서 사진이 통째로 빠지는 일이 있었다 — 2026-09-19)
+    if (await photoLooksMissing(dataUrl)) {
+      lastFile = null;                       // 발송·공유 버튼이 lastFile 을 보므로 자동으로 막힌다
+      $('saved').innerHTML = `<img src="${dataUrl}" alt="사진이 빠진 카드">`;
+      st.className = 'status err';
+      st.textContent = "사진이 카드에 안 들어갔어요. \"이미지 저장\" 을 한 번 더 눌러주세요. 계속 그러면 다른 사진을 골라보세요.";
+      slots[active].made = false; renderStrip(); persistLocal();
+      return false;
+    }
     const canShare = !!(navigator.canShare && navigator.canShare({ files: [lastFile] }));
     $('saved').innerHTML = `<img src="${dataUrl}" alt="완성된 카드">` +
       (canShare ? `<button class="btn primary share" id="btnShare" type="button">사진첩에 저장 / 공유</button>` : '');

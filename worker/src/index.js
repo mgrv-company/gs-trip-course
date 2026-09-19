@@ -617,21 +617,37 @@ export default {
           linkId = await createCardLink(db, { target: link, sid: form.get('sid'), name, source: 'send', card: key });
           if (linkId) sendText = text.split(link).join(`${url.origin}/go/${linkId}`);
         }
-        const payload = {
+        // 슬랙 전송 — 2026-09-18 부터 사진(image) 블록이 담긴 메시지를 슬랙이 invalid_blocks 로 거부하기 시작했다.
+        //   · 9/17 09:29 까지는 같은 형식이 정상 발송됐고, 워커는 9/15 이후 배포된 적이 없다(코드 변경 아님).
+        //   · 그래서 1차로 원래 형식(사진 블록 포함)을 보내고, 거부당하면 2차로 사진 블록을 빼고 글 + 사진 주소만 보낸다.
+        //     슬랙이 주소를 펼쳐(unfurl) 사진을 보여주므로 보이는 결과는 크게 다르지 않다.
+        //   · 어느 쪽으로 나갔는지와 거부 사유는 settings 에 남겨 나중에 원인을 볼 수 있게 한다.
+        const postSlack = (body) => fetch(env.CARD_WEBHOOK, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        const withImage = {
           text: sendText,
           blocks: [
             { type: 'section', text: { type: 'mrkdwn', text: sendText } },
             { type: 'image', image_url: imageUrl, alt_text: name || '고성 추천 카드' },
           ],
         };
-        const r = await fetch(env.CARD_WEBHOOK, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const textOnly = { text: `${sendText}\n${imageUrl}` };
+        let r = await postSlack(withImage);
+        let mode = 'image-block', firstErr = '';
         if (!r.ok) {
-          const body = (await r.text()).slice(0, 200);
+          firstErr = `${r.status} ${(await r.text()).slice(0, 120)}`;
+          r = await postSlack(textOnly);
+          mode = r.ok ? 'text-only(사진 블록 거부됨)' : '실패';
+        }
+        await db.prepare('INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at')
+          .bind('card_send_last', JSON.stringify({ at: new Date().toISOString(), mode, firstErr, imageUrl, ok: r.ok }), new Date().toISOString())
+          .run().catch(() => {});
+        if (!r.ok) {
+          const body2 = (await r.text()).slice(0, 200);
           // 안 나간 카드의 링크가 어드민 목록에 '보냄'으로 남지 않게 지운다
           if (linkId) await db.prepare('DELETE FROM card_links WHERE id = ?').bind(linkId).run();
-          return json(req, { ok: false, error: `슬랙 발송 실패 (${r.status}) ${body}`, imageUrl }, 502);
+          return json(req, { ok: false, error: `슬랙 발송 실패 (${r.status}) ${body2}${firstErr ? ' / 1차: ' + firstErr : ''}`, imageUrl }, 502);
         }
-        return json(req, { ok: true, imageUrl, goUrl: linkId ? `${url.origin}/go/${linkId}` : null });
+        return json(req, { ok: true, mode, imageUrl, goUrl: linkId ? `${url.origin}/go/${linkId}` : null });
       }
 
       // ── 카드 만들기: '복사' 버튼용 추적 링크 만들기 (2026-09-15) ──────
