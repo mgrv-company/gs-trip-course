@@ -385,12 +385,30 @@ export default {
         const imgCache = caches.default;
         const cacheReq = new Request(req.url, { method: 'GET' });   // 캐시는 GET 으로만 넣고 뺄 수 있다
         const cached = await imgCache.match(cacheReq);
-        if (cached) return req.method === 'HEAD' ? new Response(null, { status: 200, headers: cached.headers }) : cached;
-        const { value, metadata } = await env.CARDS.getWithMetadata(key, { type: 'arrayBuffer' });
-        if (!value) return json(req, { ok: false, error: 'not found' }, 404);
+        // 슬랙이 사진을 가지러 왔을 때 무엇을 받아갔는지 남긴다(settings.card_fetch_log, 최근 30건) — 다음에 안 보일 때 원인을 볼 수 있게
+        const ua = req.headers.get('User-Agent') || '';
+        const noteFetch = (status, from) => {
+          if (!ctx || !/slack/i.test(ua)) return;
+          ctx.waitUntil((async () => {
+            const row = await db.prepare('SELECT value FROM settings WHERE key = ?').bind('card_fetch_log').first().catch(() => null);
+            let log = []; try { log = JSON.parse((row && row.value) || '[]'); } catch (e) { log = []; }
+            log.unshift({ at: new Date().toISOString(), key, method: req.method, status, from, ua: ua.slice(0, 40), colo: (req.cf && req.cf.colo) || '' });
+            await db.prepare('INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at')
+              .bind('card_fetch_log', JSON.stringify(log.slice(0, 30)), new Date().toISOString()).run();
+          })().catch(() => {}));
+        };
+        if (cached) { noteFetch(200, 'cache'); return req.method === 'HEAD' ? new Response(null, { status: 200, headers: cached.headers }) : cached; }
+        let { value, metadata } = await env.CARDS.getWithMetadata(key, { type: 'arrayBuffer' });
+        if (!value) {
+          // 방금 저장한 키는 다른 지역에서 잠깐 안 보일 수 있다(KV 는 최종 일관성) → 한 번만 짧게 기다렸다 다시 읽는다
+          await new Promise(s => setTimeout(s, 400));
+          ({ value, metadata } = await env.CARDS.getWithMetadata(key, { type: 'arrayBuffer' }));
+        }
+        if (!value) { noteFetch(404, 'kv'); return json(req, { ok: false, error: 'not found' }, 404); }
         const headers = { 'Content-Type': (metadata && metadata.type) || 'image/jpeg', 'Content-Length': String(value.byteLength), 'Cache-Control': 'public, max-age=31536000, immutable', ...corsHeaders(req) };
         const cardResp = new Response(value, { status: 200, headers });
         if (ctx) ctx.waitUntil(imgCache.put(cacheReq, cardResp.clone()));
+        noteFetch(200, 'kv');
         return req.method === 'HEAD' ? new Response(null, { status: 200, headers }) : cardResp;
       }
 
@@ -619,9 +637,16 @@ export default {
         if (file.size > CARD_MAX_BYTES) return json(req, { ok: false, error: '이미지가 너무 커요 (6MB 초과)' }, 413);
         if (!text) return json(req, { ok: false, error: '보낼 문구가 비어 있어요' }, 400);
         const type = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
-        const key = `${kstDay()}-${crypto.randomUUID().slice(0, 8)}.${type === 'image/png' ? 'png' : 'jpg'}`;
-        await env.CARDS.put(key, await file.arrayBuffer(), { expirationTtl: CARD_TTL_SEC, metadata: { type, name, at: new Date().toISOString() } });
-        const imageUrl = `${url.origin}/public/card/${key}`;
+        const bytes = await file.arrayBuffer();
+        // 같은 사진을 새 주소로 다시 저장할 수 있게 함수로 둔다 — 슬랙은 한 번 거부한 주소를 고친 뒤에도 계속 거부하므로(2026-09-19 실측) 재시도는 새 주소여야 한다
+        const storeCard = async () => {
+          const k = `${kstDay()}-${crypto.randomUUID().slice(0, 8)}.${type === 'image/png' ? 'png' : 'jpg'}`;
+          await env.CARDS.put(k, bytes, { expirationTtl: CARD_TTL_SEC, metadata: { type, name, at: new Date().toISOString() } });
+          return k;
+        };
+        let key = await storeCard();
+        const firstKey = key;
+        let imageUrl = `${url.origin}/public/card/${key}`;
         // 문구 속 네이버 링크를 클릭 수를 세는 /go/ 주소로 바꾼다 (사용자가 링크를 지웠으면 그대로 보냄)
         const link = String(form.get('link') || '').trim();
         let linkId = null, sendText = text;
@@ -635,34 +660,39 @@ export default {
         //     글만 보내는 우회는 쓰지 않는다 — 슬랙이 사진 주소를 안 펼쳐서 카드가 안 보였다(2026-09-19 12:10 실제 발생).
         //   · 어느 쪽으로 나갔는지와 거부 사유는 settings 에 남겨 나중에 원인을 볼 수 있게 한다.
         const postSlack = (body) => fetch(env.CARD_WEBHOOK, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-        const withImage = {
+        const withImage = () => ({
           text: sendText,
           blocks: [
             { type: 'section', text: { type: 'mrkdwn', text: sendText } },
             { type: 'image', image_url: imageUrl, alt_text: name || '고성 추천 카드' },
           ],
-        };
+        });
         // 사진이 안 보이면 카드의 의미가 없다. 글만 보내는 우회는 실패로 본다(2026-09-19 실측: 슬랙이 주소를 안 펼쳐 글만 나갔다).
-        // 첨부(attachments) 방식은 블록과 달리 거부된 적이 없고 사진도 확실히 보인다.
-        const asAttachment = {
+        const asAttachment = () => ({
           text: sendText,
           attachments: [{ fallback: name || '고성 추천 카드', image_url: imageUrl, color: '#b23bd6' }],
-        };
+        });
         const sleep = (ms) => new Promise(s => setTimeout(s, ms));
-        // 슬랙이 사진을 바로 가져갈 수 있게 먼저 한 번 불러 엣지 캐시를 데운다(실패해도 발송은 계속)
-        await fetch(imageUrl).catch(() => {});
-        let r = await postSlack(withImage);
-        let mode = 'image-block', firstErr = '';
-        if (!r.ok) {
-          firstErr = `${r.status} ${(await r.text()).slice(0, 120)}`;
-          await sleep(1500);
-          r = await postSlack(withImage);                 // 2차: 같은 형식 재시도
-          mode = r.ok ? 'image-block(재시도 성공)' : mode;
-          if (!r.ok) {
-            r = await postSlack(asAttachment);            // 3차: 첨부 방식
-            mode = r.ok ? 'attachment(블록 거부됨)' : '실패';
-          }
+        // 슬랙은 메시지를 받자마자 미국(IAD)·일본(NRT)에서 사진 주소를 직접 가져가 확인한다(2026-09-19 서버 로그 실측).
+        // 거부되면 같은 주소는 다시 보내도 계속 거부되므로, 새 주소로 다시 저장해 최대 2번 더 보낸다(2초·4초 간격).
+        const errs = [];
+        let r = await postSlack(withImage());
+        let mode = 'image-block';
+        for (let n = 1; !r.ok && n <= 2; n++) {
+          errs.push(`${r.status} ${(await r.text()).slice(0, 80)}`);
+          await sleep(2000 * n);
+          key = await storeCard(); imageUrl = `${url.origin}/public/card/${key}`;
+          r = await postSlack(withImage());
+          if (r.ok) mode = `image-block(새 주소로 ${n}번째 재시도 성공)`;
         }
+        if (!r.ok) {
+          errs.push(`${r.status} ${(await r.text()).slice(0, 80)}`);
+          r = await postSlack(asAttachment());              // 마지막: 첨부 방식
+          mode = r.ok ? 'attachment(블록 거부됨)' : '실패';
+        }
+        const firstErr = errs.join(' → ');
+        // 새 주소로 나갔으면 어드민 링크 목록의 카드 키도 맞춰 둔다
+        if (r.ok && linkId && key !== firstKey) await db.prepare('UPDATE card_links SET card = ? WHERE id = ?').bind(key, linkId).run().catch(() => {});
         await db.prepare('INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at')
           .bind('card_send_last', JSON.stringify({ at: new Date().toISOString(), mode, firstErr, imageUrl, ok: r.ok }), new Date().toISOString())
           .run().catch(() => {});
