@@ -398,8 +398,13 @@ export default {
           })().catch(() => {}));
         };
         if (cached) { noteFetch(200, 'cache'); return req.method === 'HEAD' ? new Response(null, { status: 200, headers: cached.headers }) : cached; }
-        let { value, metadata } = await env.CARDS.getWithMetadata(key, { type: 'arrayBuffer' });
-        let from = 'kv';
+        let value = null, metadata = null, from = 'r2';
+        // 읽는 순서: R2(2026-09-19 이후 새 카드) → KV(예전 카드) → D1 사본(KV 가 아직 안 퍼진 직후)
+        if (env.CARD_R2) {
+          const obj = await env.CARD_R2.get(key).catch(() => null);
+          if (obj) { value = await obj.arrayBuffer(); metadata = { type: (obj.httpMetadata && obj.httpMetadata.contentType) || 'image/jpeg' }; }
+        }
+        if (!value && env.CARDS) { ({ value, metadata } = await env.CARDS.getWithMetadata(key, { type: 'arrayBuffer' })); from = 'kv'; }
         if (!value) {
           // 워커가 KV 에 막 저장한 키는 슬랙이 미국(IAD)에서 가져갈 때 몇 초~수십 초 동안 안 보인다(KV 는 최종 일관성).
           // 2026-09-19 22:00 실제 발송에서 새 키 3개가 연달아 IAD 에서 404 → invalid_blocks. 그래서 발송 때 같은 사진을
@@ -649,9 +654,16 @@ export default {
         // 같은 사진을 새 주소로 다시 저장할 수 있게 함수로 둔다 — 슬랙은 한 번 거부한 주소를 고친 뒤에도 계속 거부하므로(2026-09-19 실측) 재시도는 새 주소여야 한다
         const storeCard = async () => {
           const k = `${kstDay()}-${crypto.randomUUID().slice(0, 8)}.${type === 'image/png' ? 'png' : 'jpg'}`;
-          // KV(장기 보관·엣지 캐시) + D1(즉시 보이는 사본, 조각 200KB) 두 곳에 넣는다. 슬랙은 보낸 직후 미국에서 가져가는데
+          const at = new Date().toISOString();
+          // R2 가 연결돼 있으면 거기 한 곳에만 넣는다 — R2 는 어느 지역에서 읽어도 저장 직후 바로 보인다(강한 일관성).
+          // 보관 기간은 버킷 수명 규칙(180일)이 맡는다. 예전 카드는 아래 KV/D1 경로로 계속 읽힌다.
+          if (env.CARD_R2) {
+            await env.CARD_R2.put(k, bytes, { httpMetadata: { contentType: type }, customMetadata: { name: name.slice(0, 80), at } });
+            return k;
+          }
+          // (R2 없을 때) KV(장기 보관·엣지 캐시) + D1(즉시 보이는 사본, 조각 200KB) 두 곳에 넣는다. 슬랙은 보낸 직후 미국에서 가져가는데
           // KV 는 거기서 몇 초~수십 초 뒤에야 보여서 404 → 거부됐다(2026-09-19 22:00 실측). D1 사본은 7일 뒤 지운다(그때면 KV 가 다 퍼져 있다).
-          const CHUNK = 200 * 1024, at = new Date().toISOString(), stmts = [];
+          const CHUNK = 200 * 1024, stmts = [];
           for (let i = 0, idx = 0; i < bytes.byteLength; i += CHUNK, idx++) {
             stmts.push(db.prepare('INSERT INTO card_blobs (key, idx, type, data, created_at) VALUES (?, ?, ?, ?, ?)').bind(k, idx, type, bytes.slice(i, i + CHUNK), at));
           }
