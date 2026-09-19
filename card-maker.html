@@ -871,6 +871,42 @@ async function photoLooksMissing(cardDataUrl) {
     return inCard < 10 && inSource > 25;
   } catch (e) { console.debug('사진 확인 건너뜀:', e && e.message); return false; }
 }
+// 아이폰(사파리)은 굽는 라이브러리가 큰 사진을 통째로 빼먹는 일이 잦다(2026-09-19 실기기에서 재발).
+// 그래서 사진만은 라이브러리에 맡기지 않고 우리가 직접 합성한다.
+//   ① 사진을 잠시 감추고 배경을 투명하게 해서 카드를 굽는다 → 글자·그라데이션만 남은 투명 PNG
+//   ② 캔버스에 배경색 → 사진 → 그 투명 PNG 순으로 겹쳐 그린다
+// 사진 위치·확대는 화면에서 보고 있는 값(photoView)을 그대로 쓰므로 미리보기와 결과가 같다.
+async function bakeComposite(card, img, opts) {
+  const scale = opts.pixelRatio || 1;
+  const wrap = $('photoWrap');
+  const keep = { img: img.style.visibility, wrap: wrap.style.background, card: card.style.background };
+  let png;
+  try {
+    img.style.visibility = 'hidden';
+    wrap.style.background = 'transparent';
+    card.style.background = 'transparent';
+    png = await htmlToImage.toPng(card, Object.assign({}, opts, { backgroundColor: null }));
+  } finally {
+    img.style.visibility = keep.img; wrap.style.background = keep.wrap; card.style.background = keep.card;
+  }
+  const layer = await new Promise((res, rej) => {
+    const x = new Image();
+    x.onload = () => res(x);
+    x.onerror = () => rej(new Error('구운 카드를 다시 읽지 못했어요'));
+    x.src = png;
+  });
+  const c = document.createElement('canvas');
+  c.width = Math.round(1080 * scale); c.height = Math.round(1560 * scale);
+  const g = c.getContext('2d');
+  g.fillStyle = '#fbfaf8'; g.fillRect(0, 0, c.width, c.height);
+  const k = Math.max(1080 / img.naturalWidth, 820 / img.naturalHeight) * photoView.zoom;
+  g.save();
+  g.beginPath(); g.rect(0, 0, 1080 * scale, 820 * scale); g.clip();   // 사진 칸(1080x820) 밖으로 넘치는 부분은 잘라낸다
+  g.drawImage(img, photoView.left * scale, photoView.top * scale, img.naturalWidth * k * scale, img.naturalHeight * k * scale);
+  g.restore();
+  g.drawImage(layer, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', opts.quality || 0.9);
+}
 async function renderCurrent(batch) {
   if (!current) return false;
   const st = $('status'); st.className = 'status'; st.textContent = batch ? `이미지 굽는 중… (${active + 1}/${slots.length})` : '이미지 굽는 중… (5~15초, 처음엔 폰트를 받아서 더 걸려요)';
@@ -890,16 +926,26 @@ async function renderCurrent(batch) {
     if (!fontCSS) fontCSS = await htmlToImage.getFontEmbedCSS(card);
     // includeQueryParams: 중계 주소(/public/img?u=…)는 ?u= 뒤만 다르다. 기본값(false)은 ?를 떼고 캐시해서 두 번째 카드부터 이전 가게 사진이 박혔다(2026-09-11).
     const opts = { pixelRatio: 2, width: 1080, height: 1560, fontEmbedCSS: fontCSS, cacheBust: false, includeQueryParams: true, quality: 0.9, backgroundColor: '#fbfaf8', style: { transform: 'none' } };
-    // iOS 사파리는 첫 번째 굽기에서 사진이 빠지는 버그가 있어 한 번 더 굽는다
     const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    if (isIOS) await htmlToImage.toJpeg(card, opts);
-    let dataUrl = await htmlToImage.toJpeg(card, opts);   // 웹 공유용이라 JPEG(0.9)로 — PNG 4MB → 1MB 아래
-    // 아이폰은 2배 해상도(2160x3120)로 구우면 사진을 통째로 빼먹는다(2026-09-19 실측: 2배=빠짐, 1배=정상).
-    // 그래서 사진이 빠졌으면 1배로 다시 굽는다. 글자는 또렷하고 사진만 살아나며, 크기는 1080x1560 이 된다.
-    if (await photoLooksMissing(dataUrl)) {
-      st.textContent = '사진이 빠져서 다시 굽는 중…';
-      const half = await htmlToImage.toJpeg(card, Object.assign({}, opts, { pixelRatio: 1 }));
-      if (!(await photoLooksMissing(half))) dataUrl = half;
+    // 사진이 있는 카드는 사진을 직접 합성한다(위 bakeComposite 설명 참고). 실패하면 예전 방식으로 되돌린다.
+    const hasPhoto = !!(currentPhotoUrl && img.getAttribute('src') && img.naturalWidth && getComputedStyle(img).display !== 'none');
+    let dataUrl = '';
+    if (hasPhoto) {
+      try { dataUrl = await bakeComposite(card, img, opts); }
+      catch (e) { console.debug('사진 직접 합성 실패(예전 방식으로 되돌림):', e && e.message); dataUrl = ''; }
+      if (dataUrl && await photoLooksMissing(dataUrl)) dataUrl = '';   // 합성했는데도 비었으면 아래 예전 방식으로
+    }
+    if (!dataUrl) {
+      // iOS 사파리는 첫 번째 굽기에서 사진이 빠지는 버그가 있어 한 번 더 굽는다
+      if (isIOS) await htmlToImage.toJpeg(card, opts);
+      dataUrl = await htmlToImage.toJpeg(card, opts);   // 웹 공유용이라 JPEG(0.9)로 — PNG 4MB → 1MB 아래
+      // 아이폰은 2배 해상도(2160x3120)로 구우면 사진을 통째로 빼먹는다(2026-09-19 실측: 2배=빠짐, 1배=정상).
+      // 그래서 사진이 빠졌으면 1배로 다시 굽는다. 글자는 또렷하고 사진만 살아나며, 크기는 1080x1560 이 된다.
+      if (await photoLooksMissing(dataUrl)) {
+        st.textContent = '사진이 빠져서 다시 굽는 중…';
+        const half = await htmlToImage.toJpeg(card, Object.assign({}, opts, { pixelRatio: 1 }));
+        if (!(await photoLooksMissing(half))) dataUrl = half;
+      }
     }
     const file = `${(slots[active] && slots[active].date) || ymd()}-${($('nameEl').textContent.trim() || current.n).replace(/[\\/:*?"<>|\s]+/g, '_').slice(0, 40)}.jpg`;
     // 휴대폰: 이미지 길게 누르기는 기기마다 안 되는 경우가 있어(특히 아이폰) 공유 시트로 사진첩에 바로 저장하는 버튼을 준다
