@@ -849,23 +849,26 @@ window.addEventListener('resize', () => { applyLayoutMode(); fitStage(); });
 // 원본 사진 자체가 단색(하늘·흰 벽)일 수도 있으므로, 원본도 같은 방식으로 재서 비교한다.
 async function photoLooksMissing(cardDataUrl) {
   const im = $('photoImg');
-  if (!currentPhotoUrl || !im || !im.naturalWidth) return false;   // 사진을 안 쓰는 카드면 검사 안 함
-  const spread = (image, y0, y1) => {
+  if (!current || !currentPhotoUrl || !im || !im.naturalWidth) return false;   // 가게를 안 골랐거나 사진을 안 쓰는 카드면 검사 안 함
+  if (getComputedStyle(im).display === 'none') return false;
+  // 한 줄(가로)을 훑어 가장 밝은 곳과 어두운 곳의 차이를 잰다. 사진이 없으면 그 자리는 세로 그라데이션뿐이라 가로로는 거의 단색이다.
+  const spreadAt = (image, y) => {
     const c = document.createElement('canvas'); c.width = 120; c.height = 1;
     const g = c.getContext('2d');
-    const sy = Math.round(image.naturalHeight * y0), sh = Math.max(1, Math.round(image.naturalHeight * (y1 - y0)));
-    g.drawImage(image, Math.round(image.naturalWidth * 0.08), sy, Math.round(image.naturalWidth * 0.84), sh, 0, 0, 120, 1);
+    g.drawImage(image, Math.round(image.naturalWidth * 0.08), Math.round(image.naturalHeight * y), Math.round(image.naturalWidth * 0.84), 1, 0, 0, 120, 1);
     const d = g.getImageData(0, 0, 120, 1).data;
     let min = 255, max = 0;
     for (let i = 0; i < d.length; i += 4) { const v = (d[i] + d[i + 1] + d[i + 2]) / 3; if (v < min) min = v; if (v > max) max = v; }
     return max - min;
   };
+  const maxSpread = (image, ys) => ys.reduce((m, y) => Math.max(m, spreadAt(image, y)), 0);
   try {
     const baked = await new Promise(r => { const x = new Image(); x.onload = () => r(x); x.onerror = () => r(null); x.src = cardDataUrl; });
     if (!baked) return false;
-    const inCard = spread(baked, 0.16, 0.17);        // 카드에서 사진이 차지하는 자리
-    const inSource = spread(im, 0.35, 0.36);         // 원본 사진의 비슷한 높이
-    return inCard < 12 && inSource > 25;             // 원본은 알록달록한데 카드 자리만 단색 = 사진이 빠짐
+    const inCard = maxSpread(baked, [0.08, 0.12, 0.16, 0.20, 0.24, 0.28]);   // 카드에서 사진이 차지하는 위쪽
+    const inSource = maxSpread(im, [0.2, 0.35, 0.5, 0.65, 0.8]);             // 원본 사진 자체의 변화
+    // 원본은 알록달록한데 카드 자리만 단색이면 사진이 빠진 것. 원본이 원래 단색(흰 벽·하늘)이면 판정하지 않는다.
+    return inCard < 10 && inSource > 25;
   } catch (e) { console.debug('사진 확인 건너뜀:', e && e.message); return false; }
 }
 async function renderCurrent(batch) {
