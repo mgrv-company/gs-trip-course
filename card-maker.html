@@ -299,6 +299,7 @@
       <div class="lbl">띠에 있는 카드 전부를 한 묶음으로 서버에 보관 — 폰·PC 어디서든 이어서 편집</div>
       <div class="btnrow">
         <button class="btn" id="btnDraftSave">묶음 임시저장</button>
+        <button class="btn" id="btnDraftSaveNew" hidden>새 임시저장으로</button>
         <button class="btn" id="btnDraftList">목록 새로고침</button>
       </div>
       <div class="drafts" id="drafts"><div class="empty">아직 불러온 목록이 없어요. 어드민 비밀번호로 한 번 로그인하면 목록이 보여요.</div></div>
@@ -1143,7 +1144,7 @@ function waitPhoto() {
   return new Promise(r => { const done = () => r(); img.addEventListener('load', done, { once: true }); img.addEventListener('error', done, { once: true }); setTimeout(done, 15000); });
 }
 function persistLocal() {
-  try { localStorage.setItem(LOCAL_BUNDLE_KEY, JSON.stringify({ slots, active, draftId: currentDraftId })); } catch (e) { /* 저장 공간 부족 등 — 서버 임시저장이 본체라 무시 */ }
+  try { localStorage.setItem(LOCAL_BUNDLE_KEY, JSON.stringify({ slots, active, draftId: currentDraftId, draftAt: currentDraftAt })); } catch (e) { /* 저장 공간 부족 등 — 서버 임시저장이 본체라 무시 */ }
 }
 function bundleTitle() {
   const filled = slots.filter(s => s.state);
@@ -1170,7 +1171,10 @@ window.addEventListener('pagehide', () => { captureActive(); persistLocal(); });
 // ───────── 임시저장 (서버, 묶음 단위) ─────────
 // 편집 상태를 통째로 JSON 으로 만들어 워커(KV)에 둔다. 불러오면 가게를 다시 채운 뒤 저장된 문구·사진 위치를 덮어쓴다.
 let currentDraftId = null;     // 불러온 초안이면 그 id — '임시저장'이 같은 초안을 덮어쓴다
+let currentDraftAt = null;     // 그 초안을 마지막으로 보거나 저장한 시각 — 다른 기기가 그 사이에 바꿨는지 가리는 기준
 let restoringDraft = false;
+// 어느 기기에서 저장했는지 안내 문구에 쓴다(휴대폰/PC 임시저장이 서로를 조용히 덮어쓰던 문제, 2026-09-19)
+function deviceLabel() { return /iP(hone|ad|od)|Android/.test(navigator.userAgent) ? '휴대폰' : 'PC'; }
 function collectState() {
   return {
     v: 1,
@@ -1222,8 +1226,16 @@ async function draftFetch(pathname, init) {
   return r;
 }
 let draftCache = [];
+// 지금 누르면 무엇이 되는지 버튼에 그대로 쓴다 — 덮어쓰는 줄 모르고 다른 기기 것을 지우는 일을 막는다
+function updateDraftButtons() {
+  const editing = draftCache.find(d => d.id === currentDraftId);
+  $('btnDraftSave').textContent = currentDraftId ? '덮어쓰기 저장' : '묶음 임시저장';
+  $('btnDraftSave').title = currentDraftId ? `"${(editing && (editing.title || editing.place)) || '불러온 초안'}"에 덮어씁니다` : '';
+  $('btnDraftSaveNew').hidden = !currentDraftId;
+}
 function renderDrafts() {
   const box = $('drafts');
+  updateDraftButtons();
   if (!draftCache.length) { box.innerHTML = '<div class="empty">임시저장한 카드가 없어요.</div>'; return; }
   box.innerHTML = '';
   for (const d of draftCache) {
@@ -1244,21 +1256,34 @@ async function listDrafts(silent) {
     if (!silent) { st.className = 'status'; st.textContent = `임시저장 ${draftCache.length}건`; }
   } catch (e) { st.className = 'status err'; st.textContent = '목록 실패: ' + (e && e.message || e); }
 }
-async function saveDraft() {
+async function saveDraft(asNew) {
   captureActive();
   if (!slots.some(s => s.state)) { const st = $('draftStatus'); st.className = 'status'; st.textContent = '저장할 카드가 없어요. 가게를 먼저 골라주세요.'; return; }
   const st = $('draftStatus'); st.className = 'status'; st.textContent = '저장 중…';
   try {
-    const id = currentDraftId || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    let id = (!asNew && currentDraftId) || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    // 덮어쓰기 전에 서버 쪽이 그 사이 바뀌었는지 본다. 폰에서 저장한 걸 PC가 모르고 덮어쓰던 일이 있었다(2026-09-19).
+    if (id === currentDraftId) {
+      const chk = await draftFetch(`/card/drafts/${id}`).catch(() => null);
+      if (chk && chk.ok) {
+        const cur = await chk.json().catch(() => null);
+        if (cur && cur.at && currentDraftAt && cur.at !== currentDraftAt) {
+          const who = cur.device ? `${cur.device}에서 ` : '';
+          const ok = window.confirm(`이 임시저장은 ${who}${fmtAt(cur.at)}에 바뀌었어요 (${cur.placeName || '내용 없음'}).\n\n확인: 지금 화면 내용으로 덮어씁니다\n취소: 새 임시저장으로 따로 저장합니다`);
+          if (!ok) id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+        }
+      }
+    }
     const state = { v: 2, kind: 'bundle', title: bundleTitle(), placeName: slots.filter(s => s.state).map(slotName).filter(Boolean).join(', '), active,
+      at: new Date().toISOString(), device: deviceLabel(),
       slots: slots.map(s => ({ date: s.date, state: s.state, made: !!s.made, sent: !!s.sent })) };
     const r = await draftFetch(`/card/drafts/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(state) }); if (!r) { st.textContent = ''; return; }
     const j = await r.json(); if (!r.ok || !j.ok) throw new Error(j.error || 'HTTP ' + r.status);
-    currentDraftId = id;
+    currentDraftId = id; currentDraftAt = state.at;
     // KV 목록 반영이 늦을 수 있어 화면 목록은 바로 고친다
     draftCache = [{ id, title: j.title || state.title, place: state.placeName, at: j.at }, ...draftCache.filter(d => d.id !== id)];
     renderDrafts();
-    st.textContent = `임시저장됨 (${fmtAt(j.at)})`;
+    st.textContent = `임시저장됨 (${fmtAt(j.at)}, ${deviceLabel()})`;
   } catch (e) { st.className = 'status err'; st.textContent = '저장 실패: ' + (e && e.message || e); }
 }
 async function loadDraft(id) {
@@ -1268,17 +1293,17 @@ async function loadDraft(id) {
     const s = await r.json(); if (!r.ok || s.ok === false) throw new Error(s.error || 'HTTP ' + r.status);
     if (s.kind === 'bundle' && Array.isArray(s.slots) && s.slots.length) {
       slots = s.slots.slice(0, MAX_SLOTS).map(x => ({ ...newSlot(x.date || ymdOf(new Date())), state: x.state || null, made: !!x.made, sent: !!x.sent }));
-      currentDraftId = id;
+      currentDraftId = id; currentDraftAt = s.at || null;
       activate(Math.min(Number(s.active) || 0, slots.length - 1), false);
     } else {
       // 예전 낱장 초안 → 한 칸짜리 묶음으로
       if (!PLACES.some(x => String(x.s) === String(s.sid))) throw new Error('이 초안의 가게를 목록에서 찾지 못했어요');
       slots = [{ ...newSlot(s.date || ymdOf(new Date())), state: s }];
-      currentDraftId = id;
+      currentDraftId = id; currentDraftAt = s.at || null;
       activate(0, false);
     }
     renderDrafts();
-    st.textContent = '불러왔어요. 이어서 고친 뒤 "묶음 임시저장"을 누르면 같은 초안에 덮어써요.';
+    st.textContent = `불러왔어요${s.device ? ` (${s.device}에서 ${fmtAt(s.at)} 저장)` : ''}. 고친 뒤 "덮어쓰기 저장"을 누르면 이 초안에 덮어써요.`;
     if (isNarrow()) document.querySelector('.stage').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) { st.className = 'status err'; st.textContent = '불러오기 실패: ' + (e && e.message || e); }
 }
@@ -1288,11 +1313,12 @@ async function deleteDraft(id) {
   try {
     const r = await draftFetch(`/card/drafts/${id}`, { method: 'DELETE' }); if (!r) return;
     const j = await r.json(); if (!r.ok || !j.ok) throw new Error(j.error || 'HTTP ' + r.status);
-    draftCache = draftCache.filter(d => d.id !== id); if (currentDraftId === id) currentDraftId = null; renderDrafts();
+    draftCache = draftCache.filter(d => d.id !== id); if (currentDraftId === id) { currentDraftId = null; currentDraftAt = null; } renderDrafts();
     st.className = 'status'; st.textContent = '지웠어요.';
   } catch (e) { st.className = 'status err'; st.textContent = '삭제 실패: ' + (e && e.message || e); }
 }
-$('btnDraftSave').addEventListener('click', saveDraft);
+$('btnDraftSave').addEventListener('click', () => saveDraft(false));
+$('btnDraftSaveNew').addEventListener('click', () => saveDraft(true));   // 불러온 초안은 그대로 두고 따로 저장
 $('btnDraftList').addEventListener('click', () => listDrafts(false));
 // 토큰이 이미 있으면(전에 로그인한 기기) 열자마자 목록을 조용히 채운다 — 비밀번호는 안 묻는다
 if (localStorage.getItem('gs-card-maker-token')) setTimeout(() => listDrafts(true), 300);
@@ -1385,12 +1411,13 @@ renderPhotoGrid([]);
   try { saved = JSON.parse(localStorage.getItem(LOCAL_BUNDLE_KEY) || 'null'); } catch (e) { saved = null; }
   if (saved && Array.isArray(saved.slots) && saved.slots.length) {
     slots = saved.slots.slice(0, MAX_SLOTS).map(x => ({ ...newSlot(x.date || ymdOf(new Date())), state: x.state || null, made: !!x.made, sent: !!x.sent }));
-    currentDraftId = saved.draftId || null;
+    currentDraftId = saved.draftId || null; currentDraftAt = saved.draftAt || null;
     activate(Math.min(Number(saved.active) || 0, slots.length - 1), false);
   } else {
     slots = [newSlot($('date').value || ymdOf(new Date()))];
     activate(0, false);
   }
+  updateDraftButtons();
 })();
 fitStage();
 </script>
