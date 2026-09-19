@@ -399,16 +399,24 @@ export default {
         };
         if (cached) { noteFetch(200, 'cache'); return req.method === 'HEAD' ? new Response(null, { status: 200, headers: cached.headers }) : cached; }
         let { value, metadata } = await env.CARDS.getWithMetadata(key, { type: 'arrayBuffer' });
+        let from = 'kv';
         if (!value) {
-          // 방금 저장한 키는 다른 지역에서 잠깐 안 보일 수 있다(KV 는 최종 일관성) → 한 번만 짧게 기다렸다 다시 읽는다
-          await new Promise(s => setTimeout(s, 400));
-          ({ value, metadata } = await env.CARDS.getWithMetadata(key, { type: 'arrayBuffer' }));
+          // 워커가 KV 에 막 저장한 키는 슬랙이 미국(IAD)에서 가져갈 때 몇 초~수십 초 동안 안 보인다(KV 는 최종 일관성).
+          // 2026-09-19 22:00 실제 발송에서 새 키 3개가 연달아 IAD 에서 404 → invalid_blocks. 그래서 발송 때 같은 사진을
+          // D1(어디서 읽어도 즉시 보이는 단일 DB)에도 조각으로 넣어 두고, KV 에 없으면 D1 에서 꺼내 준다.
+          const rows = await db.prepare('SELECT idx, type, data FROM card_blobs WHERE key = ? ORDER BY idx').bind(key).all().then(r => r.results || []).catch(() => []);
+          if (rows.length) {
+            const parts = rows.map(r => new Uint8Array(r.data));
+            const joined = new Uint8Array(parts.reduce((n, p) => n + p.byteLength, 0));
+            let off = 0; for (const p of parts) { joined.set(p, off); off += p.byteLength; }
+            value = joined.buffer; metadata = { type: rows[0].type || 'image/jpeg' }; from = 'd1';
+          }
         }
-        if (!value) { noteFetch(404, 'kv'); return json(req, { ok: false, error: 'not found' }, 404); }
+        if (!value) { noteFetch(404, from); return json(req, { ok: false, error: 'not found' }, 404); }
         const headers = { 'Content-Type': (metadata && metadata.type) || 'image/jpeg', 'Content-Length': String(value.byteLength), 'Cache-Control': 'public, max-age=31536000, immutable', ...corsHeaders(req) };
         const cardResp = new Response(value, { status: 200, headers });
         if (ctx) ctx.waitUntil(imgCache.put(cacheReq, cardResp.clone()));
-        noteFetch(200, 'kv');
+        noteFetch(200, from);
         return req.method === 'HEAD' ? new Response(null, { status: 200, headers }) : cardResp;
       }
 
@@ -641,9 +649,21 @@ export default {
         // 같은 사진을 새 주소로 다시 저장할 수 있게 함수로 둔다 — 슬랙은 한 번 거부한 주소를 고친 뒤에도 계속 거부하므로(2026-09-19 실측) 재시도는 새 주소여야 한다
         const storeCard = async () => {
           const k = `${kstDay()}-${crypto.randomUUID().slice(0, 8)}.${type === 'image/png' ? 'png' : 'jpg'}`;
-          await env.CARDS.put(k, bytes, { expirationTtl: CARD_TTL_SEC, metadata: { type, name, at: new Date().toISOString() } });
+          // KV(장기 보관·엣지 캐시) + D1(즉시 보이는 사본, 조각 200KB) 두 곳에 넣는다. 슬랙은 보낸 직후 미국에서 가져가는데
+          // KV 는 거기서 몇 초~수십 초 뒤에야 보여서 404 → 거부됐다(2026-09-19 22:00 실측). D1 사본은 7일 뒤 지운다(그때면 KV 가 다 퍼져 있다).
+          const CHUNK = 200 * 1024, at = new Date().toISOString(), stmts = [];
+          for (let i = 0, idx = 0; i < bytes.byteLength; i += CHUNK, idx++) {
+            stmts.push(db.prepare('INSERT INTO card_blobs (key, idx, type, data, created_at) VALUES (?, ?, ?, ?, ?)').bind(k, idx, type, bytes.slice(i, i + CHUNK), at));
+          }
+          await Promise.all([
+            env.CARDS.put(k, bytes, { expirationTtl: CARD_TTL_SEC, metadata: { type, name, at } }),
+            db.batch(stmts).catch(e => { d1Err = String(e && e.message || e).slice(0, 120); }),   // D1 사본 실패는 발송을 막지 않고 기록만
+          ]);
           return k;
         };
+        let d1Err = '';
+        // 7일 지난 D1 사본 정리 (발송 때마다 한 번, 실패해도 발송엔 영향 없음)
+        if (ctx) ctx.waitUntil(db.prepare("DELETE FROM card_blobs WHERE created_at < datetime('now', '-7 days')").run().catch(() => {}));
         let key = await storeCard();
         const firstKey = key;
         let imageUrl = `${url.origin}/public/card/${key}`;
@@ -694,7 +714,7 @@ export default {
         // 새 주소로 나갔으면 어드민 링크 목록의 카드 키도 맞춰 둔다
         if (r.ok && linkId && key !== firstKey) await db.prepare('UPDATE card_links SET card = ? WHERE id = ?').bind(key, linkId).run().catch(() => {});
         await db.prepare('INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at')
-          .bind('card_send_last', JSON.stringify({ at: new Date().toISOString(), mode, firstErr, imageUrl, ok: r.ok }), new Date().toISOString())
+          .bind('card_send_last', JSON.stringify({ at: new Date().toISOString(), mode, firstErr, d1Err, imageUrl, ok: r.ok }), new Date().toISOString())
           .run().catch(() => {});
         if (!r.ok) {
           const body2 = (await r.text()).slice(0, 200);

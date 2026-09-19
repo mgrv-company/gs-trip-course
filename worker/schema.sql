@@ -153,3 +153,15 @@ CREATE TABLE IF NOT EXISTS rate_counters (
   bucket     TEXT PRIMARY KEY,              -- 예: '2026-07-06T09:0|fb' (10분 단위 창, 날짜가 맨 앞)
   n          INTEGER NOT NULL DEFAULT 0
 );
+
+-- 카드 이미지 즉시 사본 (2026-09-19) — 슬랙은 보낸 직후 미국에서 사진을 가져가는데 KV 는 거기서 몇 초~수십 초 뒤에야 보인다.
+-- 그래서 발송 때 같은 사진을 200KB 조각으로 여기에도 넣고, KV 에 없으면 여기서 꺼내 준다. 7일 지나면 워커가 지운다.
+CREATE TABLE IF NOT EXISTS card_blobs (
+  key        TEXT NOT NULL,                 -- KV 키와 동일 (예: 2026-09-19-e7594533.jpg)
+  idx        INTEGER NOT NULL,              -- 조각 순서
+  type       TEXT NOT NULL DEFAULT 'image/jpeg',
+  data       BLOB NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (key, idx)
+);
+CREATE INDEX IF NOT EXISTS idx_card_blobs_created ON card_blobs(created_at);
