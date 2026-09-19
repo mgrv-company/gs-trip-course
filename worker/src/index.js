@@ -619,8 +619,8 @@ export default {
         }
         // 슬랙 전송 — 2026-09-18 부터 사진(image) 블록이 담긴 메시지를 슬랙이 invalid_blocks 로 거부하기 시작했다.
         //   · 9/17 09:29 까지는 같은 형식이 정상 발송됐고, 워커는 9/15 이후 배포된 적이 없다(코드 변경 아님).
-        //   · 그래서 1차로 원래 형식(사진 블록 포함)을 보내고, 거부당하면 2차로 사진 블록을 빼고 글 + 사진 주소만 보낸다.
-        //     슬랙이 주소를 펼쳐(unfurl) 사진을 보여주므로 보이는 결과는 크게 다르지 않다.
+        //   · 1차 원래 형식 → 거부되면 1.5초 쉬고 2차로 같은 형식 재시도(거부가 간헐적이다) → 그래도 안 되면 3차로 첨부(attachments) 방식.
+        //     글만 보내는 우회는 쓰지 않는다 — 슬랙이 사진 주소를 안 펼쳐서 카드가 안 보였다(2026-09-19 12:10 실제 발생).
         //   · 어느 쪽으로 나갔는지와 거부 사유는 settings 에 남겨 나중에 원인을 볼 수 있게 한다.
         const postSlack = (body) => fetch(env.CARD_WEBHOOK, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
         const withImage = {
@@ -630,13 +630,24 @@ export default {
             { type: 'image', image_url: imageUrl, alt_text: name || '고성 추천 카드' },
           ],
         };
-        const textOnly = { text: `${sendText}\n${imageUrl}` };
+        // 사진이 안 보이면 카드의 의미가 없다. 글만 보내는 우회는 실패로 본다(2026-09-19 실측: 슬랙이 주소를 안 펼쳐 글만 나갔다).
+        // 첨부(attachments) 방식은 블록과 달리 거부된 적이 없고 사진도 확실히 보인다.
+        const asAttachment = {
+          text: sendText,
+          attachments: [{ fallback: name || '고성 추천 카드', image_url: imageUrl, color: '#b23bd6' }],
+        };
+        const sleep = (ms) => new Promise(s => setTimeout(s, ms));
         let r = await postSlack(withImage);
         let mode = 'image-block', firstErr = '';
         if (!r.ok) {
           firstErr = `${r.status} ${(await r.text()).slice(0, 120)}`;
-          r = await postSlack(textOnly);
-          mode = r.ok ? 'text-only(사진 블록 거부됨)' : '실패';
+          await sleep(1500);
+          r = await postSlack(withImage);                 // 2차: 같은 형식 재시도
+          mode = r.ok ? 'image-block(재시도 성공)' : mode;
+          if (!r.ok) {
+            r = await postSlack(asAttachment);            // 3차: 첨부 방식
+            mode = r.ok ? 'attachment(블록 거부됨)' : '실패';
+          }
         }
         await db.prepare('INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at')
           .bind('card_send_last', JSON.stringify({ at: new Date().toISOString(), mode, firstErr, imageUrl, ok: r.ok }), new Date().toISOString())
