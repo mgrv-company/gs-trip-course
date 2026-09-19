@@ -893,17 +893,24 @@ async function renderCurrent(batch) {
     // iOS 사파리는 첫 번째 굽기에서 사진이 빠지는 버그가 있어 한 번 더 굽는다
     const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     if (isIOS) await htmlToImage.toJpeg(card, opts);
-    const dataUrl = await htmlToImage.toJpeg(card, opts);   // 웹 공유용이라 JPEG(0.9)로 — PNG 4MB → 1MB 아래
+    let dataUrl = await htmlToImage.toJpeg(card, opts);   // 웹 공유용이라 JPEG(0.9)로 — PNG 4MB → 1MB 아래
+    // 아이폰은 2배 해상도(2160x3120)로 구우면 사진을 통째로 빼먹는다(2026-09-19 실측: 2배=빠짐, 1배=정상).
+    // 그래서 사진이 빠졌으면 1배로 다시 굽는다. 글자는 또렷하고 사진만 살아나며, 크기는 1080x1560 이 된다.
+    if (await photoLooksMissing(dataUrl)) {
+      st.textContent = '사진이 빠져서 다시 굽는 중…';
+      const half = await htmlToImage.toJpeg(card, Object.assign({}, opts, { pixelRatio: 1 }));
+      if (!(await photoLooksMissing(half))) dataUrl = half;
+    }
     const file = `${(slots[active] && slots[active].date) || ymd()}-${($('nameEl').textContent.trim() || current.n).replace(/[\\/:*?"<>|\s]+/g, '_').slice(0, 40)}.jpg`;
     // 휴대폰: 이미지 길게 누르기는 기기마다 안 되는 경우가 있어(특히 아이폰) 공유 시트로 사진첩에 바로 저장하는 버튼을 준다
     const blob = await (await fetch(dataUrl)).blob();
     lastFile = new File([blob], file, { type: 'image/jpeg' });
-    // 사진이 빠진 카드가 그대로 나가는 걸 막는다 (아이폰에서 사진이 통째로 빠지는 일이 있었다 — 2026-09-19)
+    // 1배로도 사진이 안 들어가면 그대로 내보내지 않는다
     if (await photoLooksMissing(dataUrl)) {
       lastFile = null;                       // 발송·공유 버튼이 lastFile 을 보므로 자동으로 막힌다
       $('saved').innerHTML = `<img src="${dataUrl}" alt="사진이 빠진 카드">`;
       st.className = 'status err';
-      st.textContent = "사진이 카드에 안 들어갔어요. \"이미지 저장\" 을 한 번 더 눌러주세요. 계속 그러면 다른 사진을 골라보세요.";
+      st.textContent = "사진이 카드에 안 들어갔어요. 다른 사진을 골라 다시 저장해주세요.";
       slots[active].made = false; renderStrip(); persistLocal();
       return false;
     }
