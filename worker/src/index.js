@@ -373,20 +373,25 @@ export default {
       }
 
       // ── 공개: 카드 이미지 서빙 (카드 만들기 → 트립코스 발송분, KV 보관) ──────
-      if (path.startsWith('/public/card/') && req.method === 'GET') {
+      // 슬랙은 사진을 보여주기 전에 HEAD(내용만 확인하는 요청)로 이 주소가 진짜 사진인지 먼저 묻는다.
+      // GET 만 받던 동안 HEAD 에는 JSON 404 가 나갔고, 그래서 슬랙이 사진 블록을 invalid_blocks 로 거부하고
+      // 첨부 방식으로 보내도 사진이 안 보였다(2026-09-19 확인). → HEAD 도 같은 헤더로 받아준다.
+      if (path.startsWith('/public/card/') && (req.method === 'GET' || req.method === 'HEAD')) {
         if (!env.CARDS) return json(req, { ok: false, error: 'CARDS 미설정' }, 501);
         const key = path.slice('/public/card/'.length);
         if (!/^[0-9a-zA-Z._-]{8,80}$/.test(key)) return json(req, { ok: false, error: 'bad key' }, 400);
         // 슬랙은 메시지를 받은 직후 이 주소로 사진을 가지러 온다. KV 를 매번 읽으면 1초 가까이 걸려
-        // 슬랙이 기다려주지 않고 거부(invalid_blocks)하는 일이 있었다 → 엣지 캐시에 올려 두 번째부터는 즉시 내려준다.
+        // 슬랙이 기다려주지 않고 거부하는 일이 있었다 → 엣지 캐시에 올려 두 번째부터는 즉시 내려준다.
         const imgCache = caches.default;
-        const cached = await imgCache.match(req);
-        if (cached) return cached;
+        const cacheReq = new Request(req.url, { method: 'GET' });   // 캐시는 GET 으로만 넣고 뺄 수 있다
+        const cached = await imgCache.match(cacheReq);
+        if (cached) return req.method === 'HEAD' ? new Response(null, { status: 200, headers: cached.headers }) : cached;
         const { value, metadata } = await env.CARDS.getWithMetadata(key, { type: 'arrayBuffer' });
         if (!value) return json(req, { ok: false, error: 'not found' }, 404);
-        const cardResp = new Response(value, { status: 200, headers: { 'Content-Type': (metadata && metadata.type) || 'image/jpeg', 'Cache-Control': 'public, max-age=31536000, immutable', ...corsHeaders(req) } });
-        if (ctx) ctx.waitUntil(imgCache.put(req, cardResp.clone()));
-        return cardResp;
+        const headers = { 'Content-Type': (metadata && metadata.type) || 'image/jpeg', 'Content-Length': String(value.byteLength), 'Cache-Control': 'public, max-age=31536000, immutable', ...corsHeaders(req) };
+        const cardResp = new Response(value, { status: 200, headers });
+        if (ctx) ctx.waitUntil(imgCache.put(cacheReq, cardResp.clone()));
+        return req.method === 'HEAD' ? new Response(null, { status: 200, headers }) : cardResp;
       }
 
       // ── 공개: 카드 만들기 기본 문구 (card-maker.html 이 열릴 때 읽음) ──────
