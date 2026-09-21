@@ -11,6 +11,9 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { background: #e5e5e2; }
+  /* 아이폰 사파리는 폭이 넓은 글 덩어리의 작은 글자를 멋대로 키운다(글자 자동 확대). 카드는 1080px 폭이라 본문·후기만 약 1.16배 커져서
+     PC 에서 만든 카드와 글자 크기·줄 간격·아래 여백이 달라졌다(2026-09-20 롤리 카드). 화면 글자 크기는 우리가 정한 값 그대로 쓴다. */
+  html, .card, .card * { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   body { font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif; color: var(--ink); }
 
   /* ───────── 카드 (automation/daily-card/template.html 과 동일한 CSS — 바꿀 땐 두 파일을 같이 고칠 것) ───────── */
@@ -534,6 +537,24 @@ async function photoForCard(url) {
   photoDataCache.set(url, small);
   return small;
 }
+// 합성용 큰 사진 — 카드가 2160px 폭이므로 2400px 까지만 받는다(그보다 크면 줄여서 아이폰 메모리를 아낀다).
+const photoHiCache = new Map();
+async function photoHiRes(url) {
+  if (!url) return null;
+  if (photoHiCache.has(url)) return photoHiCache.get(url);
+  let dataUrl = url;
+  if (!url.startsWith('data:')) {
+    const r = await fetch(proxied(url), { cache: 'force-cache' });
+    if (!r.ok) throw new Error('사진 받기 실패 (' + r.status + ')');
+    const blob = await r.blob();
+    dataUrl = await new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = () => rej(new Error('사진 읽기 실패')); fr.readAsDataURL(blob); });
+  }
+  const sized = await shrinkImage(dataUrl, 2400);
+  const im = await new Promise((res, rej) => { const x = new Image(); x.onload = () => res(x); x.onerror = () => rej(new Error('사진 열기 실패')); x.src = sized; });
+  photoHiCache.clear();            // 한 번에 한 장만 들고 있는다(큰 사진이라 쌓이면 휴대폰이 버거워한다)
+  photoHiCache.set(url, im);
+  return im;
+}
 function setPhoto(url) {
   currentPhotoUrl = url || '';
   const img = $('photoImg');
@@ -900,10 +921,15 @@ async function bakeComposite(card, img, opts) {
   c.width = Math.round(1080 * scale); c.height = Math.round(1560 * scale);
   const g = c.getContext('2d');
   g.fillStyle = '#fbfaf8'; g.fillRect(0, 0, c.width, c.height);
-  const k = Math.max(1080 / img.naturalWidth, 820 / img.naturalHeight) * photoView.zoom;
+  // 화면의 사진은 1200px 로 줄인 것이라 2160px 폭 카드에 그대로 그리면 1.8배 늘어나 흐려진다(2026-09-19 이후 카드가 전부 뿌옇던 이유).
+  // 합성할 때만 큰 원본을 따로 받아 쓴다. 비율이 같으므로 위치·확대 계산은 그대로 맞는다. 못 받으면 화면의 사진으로 그린다.
+  const src = (await photoHiRes(currentPhotoUrl).catch(() => null)) || img;
+  const sw = src.naturalWidth || src.width, sh = src.naturalHeight || src.height;
+  const k = Math.max(1080 / sw, 820 / sh) * photoView.zoom;
   g.save();
   g.beginPath(); g.rect(0, 0, 1080 * scale, 820 * scale); g.clip();   // 사진 칸(1080x820) 밖으로 넘치는 부분은 잘라낸다
-  g.drawImage(img, photoView.left * scale, photoView.top * scale, img.naturalWidth * k * scale, img.naturalHeight * k * scale);
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(src, photoView.left * scale, photoView.top * scale, sw * k * scale, sh * k * scale);
   g.restore();
   g.drawImage(layer, 0, 0, c.width, c.height);
   return c.toDataURL('image/jpeg', opts.quality || 0.9);
