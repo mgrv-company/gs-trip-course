@@ -14,6 +14,8 @@
   /* 아이폰 사파리는 폭이 넓은 글 덩어리의 작은 글자를 멋대로 키운다(글자 자동 확대). 카드는 1080px 폭이라 본문·후기만 약 1.16배 커져서
      PC 에서 만든 카드와 글자 크기·줄 간격·아래 여백이 달라졌다(2026-09-20 롤리 카드). 화면 글자 크기는 우리가 정한 값 그대로 쓴다. */
   html, .card, .card * { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  /* 두 번 톡톡 치면 확대되는 동작을 끈다 — 버튼을 연달아 누를 때마다 화면이 커져서 못 쓸 지경이었다 */
+  button, .btn, label, .slot, a, input, textarea, select, [data-ed] { touch-action: manipulation; }
   body { font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif; color: var(--ink); }
 
   /* ───────── 카드 (automation/daily-card/template.html 과 동일한 CSS — 바꿀 땐 두 파일을 같이 고칠 것) ───────── */
@@ -209,6 +211,27 @@
     #btnRender { display: none; }
     .mobile-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: rgba(255,255,255,.96); border-top: 1px solid var(--line); display: flex; gap: 8px; }
     .mobile-bar .btn { flex: 1; font-size: 15px; padding: 13px; }
+
+    /* ── 아이폰 사용성 (2026-09-21) ──
+       아이폰 사파리는 16px 보다 작은 입력칸을 누르면 화면을 통째로 확대하고, 확대된 채로 두기 때문에
+       글자를 한 번 입력할 때마다 손으로 다시 줄여야 했다. 휴대폰에서는 모든 입력칸을 16px 로 둔다. */
+    input:not([type=range]):not([type=checkbox]):not([type=file]), textarea, select,
+    .field input[type=text], .field input[type=date], .field input[type=url],
+    .tplrow input, .tplrow textarea, .sendbox textarea { font-size: 16px; }
+    .field input[type=text], .field input[type=date], .field input[type=url] { padding: 11px 12px; }
+    .sendbox textarea, .tplrow textarea { padding: 11px 12px; }
+    /* 손가락으로 누를 곳은 최소 44px (애플 권장) — 버튼이 33px 라 옆 버튼이 같이 눌리곤 했다 */
+    .btn { min-height: 44px; font-size: 14px; padding: 10px 14px; }
+    .drafts .row { grid-template-columns: minmax(0, 1fr) auto auto; padding: 8px; font-size: 14px; }
+    .drafts .row .btn { min-height: 40px; font-size: 13px; padding: 8px 12px; }
+    .toggles label { font-size: 15px; padding: 11px 0; gap: 12px; }
+    .linkrow a { font-size: 14px; padding: 12px 0; }
+    .toggles input[type=checkbox] { width: 20px; height: 20px; flex: 0 0 auto; }
+    .results button { font-size: 15px; padding: 14px 12px; }
+    .results { max-height: 50vh; }
+    .lbl { font-size: 13px; }
+    /* 문구 시트가 열려 있는 동안 뒤 화면이 같이 밀려 내려가지 않게 */
+    body.sheet-open { overflow: hidden; }
   }
 
   /* 모바일 문구 편집 시트: 카드 위 글자를 누르면 아래에서 올라온다 (축소된 카드에 직접 타이핑하는 건 너무 작아서) */
@@ -808,9 +831,10 @@ function openSheet(el) {
   $('sheetText').value = el.textContent;
   $('sheetDelete').style.display = removable ? '' : 'none';
   $('sheetBg').classList.add('on'); $('sheet').classList.add('on');
+  document.body.classList.add('sheet-open');            // 시트가 떠 있는 동안 뒤 화면 스크롤 잠금
   setTimeout(() => $('sheetText').focus(), 50);
 }
-function closeSheet() { $('sheetBg').classList.remove('on'); $('sheet').classList.remove('on'); sheetTarget = null; }
+function closeSheet() { $('sheetBg').classList.remove('on'); $('sheet').classList.remove('on'); document.body.classList.remove('sheet-open'); sheetTarget = null; }
 $('card').addEventListener('click', e => {
   if (!isNarrow() || Date.now() < suppressClickUntil) return;
   const el = e.target.closest('[data-ed]');

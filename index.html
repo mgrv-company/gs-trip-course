@@ -30,6 +30,9 @@
 <link rel="preload" as="image" href="assets/goseong-sea-intro.webp">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  /* 아이폰 사파리가 제멋대로 글자를 키우거나(자동 확대), 두 번 톡톡 쳤을 때 화면을 확대하지 않게 한다 */
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  button, a, label, input, textarea, select { touch-action: manipulation; }
   body {
     font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
     background: var(--bg); color: var(--ink); line-height: 1.55; -webkit-font-smoothing: antialiased;
@@ -161,7 +164,8 @@
   .star { font-size: 27px; line-height: 1; background: none; border: 0; cursor: pointer; padding: 4px 2px; color: var(--gold); filter: grayscale(1); opacity: .45; transition: filter .12s, opacity .12s, transform .12s; }
   .star.on { filter: none; opacity: 1; }
   .star:active { transform: scale(1.15); }
-  #rateForm textarea { width: 100%; border: 1.5px solid var(--line); border-radius: 0; padding: 11px 12px; font-size: 14px; font-family: inherit; margin: 11px 0 10px; min-height: 60px; resize: vertical; color: var(--ink); }
+  /* 손님은 거의 다 휴대폰이다. 아이폰 사파리는 16px 보다 작은 입력칸을 누르면 화면을 확대하고 되돌리지 않는다 → 입력칸은 16px 고정 */
+  #rateForm textarea { width: 100%; border: 1.5px solid var(--line); border-radius: 0; padding: 11px 12px; font-size: 16px; font-family: inherit; margin: 11px 0 10px; min-height: 60px; resize: vertical; color: var(--ink); }
   .done-line { font-size: 14px; font-weight: 700; color: var(--green-deep); padding: 6px 0 2px; }
 
   #fbModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.42); z-index: 40; align-items: center; justify-content: center; padding: 20px; }
@@ -169,7 +173,7 @@
   #fbModal .box { background: #fff; border-radius: 0; padding: 18px; width: 100%; max-width: 420px; }
   #fbModal h3 { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
   #fbModal .desc { font-size: 12px; color: var(--gray); line-height: 1.6; margin-bottom: 13px; }
-  #fbModal input, #fbModal textarea { width: 100%; border: 1.5px solid var(--line); border-radius: 0; padding: 11px 12px; font-size: 14px; font-family: inherit; margin-bottom: 9px; color: var(--ink); }
+  #fbModal input, #fbModal textarea { width: 100%; border: 1.5px solid var(--line); border-radius: 0; padding: 11px 12px; font-size: 16px; font-family: inherit; margin-bottom: 9px; color: var(--ink); }
   #fbModal textarea { min-height: 92px; resize: vertical; }
   #fbModal .row { display: flex; gap: 8px; }
   #fbModal .row button { flex: 1; border-radius: 0; padding: 12px; font-size: 14px; font-weight: 700; cursor: pointer; }
