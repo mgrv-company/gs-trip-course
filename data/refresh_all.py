@@ -147,8 +147,20 @@ try:
     msg = f'data: 주간 자동 갱신 {ts} (신규 {added}·제거 {len(removed)}·총 {total})'
     cm = subprocess.run(['git', 'commit', '-m', msg], capture_output=True, text=True, encoding='utf-8')
     print(cm.stdout.strip(), cm.stderr.strip())
-    if cm.returncode != 0 and 'nothing to commit' not in cm.stdout:
+    # (2026-09-24) "바뀐 게 없음" 을 실패로 착각하던 버그.
+    # git 은 상황에 따라 문구가 다르다:
+    #   · 추적 파일만 있고 변경 없음      → "nothing to commit, working tree clean"
+    #   · 추적 안 되는 파일이 남아 있으면 → "nothing added to commit but untracked files present"
+    # 기존 가드는 앞 문구만 봤는데, 이 폴더에 .bak 백업이 수십 개 쌓이면서 뒤 문구가 나오기 시작했다.
+    # 그 탓에 09/24 재실행이 "주간 갱신 실패 — 라이브는 직전본 유지" 경보를 띄웠다.
+    # 실제로는 08:20 정시 실행이 이미 성공·푸시를 끝낸 뒤라 바꿀 게 없었던 것뿐이다.
+    NOTHING_TO_COMMIT = ('nothing to commit', 'nothing added to commit', 'no changes added to commit')
+    _out = f'{cm.stdout} {cm.stderr}'
+    nothing_changed = any(p in _out for p in NOTHING_TO_COMMIT)
+    if cm.returncode != 0 and not nothing_changed:
         raise RuntimeError(f'git commit 실패: {cm.stdout.strip()} {cm.stderr.strip()}')
+    if nothing_changed:
+        print('바뀐 데이터 없음 — 커밋 생략(정상). 라이브는 이미 최신입니다.')
 
     pl = subprocess.run(['git', 'pull', '--rebase', 'origin', 'main'], capture_output=True, text=True, encoding='utf-8')
     print(pl.stdout.strip(), pl.stderr.strip())
