@@ -31,3 +31,19 @@ output/daily-card/preview.png
 output/daily-card/archive/
 output/playwright/
 output/card-maker/
+
+# ── (2026-09-24) 백업·로컬 작업물은 저장소에 올리지 않는다 ──────────────
+# 운영 스크립트를 고칠 때마다 `파일.bak-날짜` 를 뜨는 규칙 때문에 루트에만 42개가 쌓였다.
+# 그 탓에 git 이 내는 문구가 "nothing to commit" 에서 "nothing added to commit but
+# untracked files present" 로 바뀌었고, 주간 갱신이 이를 실패로 오인해 헛 경보를 냈다.
+# 옛 백업은 Documents/_보관/gs-trip-course-백업-2026-09-24 로 옮겼고,
+# 파일마다 가장 최근 백업 1개만 제자리에 남겨 뒀다(급할 때 바로 되돌리려고).
+*.bak
+*.bak-*
+
+# 로컬 작업 폴더·도구 생성물 (커밋 대상 아님)
+.omc/
+.playwright-cli/
+.wrangler/
+output/ux-review/
+automation/card-maker/
