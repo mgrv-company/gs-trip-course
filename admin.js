@@ -531,6 +531,7 @@ async function loadViews() {
   } catch (e) {
     $('#vCardLinks').textContent = '불러오기 실패: ' + e.message;
   }
+  await loadWeeklyReport();
   // 10) 오픈채팅 트립코스 바로가기(네이버 짧은 주소) — 지난주 숫자 입력칸
   try {
     const sl = await api('/admin/shortlink-weekly');
@@ -543,6 +544,57 @@ async function loadViews() {
     $('#slWeekLabel').textContent = '짧은 주소 조회수 불러오기 실패: ' + e.message;
   }
 }
+// 트립코스 주간 보고 — 슬랙과 같은 숫자를 표로 보여주고, 노션에 붙일 마크다운을 들고 있는다
+let _wrMarkdown = '';
+async function loadWeeklyReport() {
+  try {
+    const d = await api('/admin/weekly-report');
+    _wrMarkdown = d.markdown;
+    const md = ymd => Number(ymd.slice(5, 7)) + '/' + Number(ymd.slice(8, 10));
+    const rng = (a, b) => md(a) + '~' + md(b);
+    $('#wrTitle').textContent = '🃏 트립코스 주간 보고 (' + rng(d.start, d.end) + ')';
+    let h = '<h3>[오픈채팅방에 노출하는 트립코스 바로가기 링크 클릭 수 (주간)]</h3>';
+    if (d.shortlink.length) {
+      h += '<table><tr><th>주간</th><th>조회수</th><th>비고</th></tr>'
+        + d.shortlink.map(w => '<tr' + (w.start === d.start ? ' class="last"' : '') + '><td>' + rng(w.start, w.end) + '</td><td>' + w.n + '</td><td>' + esc(w.note) + '</td></tr>').join('')
+        + '</table>';
+    }
+    h += '<ul>';
+    if (d.shortlink.length) h += '<li>누적(' + rng(d.shortlink[0].start, d.shortlink[d.shortlink.length - 1].end) + '): <b>' + d.total + '건</b></li>';
+    if (d.last != null) {
+      const sub = [];
+      if (d.prevN != null) sub.push('직전 주 ' + d.prevN + '건 대비 ' + (d.last - d.prevN >= 0 ? '+' : '') + (d.last - d.prevN));
+      if (d.best > 0 && d.last < d.best) sub.push('최고치(' + d.best + '건)의 ' + Math.round(d.last / d.best * 100) + '% 수준');
+      h += '<li>지난주(' + rng(d.start, d.end) + '): <b>' + d.last + '건</b>' + (sub.length ? '<ul>' + sub.map(s => '<li>' + s + '</li>').join('') + '</ul>' : '') + '</li>';
+    } else {
+      h += '<li>' + rng(d.start, d.end) + ' 숫자 미입력 (아래 칸에 넣어주세요)</li>';
+    }
+    h += '</ul><h3>[오픈채팅방 카드뉴스 클릭 수]</h3>';
+    if (d.cards.length) {
+      h += '<table><tr><th>카드</th><th>발송</th><th>클릭</th></tr>'
+        + d.cards.map(c => '<tr><td>' + esc(c.name) + '</td><td>' + md(c.sentAt.slice(0, 10)) + ' ' + c.sentAt.slice(11, 16) + '</td><td>' + c.clicks + '</td></tr>').join('')
+        + '</table>';
+    }
+    const diff = d.cardClicks - d.cardClicksPrev;
+    h += '<ul>' + (d.cards.length ? '' : '<li>지난주에 보낸 카드 없음</li>')
+      + '<li>발송 ' + d.cards.length + '장 · 카드 링크 클릭 ' + d.cardClicks + '회 (직전 주 ' + d.cardClicksPrev + '회, ' + (diff >= 0 ? '+' : '') + diff + ')</li>'
+      + '<li class="small">카드별 클릭은 보낸 뒤 지금까지 누적, 합계는 그 주에 눌린 횟수</li></ul>';
+    $('#wrBody').innerHTML = h;
+  } catch (e) {
+    _wrMarkdown = '';
+    $('#wrBody').textContent = '불러오기 실패: ' + e.message;
+  }
+}
+const _btnWrCopy = $('#btnWrCopy');
+if (_btnWrCopy) _btnWrCopy.addEventListener('click', async () => {
+  if (!_wrMarkdown) { toast('보고를 아직 못 불러왔어요', true); return; }
+  try {
+    await navigator.clipboard.writeText(_wrMarkdown);
+    toast('📋 복사했어요. 노션에 붙여넣으면 표로 들어가요');
+  } catch (e) {
+    toast('복사 실패: ' + e.message, true);
+  }
+});
 let _slTarget = null;
 const _btnSlWeekSave = $('#btnSlWeekSave');
 if (_btnSlWeekSave) _btnSlWeekSave.addEventListener('click', async () => {
@@ -554,6 +606,7 @@ if (_btnSlWeekSave) _btnSlWeekSave.addEventListener('click', async () => {
     await api('/admin/shortlink-weekly', { method: 'PUT', body: JSON.stringify({ start: _slTarget.start, n: Number(raw) }) });
     const r = await api('/admin/weekly-link-report', { method: 'POST' });
     toast('✅ 저장하고 보고 보냄 (' + r.range + ')');
+    loadWeeklyReport();
   } catch (e) {
     toast('실패: ' + e.message, true);
   } finally {

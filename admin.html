@@ -108,6 +108,13 @@
   .ratedist .rdrow .rdbar { flex: 1; height: 10px; background: var(--soft); border-radius: 5px; overflow: hidden; }
   .ratedist .rdrow .rdbar > span { display: block; height: 100%; background: var(--green); }
   .ratedist .rdrow .rdn { flex: 0 0 auto; width: 24px; text-align: right; color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .wr h3 { font-size: 13px; margin: 14px 0 6px; }
+  .wr table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .wr th, .wr td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; }
+  .wr th { background: rgba(0,0,0,.04); font-weight: 600; }
+  .wr tr.last td { font-weight: 700; }
+  .wr ul { margin: 8px 0 0; padding-left: 18px; font-size: 13px; }
+  .wr ul ul { margin: 2px 0 0; }
   .lowlist { margin-top: 12px; }
   .lowlist .lowitem { border-top: 1px solid var(--line); padding: 9px 2px; font-size: 13px; }
   .lowlist .lowitem:first-child { border-top: 0; }
@@ -380,17 +387,24 @@
         <div id="vFeedback" class="lowlist">불러오는 중…</div>
       </div>
       <div class="card">
-        <h2>🃏 보낸 카드 링크</h2>
-        <p class="small">카드 만들기에서 보내거나 복사한 가게 링크가 몇 번 눌렸는지예요. 미리보기 봇은 빼고 셌고, 기기 수는 같은 날 같은 기기를 1로 셉니다. 2026-09-15 이후 링크부터 쌓여요.</p>
-        <div class="row" style="margin-top:8px;align-items:center;gap:6px;flex-wrap:wrap">
+        <h2 id="wrTitle">🃏 트립코스 주간 보고</h2>
+        <p class="small">매주 월요일 10:00 #gs-routine 으로 가는 보고와 같은 내용이에요. '노션용 복사'로 붙여넣으면 표 그대로 들어가요.</p>
+        <div id="wrBody" class="wr">불러오는 중…</div>
+        <div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap">
+          <button class="btn sm" id="btnWrCopy" type="button">📋 노션용 복사</button>
+          <button class="btn ghost sm" id="btnWeeklyReport" type="button">주간 보고 지금 보내기 (#gs-routine)</button>
+        </div>
+        <div class="row" style="margin-top:12px;align-items:center;gap:6px;flex-wrap:wrap">
           <label for="slWeekN" class="small" id="slWeekLabel">지난주 네이버 짧은 주소 조회수</label>
           <input id="slWeekN" type="number" min="0" step="1" inputmode="numeric" style="width:90px;font-size:16px;padding:4px 6px">
           <button class="btn sm" id="btnSlWeekSave" type="button">저장하고 보고 보내기</button>
         </div>
         <p class="small">오픈채팅 트립코스 바로가기(m.site.naver.com/2euku) 숫자는 네이버 통계 화면에서만 보여서 직접 넣어야 해요. 매주 월요일 10:00 자동 보고는 넣기 전이면 이 칸만 '미입력'으로 가요.</p>
-        <div class="row" style="margin-top:8px"><button class="btn ghost sm" id="btnWeeklyReport" type="button">주간 보고 지금 보내기 (#gs-routine)</button></div>
-        <p class="small">매주 월요일 10:00에 지난주(월~일) 보고가 자동으로 가요. 이 버튼은 시험용이에요.</p>
-        <div id="vCardLinks" class="lowlist">불러오는 중…</div>
+        <details style="margin-top:10px">
+          <summary class="small">보낸·복사한 링크 전체 목록 (최근 100개, 기기 수 포함)</summary>
+          <p class="small">미리보기 봇은 빼고 셌고, 기기 수는 같은 날 같은 기기를 1로 셉니다. 2026-09-15 이후 링크부터 쌓여요.</p>
+          <div id="vCardLinks" class="lowlist">불러오는 중…</div>
+        </details>
       </div>
     </div>
   </div>
@@ -403,6 +417,6 @@
 </div>
 
 <script src="places.js?v=7"></script>
-<script src="admin.js?v=24"></script>
+<script src="admin.js?v=25"></script>
 </body>
 </html>

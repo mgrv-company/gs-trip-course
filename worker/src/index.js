@@ -188,66 +188,75 @@ function padW(s, w) {
   return t + ' '.repeat(w - dispWidth(t));
 }
 
-async function buildWeeklyLinkReport(db) {
+// 보고 숫자만 모은다. 슬랙 문구(renderReportMarkdown)와 어드민 화면(/admin/weekly-report)이 같은 값을 쓴다.
+async function collectWeeklyReport(db) {
   const { start, end } = lastFullWeek();
   const prevStart = shiftDay(start, -7), prevEnd = shiftDay(start, -1);
-  const md = ymd => `${Number(ymd.slice(5, 7))}/${Number(ymd.slice(8, 10))}`;
-  const range = (a, b) => `${md(a)}~${md(b)}`;
-  const diff = (a, b) => (a - b >= 0 ? '+' : '') + (a - b);
-  const lines = [`${USER_MENTION} *[고성] 트립코스 관련 데이터 (${range(start, end)})*`, ''];
-
-  // 1) 오픈채팅 트립코스 바로가기 링크 (네이버 짧은 주소, 사용자 입력값)
-  lines.push('*[오픈채팅방에 노출하는 트립코스 바로가기 링크 클릭 수 (주간)]*');
   const weeks = await loadShortlinkWeeks(db);
   const keys = Object.keys(weeks).filter(k => k <= start).sort();
-  if (keys.length) {
-    const vals = keys.map(k => weeks[k]);
-    const maxN = Math.max(...vals), minN = Math.min(...vals);
-    const maxAt = keys[vals.indexOf(maxN)], minAt = keys[vals.indexOf(minN)];
-    const table = [padW('주간', 13) + padW('조회수', 8) + '비고'];
-    keys.forEach(k => {
-      const note = [];
-      if (k === maxAt) note.push('최고');
-      if (k === minAt && minN !== maxN) note.push('최저');
-      if (k === start && weeks[prevStart] != null) note.push('직전 주 대비 ' + diff(weeks[k], weeks[prevStart]));
-      table.push((padW(range(k, shiftDay(k, 6)), 13) + padW(weeks[k], 8) + note.join(' · ')).trimEnd());
-    });
-    lines.push('```' + table.join('\n') + '```');
-    const total = vals.reduce((sum, n) => sum + n, 0);
-    lines.push(`• 누적(${range(keys[0], shiftDay(keys[keys.length - 1], 6))}): *${total}건*`);
-  }
-  if (weeks[start] != null) {
-    const parts = [`• 지난주(${range(start, end)}): *${weeks[start]}건*`];
-    if (weeks[prevStart] != null) parts.push(`직전 주 ${weeks[prevStart]}건 대비 ${diff(weeks[start], weeks[prevStart])}`);
-    const best = Math.max(...keys.map(k => weeks[k]));
-    if (best > 0 && weeks[start] < best) parts.push(`최고치(${best}건)의 ${Math.round(weeks[start] / best * 100)}% 수준`);
-    lines.push(parts.join(' · '));
-  } else {
-    lines.push(`• ${range(start, end)} 숫자 미입력: 어드민 📊 조회수 탭 '보낸 카드 링크'에서 네이버 숫자를 넣으면 이 표가 채워진 보고가 다시 나감`);
-  }
-  lines.push('');
-
-  // 2) 오픈채팅 카드뉴스 — 지난주에 보낸 카드별 누적 클릭 (복사로 만든 링크는 표에서 빼고 합계에만 넣는다)
-  lines.push('*[오픈채팅방 카드뉴스 클릭 수]*');
+  const vals = keys.map(k => weeks[k]);
+  const maxN = vals.length ? Math.max(...vals) : 0, minN = vals.length ? Math.min(...vals) : 0;
+  const maxAt = keys[vals.indexOf(maxN)], minAt = keys[vals.indexOf(minN)];
+  const shortlink = keys.map(k => {
+    const note = [];
+    if (k === maxAt) note.push('최고');
+    if (k === minAt && minN !== maxN) note.push('최저');
+    if (k === start && weeks[prevStart] != null) note.push('직전 주 대비 ' + signed(weeks[k] - weeks[prevStart]));
+    return { start: k, end: shiftDay(k, 6), n: weeks[k], note: note.join(' · ') };
+  });
+  // 지난주에 보낸 카드별 누적 클릭 (복사로 만든 링크는 표에서 빼고 주간 합계에만 넣는다)
   const cards = await db.prepare(
     'SELECT l.name, l.created_at, COALESCE((SELECT SUM(n) FROM card_link_hits h WHERE h.id = l.id), 0) AS total ' +
     "FROM card_links l WHERE l.source = 'send' AND date(datetime(l.created_at, '+9 hours')) BETWEEN ? AND ? ORDER BY l.created_at"
   ).bind(start, end).all();
   const clicks = (a, b) => db.prepare('SELECT COALESCE(SUM(n), 0) AS n FROM card_link_hits WHERE day >= ? AND day <= ?').bind(a, b).first();
   const cur = await clicks(start, end), prev = await clicks(prevStart, prevEnd);
-  if (cards.results.length) {
-    const table = [padW('카드', 18) + padW('발송', 13) + '클릭'];
-    for (const r of cards.results) {
-      const kst = new Date(new Date(r.created_at).getTime() + 9 * 3600 * 1000).toISOString();
-      table.push(padW(r.name || '(이름 없음)', 18) + padW(md(kst.slice(0, 10)) + ' ' + kst.slice(11, 16), 13) + r.total);
-    }
-    lines.push('```' + table.join('\n') + '```');
-  } else {
-    lines.push('• 지난주에 보낸 카드 없음');
+  return {
+    start, end, prevStart,
+    shortlink, total: vals.reduce((sum, n) => sum + n, 0), best: maxN,
+    last: weeks[start] != null ? weeks[start] : null, prevN: weeks[prevStart] != null ? weeks[prevStart] : null,
+    cards: cards.results.map(r => ({ name: r.name || '(이름 없음)', sentAt: new Date(new Date(r.created_at).getTime() + 9 * 3600 * 1000).toISOString().slice(0, 16), clicks: r.total })),
+    cardClicks: cur.n, cardClicksPrev: prev.n,
+  };
+}
+const signed = n => (n >= 0 ? '+' : '') + n;
+const mdDay = ymd => `${Number(ymd.slice(5, 7))}/${Number(ymd.slice(8, 10))}`;
+const mdRange = (a, b) => `${mdDay(a)}~${mdDay(b)}`;
+
+// 노션에 붙여넣으면 그대로 표·굵게가 되는 마크다운 (사용자 노션 보고 형식, 2026-09-28 캡처)
+function renderReportMarkdown(d) {
+  const L = ['**[오픈채팅방에 노출하는 트립코스 바로가기 링크 클릭 수 (주간)]**', ''];
+  if (d.shortlink.length) {
+    L.push('| 주간 | 조회수 | 비고 |', '| --- | --- | --- |');
+    for (const w of d.shortlink) L.push(`| ${mdRange(w.start, w.end)} | ${w.n} | ${w.note} |`);
+    L.push('');
+    L.push(`- 누적(${mdRange(d.shortlink[0].start, d.shortlink[d.shortlink.length - 1].end)}): **${d.total}건**`);
   }
-  lines.push(`• 발송 ${cards.results.length}장 · 카드 링크 클릭 ${cur.n}회 (직전 주 ${prev.n}회, ${diff(cur.n, prev.n)})`);
-  lines.push('• 카드별 클릭은 보낸 뒤 지금까지 누적, 합계는 그 주에 눌린 횟수');
-  return { text: lines.join('\n'), start, end };
+  if (d.last != null) {
+    L.push(`- 지난주(${mdRange(d.start, d.end)}): **${d.last}건**`);
+    if (d.prevN != null) L.push(`    - 직전 주 ${d.prevN}건 대비 ${signed(d.last - d.prevN)}`);
+    if (d.best > 0 && d.last < d.best) L.push(`    - 최고치(${d.best}건)의 ${Math.round(d.last / d.best * 100)}% 수준`);
+  } else {
+    L.push(`- ${mdRange(d.start, d.end)} 숫자 미입력 (어드민 📊 조회수 탭에서 입력)`);
+  }
+  L.push('', '**[오픈채팅방 카드뉴스 클릭 수]**', '');
+  if (d.cards.length) {
+    L.push('| 카드 | 발송 | 클릭 |', '| --- | --- | --- |');
+    for (const c of d.cards) L.push(`| ${c.name.replace(/\|/g, '/')} | ${mdDay(c.sentAt.slice(0, 10))} ${c.sentAt.slice(11, 16)} | ${c.clicks} |`);
+    L.push('');
+  } else {
+    L.push('- 지난주에 보낸 카드 없음');
+  }
+  L.push(`- 발송 ${d.cards.length}장 · 카드 링크 클릭 ${d.cardClicks}회 (직전 주 ${d.cardClicksPrev}회, ${signed(d.cardClicks - d.cardClicksPrev)})`);
+  L.push('- 카드별 클릭은 보낸 뒤 지금까지 누적, 합계는 그 주에 눌린 횟수');
+  return L.join('\n');
+}
+
+// 슬랙: 제목 한 줄 + 마크다운 전체를 코드 블록 하나에 담는다 → 블록째 복사해 노션에 붙이면 표로 들어간다
+async function buildWeeklyLinkReport(db) {
+  const d = await collectWeeklyReport(db);
+  const text = `${USER_MENTION} *[고성] 트립코스 관련 데이터 (${mdRange(d.start, d.end)})*\n\`\`\`\n${renderReportMarkdown(d)}\n\`\`\``;
+  return { text, start: d.start, end: d.end };
 }
 
 // source: 'cron'(정기) | 'manual'(어드민 버튼). 감시는 cron 기록만 본다 — 수동 발송이 정기 실행 고장을 가리지 않게.
@@ -1097,6 +1106,12 @@ export default {
         await db.prepare('INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at')
           .bind(SHORTLINK_KEY, JSON.stringify(saved), new Date().toISOString()).run();
         return json(req, { ok: true, start, n });
+      }
+
+      // 어드민: 주간 보고 미리보기 (슬랙에 가는 것과 같은 숫자 + 복사용 마크다운)
+      if (path === '/admin/weekly-report' && req.method === 'GET') {
+        const d = await collectWeeklyReport(db);
+        return json(req, { ...d, markdown: renderReportMarkdown(d) });
       }
 
       // 어드민: 카드 링크 주간 보고 지금 보내기 (시험·수동 발송용)
