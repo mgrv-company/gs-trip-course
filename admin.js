@@ -531,10 +531,38 @@ async function loadViews() {
   } catch (e) {
     $('#vCardLinks').textContent = '불러오기 실패: ' + e.message;
   }
+  // 10) 오픈채팅 트립코스 바로가기(네이버 짧은 주소) — 지난주 숫자 입력칸
+  try {
+    const sl = await api('/admin/shortlink-weekly');
+    _slTarget = sl.target;
+    const md = ymd => Number(ymd.slice(5, 7)) + '/' + Number(ymd.slice(8, 10));
+    $('#slWeekLabel').textContent = '지난주(' + md(sl.target.start) + '~' + md(sl.target.end) + ') 네이버 짧은 주소 조회수';
+    const cur = sl.weeks[sl.target.start];
+    $('#slWeekN').value = cur != null ? cur : '';
+  } catch (e) {
+    $('#slWeekLabel').textContent = '짧은 주소 조회수 불러오기 실패: ' + e.message;
+  }
 }
+let _slTarget = null;
+const _btnSlWeekSave = $('#btnSlWeekSave');
+if (_btnSlWeekSave) _btnSlWeekSave.addEventListener('click', async () => {
+  const raw = $('#slWeekN').value.trim();
+  if (!_slTarget || raw === '' || !/^\d+$/.test(raw)) { toast('숫자를 넣어주세요', true); return; }
+  if (!confirm('지난주 조회수 ' + raw + '건을 저장하고 주간 보고를 #gs-routine 으로 보낼까요?')) return;
+  _btnSlWeekSave.disabled = true;
+  try {
+    await api('/admin/shortlink-weekly', { method: 'PUT', body: JSON.stringify({ start: _slTarget.start, n: Number(raw) }) });
+    const r = await api('/admin/weekly-link-report', { method: 'POST' });
+    toast('✅ 저장하고 보고 보냄 (' + r.range + ')');
+  } catch (e) {
+    toast('실패: ' + e.message, true);
+  } finally {
+    _btnSlWeekSave.disabled = false;
+  }
+});
 const _btnWeeklyReport = $('#btnWeeklyReport');
 if (_btnWeeklyReport) _btnWeeklyReport.addEventListener('click', async () => {
-  if (!confirm('지난 7일 카드 링크 클릭 보고를 #gs-routine 으로 지금 보낼까요?')) return;
+  if (!confirm('지난주(월~일) 트립코스 보고를 #gs-routine 으로 지금 보낼까요?')) return;
   _btnWeeklyReport.disabled = true;
   try {
     const r = await api('/admin/weekly-link-report', { method: 'POST' });

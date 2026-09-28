@@ -157,12 +157,29 @@ async function visitorHash(env, day, req) {
   return Array.from(new Uint8Array(buf).slice(0, 8), b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// ── 카드 링크 주간 보고 (2026-09-15) ──────
-// 매주 화 10:00 KST(wrangler.jsonc cron)에 지난 7일(어제까지) 클릭을 #gs-routine 으로 보낸다.
+// ── 트립코스 주간 보고 (2026-09-15, 2026-09-28 형식 변경) ──────
+// 매주 월 10:00 KST(wrangler.jsonc cron `0 1 * * 2` — 클라우드플레어 요일은 일요일=1)에 지난주(월~일) 보고를 #gs-routine 으로 보낸다.
 // PC 가 꺼져 있어도 돌도록 워커에서 실행하고, 결과를 settings 에 남겨 PC 루틴 감시(gs-deadman.sh 23번)가 빠짐을 잡는다.
+// 오픈채팅 '트립코스 바로가기'(m.site.naver.com/2euku) 클릭 수는 네이버 로그인 화면에서만 보여 자동으로 못 가져온다
+// → 사용자가 어드민에 주마다 입력한 값(settings SHORTLINK_KEY)으로 표를 만든다. 입력 전이면 그 칸만 '미입력'.
 const REPORT_STATUS_KEY = 'weekly_link_report';
+const SHORTLINK_KEY = 'shortlink_weekly';   // {"월요일 YYYY-MM-DD": 조회수}
+// 네이버 통계 화면(2026-09-28 사용자 캡처) 기준 초기값. 저장된 값이 있으면 그쪽이 우선한다.
+const SHORTLINK_SEED = { '2026-08-10': 37, '2026-08-17': 36, '2026-08-24': 7, '2026-08-31': 6, '2026-09-07': 1, '2026-09-14': 21, '2026-09-21': 27 };
 const USER_MENTION = '<@U0AG0G63PTR>';
 const shiftDay = (ymd, n) => { const d = new Date(ymd + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+// 오늘 기준 마지막으로 끝난 월~일 주. 수동 발송을 화~일에 눌러도 네이버 통계와 같은 주 경계를 쓰게 한다.
+function lastFullWeek(today = kstDay()) {
+  const dow = new Date(today + 'T00:00:00Z').getUTCDay();   // 0=일
+  const end = shiftDay(today, -(dow === 0 ? 7 : dow));
+  return { start: shiftDay(end, -6), end };
+}
+async function loadShortlinkWeeks(db) {
+  const row = await db.prepare('SELECT value FROM settings WHERE key = ?').bind(SHORTLINK_KEY).first();
+  let saved = {};
+  try { saved = row && row.value ? JSON.parse(row.value) : {}; } catch (e) { console.error('shortlink_weekly parse failed', e.message); }
+  return { ...SHORTLINK_SEED, ...saved };
+}
 // 슬랙 코드 블록 정렬용 — 한글은 고정폭 글꼴에서 두 칸을 차지한다
 const dispWidth = s => Array.from(String(s)).reduce((w, ch) => w + (/[가-힣ㄱ-ㅎㅏ-ㅣ]/.test(ch) ? 2 : 1), 0);
 function padW(s, w) {
@@ -172,50 +189,64 @@ function padW(s, w) {
 }
 
 async function buildWeeklyLinkReport(db) {
-  const end = shiftDay(kstDay(), -1), start = shiftDay(end, -6);
-  const prevEnd = shiftDay(start, -1), prevStart = shiftDay(prevEnd, -6);
-  const totals = (a, b) => db.prepare('SELECT COALESCE(SUM(n), 0) AS clicks, COUNT(*) AS devices FROM card_link_hits WHERE day >= ? AND day <= ?').bind(a, b).first();
-  const cur = await totals(start, end), prev = await totals(prevStart, prevEnd);
-  // 이번 주에 만든 링크 수(보냄/복사)와 그중 지금까지 한 번도 안 눌린 수
-  const made = await db.prepare(
-    'SELECT source, COUNT(*) AS n, SUM(CASE WHEN EXISTS (SELECT 1 FROM card_link_hits h WHERE h.id = l.id) THEN 0 ELSE 1 END) AS zero ' +
-    "FROM card_links l WHERE date(datetime(l.created_at, '+9 hours')) BETWEEN ? AND ? GROUP BY source"
-  ).bind(start, end).all();
-  // 이번 주에 만들었거나 이번 주에 눌린 링크
-  const rows = await db.prepare(
-    'SELECT l.id, l.name, l.source, l.created_at, ' +
-    'COALESCE((SELECT SUM(n) FROM card_link_hits h WHERE h.id = l.id AND h.day >= ? AND h.day <= ?), 0) AS week, ' +
-    'COALESCE((SELECT SUM(n) FROM card_link_hits h WHERE h.id = l.id), 0) AS total ' +
-    "FROM card_links l WHERE date(datetime(l.created_at, '+9 hours')) BETWEEN ? AND ? " +
-    'OR EXISTS (SELECT 1 FROM card_link_hits h WHERE h.id = l.id AND h.day >= ? AND h.day <= ?) ' +
-    'ORDER BY week DESC, l.created_at DESC LIMIT 15'
-  ).bind(start, end, start, end, start, end).all();
-
-  const src = Object.fromEntries(made.results.map(r => [r.source, r]));
-  const sent = src.send ? src.send.n : 0, copied = src.copy ? src.copy.n : 0;
-  const zero = made.results.reduce((s, r) => s + (r.zero || 0), 0);
+  const { start, end } = lastFullWeek();
+  const prevStart = shiftDay(start, -7), prevEnd = shiftDay(start, -1);
+  const md = ymd => `${Number(ymd.slice(5, 7))}/${Number(ymd.slice(8, 10))}`;
+  const range = (a, b) => `${md(a)}~${md(b)}`;
   const diff = (a, b) => (a - b >= 0 ? '+' : '') + (a - b);
-  const md = ymd => ymd.slice(5).replace('-', '/');
-  const lines = [
-    `${USER_MENTION} *🔗 카드 링크 주간 클릭 (${md(start)}~${md(end)})*`,
-    '',
-    '*요약*',
-    `• 만든 링크: 보냄 ${sent}개 · 복사 ${copied}개`,
-    `• 클릭 ${cur.clicks}회 (지난주 ${prev.clicks}회, ${diff(cur.clicks, prev.clicks)}) · 기기 ${cur.devices}대 (지난주 ${prev.devices}대, ${diff(cur.devices, prev.devices)})`,
-    `• 이번 주에 만든 링크 중 한 번도 안 눌린 링크: ${zero}개`,
-    '',
-  ];
-  if (rows.results.length) {
-    const table = [padW('만든 날', 8) + padW('구분', 6) + padW('가게', 20) + padW('이번주', 8) + '누적'];
-    for (const r of rows.results) {
-      const made = md(new Date(new Date(r.created_at).getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10));
-      table.push(padW(made, 8) + padW(r.source === 'copy' ? '복사' : '보냄', 6) + padW(r.name || '(이름 없음)', 18) + '  ' + padW(r.week, 8) + r.total);
-    }
-    lines.push('*링크별 (이번 주 클릭 많은 순, 최대 15개)*', '```' + table.join('\n') + '```', '');
-  } else {
-    lines.push('*링크별*', '• 이번 주에 만들었거나 눌린 링크 없음', '');
+  const lines = [`${USER_MENTION} *[고성] 트립코스 관련 데이터 (${range(start, end)})*`, ''];
+
+  // 1) 오픈채팅 트립코스 바로가기 링크 (네이버 짧은 주소, 사용자 입력값)
+  lines.push('*[오픈채팅방에 노출하는 트립코스 바로가기 링크 클릭 수 (주간)]*');
+  const weeks = await loadShortlinkWeeks(db);
+  const keys = Object.keys(weeks).filter(k => k <= start).sort();
+  if (keys.length) {
+    const vals = keys.map(k => weeks[k]);
+    const maxN = Math.max(...vals), minN = Math.min(...vals);
+    const maxAt = keys[vals.indexOf(maxN)], minAt = keys[vals.indexOf(minN)];
+    const table = [padW('주간', 13) + padW('조회수', 8) + '비고'];
+    keys.forEach(k => {
+      const note = [];
+      if (k === maxAt) note.push('최고');
+      if (k === minAt && minN !== maxN) note.push('최저');
+      if (k === start && weeks[prevStart] != null) note.push('직전 주 대비 ' + diff(weeks[k], weeks[prevStart]));
+      table.push((padW(range(k, shiftDay(k, 6)), 13) + padW(weeks[k], 8) + note.join(' · ')).trimEnd());
+    });
+    lines.push('```' + table.join('\n') + '```');
+    const total = vals.reduce((sum, n) => sum + n, 0);
+    lines.push(`• 누적(${range(keys[0], shiftDay(keys[keys.length - 1], 6))}): *${total}건*`);
   }
-  lines.push('• m.site.naver.com/2euku(트립코스 짧은 주소) 클릭 수: 자동 집계 대상 아님, 업무용 네이버 계정에서 조회');
+  if (weeks[start] != null) {
+    const parts = [`• 지난주(${range(start, end)}): *${weeks[start]}건*`];
+    if (weeks[prevStart] != null) parts.push(`직전 주 ${weeks[prevStart]}건 대비 ${diff(weeks[start], weeks[prevStart])}`);
+    const best = Math.max(...keys.map(k => weeks[k]));
+    if (best > 0 && weeks[start] < best) parts.push(`최고치(${best}건)의 ${Math.round(weeks[start] / best * 100)}% 수준`);
+    lines.push(parts.join(' · '));
+  } else {
+    lines.push(`• ${range(start, end)} 숫자 미입력: 어드민 📊 조회수 탭 '보낸 카드 링크'에서 네이버 숫자를 넣으면 이 표가 채워진 보고가 다시 나감`);
+  }
+  lines.push('');
+
+  // 2) 오픈채팅 카드뉴스 — 지난주에 보낸 카드별 누적 클릭 (복사로 만든 링크는 표에서 빼고 합계에만 넣는다)
+  lines.push('*[오픈채팅방 카드뉴스 클릭 수]*');
+  const cards = await db.prepare(
+    'SELECT l.name, l.created_at, COALESCE((SELECT SUM(n) FROM card_link_hits h WHERE h.id = l.id), 0) AS total ' +
+    "FROM card_links l WHERE l.source = 'send' AND date(datetime(l.created_at, '+9 hours')) BETWEEN ? AND ? ORDER BY l.created_at"
+  ).bind(start, end).all();
+  const clicks = (a, b) => db.prepare('SELECT COALESCE(SUM(n), 0) AS n FROM card_link_hits WHERE day >= ? AND day <= ?').bind(a, b).first();
+  const cur = await clicks(start, end), prev = await clicks(prevStart, prevEnd);
+  if (cards.results.length) {
+    const table = [padW('카드', 18) + padW('발송', 13) + '클릭'];
+    for (const r of cards.results) {
+      const kst = new Date(new Date(r.created_at).getTime() + 9 * 3600 * 1000).toISOString();
+      table.push(padW(r.name || '(이름 없음)', 18) + padW(md(kst.slice(0, 10)) + ' ' + kst.slice(11, 16), 13) + r.total);
+    }
+    lines.push('```' + table.join('\n') + '```');
+  } else {
+    lines.push('• 지난주에 보낸 카드 없음');
+  }
+  lines.push(`• 발송 ${cards.results.length}장 · 카드 링크 클릭 ${cur.n}회 (직전 주 ${prev.n}회, ${diff(cur.n, prev.n)})`);
+  lines.push('• 카드별 클릭은 보낸 뒤 지금까지 누적, 합계는 그 주에 눌린 횟수');
   return { text: lines.join('\n'), start, end };
 }
 
@@ -1049,6 +1080,25 @@ export default {
         return json(req, { clicks: rows.results, from, to });
       }
 
+      // 어드민: 오픈채팅 트립코스 바로가기(네이버 짧은 주소) 주간 조회수 — 네이버에서 본 숫자를 사용자가 입력
+      if (path === '/admin/shortlink-weekly' && req.method === 'GET') {
+        const weeks = await loadShortlinkWeeks(db);
+        return json(req, { weeks, target: lastFullWeek() });
+      }
+      if (path === '/admin/shortlink-weekly' && req.method === 'PUT') {
+        let b; try { b = await req.json(); } catch { return json(req, { error: '형식 오류' }, 400); }
+        const start = String(b.start || ''), n = Number(b.n);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || new Date(start + 'T00:00:00Z').getUTCDay() !== 1) return json(req, { error: '주 시작일(월요일)이 아니에요' }, 400);
+        if (!Number.isInteger(n) || n < 0 || n > 1000000) return json(req, { error: '0 이상의 정수를 넣어주세요' }, 400);
+        const row = await db.prepare('SELECT value FROM settings WHERE key = ?').bind(SHORTLINK_KEY).first();
+        let saved = {};
+        try { saved = row && row.value ? JSON.parse(row.value) : {}; } catch (e) { console.error('shortlink_weekly parse failed', e.message); }
+        saved[start] = n;
+        await db.prepare('INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at')
+          .bind(SHORTLINK_KEY, JSON.stringify(saved), new Date().toISOString()).run();
+        return json(req, { ok: true, start, n });
+      }
+
       // 어드민: 카드 링크 주간 보고 지금 보내기 (시험·수동 발송용)
       if (path === '/admin/weekly-link-report' && req.method === 'POST') {
         const ip = req.headers.get('CF-Connecting-IP') || 'local';
@@ -1089,7 +1139,7 @@ export default {
     }
   },
 
-  // 예약 실행 (wrangler.jsonc triggers) — 지금은 화 10:00 KST 카드 링크 주간 보고 하나뿐
+  // 예약 실행 (wrangler.jsonc triggers) — 지금은 월 10:00 KST 트립코스 주간 보고 하나뿐
   async scheduled(event, env, ctx) {
     ctx.waitUntil(runWeeklyLinkReport(env, 'cron'));
   },
