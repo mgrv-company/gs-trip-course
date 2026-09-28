@@ -205,17 +205,27 @@ async function collectWeeklyReport(db) {
     return { start: k, end: shiftDay(k, 6), n: weeks[k], note: note.join(' · ') };
   });
   // 지난주에 보낸 카드별 누적 클릭 (복사로 만든 링크는 표에서 빼고 주간 합계에만 넣는다)
-  const cards = await db.prepare(
-    'SELECT l.name, l.created_at, COALESCE((SELECT SUM(n) FROM card_link_hits h WHERE h.id = l.id), 0) AS total ' +
+  const sentRows = await db.prepare(
+    'SELECT l.sid, l.name, l.created_at, COALESCE((SELECT SUM(n) FROM card_link_hits h WHERE h.id = l.id), 0) AS total ' +
     "FROM card_links l WHERE l.source = 'send' AND date(datetime(l.created_at, '+9 hours')) BETWEEN ? AND ? ORDER BY l.created_at"
   ).bind(start, end).all();
+  // 같은 가게를 같은 날 다시 보낸 건 한 줄로: 클릭은 더하고 발송 시각은 마지막 것 (사용자 결정 2026-09-28)
+  const merged = new Map();
+  for (const r of sentRows.results) {
+    const sentAt = new Date(new Date(r.created_at).getTime() + 9 * 3600 * 1000).toISOString().slice(0, 16);
+    const key = (r.sid || r.name) + '|' + sentAt.slice(0, 10);
+    const prevRow = merged.get(key);
+    if (prevRow) { prevRow.clicks += r.total; prevRow.sentAt = sentAt; }
+    else merged.set(key, { name: r.name || '(이름 없음)', sentAt, clicks: r.total });
+  }
+  const cards = [...merged.values()].sort((a, b) => a.sentAt.localeCompare(b.sentAt));
   const clicks = (a, b) => db.prepare('SELECT COALESCE(SUM(n), 0) AS n FROM card_link_hits WHERE day >= ? AND day <= ?').bind(a, b).first();
   const cur = await clicks(start, end), prev = await clicks(prevStart, prevEnd);
   return {
     start, end, prevStart,
     shortlink, total: vals.reduce((sum, n) => sum + n, 0), best: maxN,
     last: weeks[start] != null ? weeks[start] : null, prevN: weeks[prevStart] != null ? weeks[prevStart] : null,
-    cards: cards.results.map(r => ({ name: r.name || '(이름 없음)', sentAt: new Date(new Date(r.created_at).getTime() + 9 * 3600 * 1000).toISOString().slice(0, 16), clicks: r.total })),
+    cards,
     cardClicks: cur.n, cardClicksPrev: prev.n,
   };
 }
