@@ -61,14 +61,41 @@
   html, body { overflow-x: hidden; }
   .panel, .stage { min-width: 0; max-width: 100%; }
   .stage { overflow: hidden; }
-  .panel { position: fixed; top: 0; right: 0; bottom: 0; width: 340px; z-index: 20; background: #fff; color: var(--ink); border-left: 1px solid var(--line); box-shadow: -8px 0 24px rgba(0,0,0,.12); display: flex; flex-direction: column; overflow: hidden; }
-  .panel h1 { flex: none; padding: 16px 18px 12px; border-bottom: 1px solid var(--line); font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
-  .panel h1 small { display: block; font-size: 12px; font-weight: 400; color: var(--gray); margin-top: 4px; line-height: 1.5; }
+  .panel { position: fixed; top: 0; right: 0; bottom: 0; width: 380px; z-index: 20; background: #fff; color: var(--ink); border-left: 1px solid var(--line); box-shadow: -8px 0 24px rgba(0,0,0,.12); display: flex; flex-direction: column; overflow: hidden; }
+  .phead { flex: none; display: flex; align-items: center; gap: 6px; padding: 8px 8px 8px 18px; border-bottom: 1px solid var(--line); }
+  .phead h1 { flex: 1; min-width: 0; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .savestate { font: inherit; font-size: 12px; color: var(--gray); background: none; border: 0; padding: 4px 2px; cursor: default; white-space: nowrap; }
+  .savestate.ok { color: var(--green-deep); }
+  .savestate.act { color: var(--purple-deep); font-weight: 700; text-decoration: underline; cursor: pointer; }
+  .savestate.err { color: #b3261e; font-weight: 700; cursor: pointer; }
+  .iconbtn { width: 40px; height: 40px; flex: none; display: inline-flex; align-items: center; justify-content: center; background: none; border: 0; border-radius: 8px; color: var(--gray); cursor: pointer; }
+  .iconbtn:hover { background: var(--soft); color: var(--ink); }
+  .btn.ghost { border-color: transparent; background: none; padding: 8px 8px; }
+  .btn.ghost:hover { background: var(--soft); }
+  .linkbtn { font: inherit; font-size: 13px; font-weight: 600; color: var(--purple-deep); background: none; border: 0; padding: 4px 2px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .linkbtn:disabled { color: var(--gray); opacity: .5; cursor: default; text-decoration: none; }
+  .conflict { flex: none; padding: 10px 18px; background: #fff3cd; border-bottom: 1px solid #e8d48a; font-size: 13px; line-height: 1.5; display: flex; flex-direction: column; gap: 8px; }
+  .conflict[hidden] { display: none; }
+  .sec-meta { float: right; color: var(--purple-deep); letter-spacing: 0; }
+  /* 후기 고르기: 후보 문장 전체를 체크 목록으로 — 체크한 순서가 카드 순서 */
+  .rvlist { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 8px; max-height: 380px; overflow-y: auto; background: #fff; }
+  .rv { display: flex; align-items: flex-start; gap: 10px; min-height: 44px; padding: 11px 12px; border-bottom: 1px solid var(--line); font-size: 14px; line-height: 1.5; cursor: pointer; }
+  .rv:last-child { border-bottom: 0; }
+  .rv.on { background: var(--purple-light); }
+  .rv input { width: 20px; height: 20px; margin: 1px 0 0; flex: none; accent-color: var(--purple-deep); }
+  .rv .t { flex: 1; min-width: 0; word-break: keep-all; overflow-wrap: anywhere; }
+  .rv .t small { display: inline-block; margin-left: 6px; font-size: 11px; font-weight: 700; color: var(--gray); }
+  .rv .no { flex: none; width: 22px; height: 22px; border-radius: 11px; background: var(--purple-deep); color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .rv-empty { padding: 14px 12px; font-size: 13px; color: var(--gray); }
+  .rvfoot { display: flex; align-items: center; gap: 10px; }
+  .rvfoot .hint { flex: 1; }
+  #dateStatus:empty, #rvOverflow:empty { display: none; }
   .panel .rows { flex: 1; overflow-y: auto; padding: 4px 0 18px; display: flex; flex-direction: column; gap: 12px; }
   .sec { padding: 14px 18px 0; font-size: 12px; font-weight: 700; letter-spacing: .04em; color: var(--gray); border-top: 1px solid var(--line); margin-top: 4px; }
   .rows > .sec:first-child { border-top: none; margin-top: 0; padding-top: 10px; }
-  .panel .btns { flex: none; display: flex; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--line); background: #fff; }
-  .panel .btns .btn { flex: 1; padding: 11px 0; font-size: 14px; }
+  .panel .btns { flex: none; display: flex; flex-direction: column; gap: 6px; padding: 12px 18px; border-top: 1px solid var(--line); background: #fff; }
+  .panel .btns .btn.primary { padding: 13px 0; font-size: 16px; }
+  .sublinks { display: flex; justify-content: center; align-items: center; gap: 10px; color: #b9b5ad; font-size: 13px; }
   details.field > summary { cursor: pointer; font-size: 13px; font-weight: 700; list-style: none; display: flex; align-items: center; gap: 6px; }
   details.field > summary::before { content: '▸'; color: var(--gray); font-size: 11px; }
   details.field[open] > summary::before { content: '▾'; }
@@ -102,11 +129,6 @@
   .status.err { color: #b3261e; }
   .saved img { width: 100%; border: 1px solid var(--line); display: block; margin-top: 8px; }
   .saved .share { width: 100%; margin-top: 8px; }
-  .sendbox { display: none; flex-direction: column; gap: 8px; margin-top: 10px; padding: 12px; border: 1px solid #d9d4cd; border-radius: 8px; background: #fff; }
-  .sendbox.on { display: flex; }
-  .sendbox textarea { font: inherit; font-size: 14px; line-height: 1.5; padding: 9px 10px; border: 1px solid var(--line); background: var(--bg); outline: none; width: 100%; min-height: 110px; resize: vertical; }
-  .sendbox .btn.send { background: var(--ink); border-color: var(--ink); color: #fff; }
-  .sendbox .btn.send:hover { background: #000; }
 
   /* 확대·이동한 사진이 사진칸 밖으로 삐져나오지 않게 (template.html 은 object-fit 이라 필요 없던 규칙) */
   #photoWrap { overflow: hidden; }
@@ -125,7 +147,7 @@
   .zoomrow { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--gray); }
   .zoomrow input { flex: 1; }
 
-  .stage { margin-right: 340px; min-height: 100vh; padding: 20px 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+  .stage { margin-right: 380px; min-height: 100vh; padding: 20px 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
   .stage .scaler { width: 1080px; height: 1560px; transform-origin: top left; }
   .stage .frame { position: relative; box-shadow: 0 10px 40px rgba(0,0,0,.18); }
   .stage-note { font-size: 12px; color: var(--gray); text-align: center; }
@@ -189,7 +211,8 @@
   .mobile-bar { display: none; }
   @media (max-width: 900px) {
     .panel { position: static; width: auto; height: auto; border-left: 0; box-shadow: none; overflow: visible; padding: 12px 0 96px; }
-    .panel h1 { padding: 4px 14px 10px; }
+    .phead { padding: 0 6px 8px 14px; }
+    .conflict { padding: 10px 14px; }
     .panel .rows { overflow: visible; padding: 0 0 8px; gap: 14px; }
     .panel .btns { display: none; }
     .field { padding: 0 14px; }
@@ -214,15 +237,19 @@
     #btnRender { display: none; }
     .mobile-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: rgba(255,255,255,.96); border-top: 1px solid var(--line); display: flex; gap: 8px; }
     .mobile-bar .btn { flex: 1; font-size: 15px; padding: 13px; }
+    .mobile-bar .btn.icon { flex: none; width: 52px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+    .mobile-bar .btn.primary { flex: 2; font-size: 16px; }
+    .rv input { width: 22px; height: 22px; }
+    .rvlist { max-height: none; }
 
     /* ── 아이폰 사용성 (2026-09-21) ──
        아이폰 사파리는 16px 보다 작은 입력칸을 누르면 화면을 통째로 확대하고, 확대된 채로 두기 때문에
        글자를 한 번 입력할 때마다 손으로 다시 줄여야 했다. 휴대폰에서는 모든 입력칸을 16px 로 둔다. */
     input:not([type=range]):not([type=checkbox]):not([type=file]), textarea, select,
     .field input[type=text], .field input[type=date], .field input[type=url],
-    .tplrow input, .tplrow textarea, .sendbox textarea { font-size: 16px; }
+    .tplrow input, .tplrow textarea { font-size: 16px; }
     .field input[type=text], .field input[type=date], .field input[type=url] { padding: 11px 12px; }
-    .sendbox textarea, .tplrow textarea { padding: 11px 12px; }
+    .tplrow textarea { padding: 11px 12px; }
     /* 손가락으로 누를 곳은 최소 44px (애플 권장) — 버튼이 33px 라 옆 버튼이 같이 눌리곤 했다 */
     .btn { min-height: 44px; font-size: 14px; padding: 10px 14px; }
     .drafts .row { grid-template-columns: minmax(0, 1fr) auto auto; padding: 8px; font-size: 14px; }
@@ -254,14 +281,76 @@
   .drafts .row .btn { padding: 6px 9px; font-size: 12px; }
   .drafts .row .btn.danger { color: #b3261e; border-color: #b3261e; }
   .drafts .empty { font-size: 12px; color: var(--gray); }
+
+  /* ── 서랍(보내기·불러오기·기본 문구): PC 는 오른쪽 패널 자리에 덮이고, 휴대폰은 아래에서 올라온다. 같은 요소라 두 화면 기능이 어긋나지 않는다 ── */
+  .dr-bg { position: fixed; inset: 0; background: rgba(31,30,29,.35); z-index: 44; display: none; }
+  .dr-bg.on { display: block; }
+  .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 420px; max-width: 100%; z-index: 45; background: #fff; box-shadow: -8px 0 24px rgba(0,0,0,.18); display: none; flex-direction: column; }
+  .drawer.on { display: flex; }
+  .dr-head { flex: none; display: flex; align-items: center; gap: 4px; padding: 8px 12px 8px 8px; border-bottom: 1px solid var(--line); }
+  .dr-head h2 { font-size: 15px; font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dr-body { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
+  #sendCompose, #sendDone { display: flex; flex-direction: column; gap: 12px; }
+  #sendDone[hidden], #sendCompose[hidden] { display: none; }
+  .dr-foot { flex: none; padding: 12px 18px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); display: flex; gap: 8px; }
+  .dr-foot .btn { flex: 1; padding: 13px 0; font-size: 15px; }
+  .dr-foot[hidden] { display: none; }
+  .drawer textarea { font: inherit; font-size: 14px; line-height: 1.6; padding: 10px 12px; border: 1px solid #d9d4cd; border-radius: 6px; background: var(--bg); outline: none; width: 100%; min-height: 130px; resize: vertical; }
+  .drawer textarea:focus { border-color: var(--ink); }
+  .sv-card { display: flex; gap: 14px; align-items: flex-start; }
+  .sv-card img { width: 110px; flex: none; border: 1px solid var(--line); display: block; }
+  .sv-card > div { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+  .sv-card .ok, .okbar { color: var(--green-deep); font-weight: 700; font-size: 14px; }
+  .sv-card .ok::before, .okbar::before { content: '✓ '; }
+  .okbar { padding: 12px 14px; background: var(--green-light); border-radius: 8px; }
+  .sv-link { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; background: var(--soft); border-radius: 8px; }
+  .sv-link > div { display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+  .sv-link small { font-size: 12px; color: var(--gray); }
+  .copybox { font-size: 14px; line-height: 1.65; padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); white-space: pre-wrap; word-break: break-all; }
+  #btnCopyKakao { padding: 13px; font-size: 16px; }
+  .drawer .btnrow .btn { flex: 1; }
+
+  /* 휴대폰 맨 위 카드 요약: 카드가 화면 밖에 있을 때만 */
+  .peek { display: none; }
+  @media (max-width: 900px) {
+    .drawer { top: auto; left: 0; width: auto; max-height: 88vh; border-radius: 16px 16px 0 0; box-shadow: 0 -8px 24px rgba(0,0,0,.2); }
+    .dr-head { padding: 6px 10px 6px 6px; }
+    .dr-body { padding: 14px; }
+    .dr-foot { padding: 10px 14px calc(12px + env(safe-area-inset-bottom)); }
+    .drawer textarea { font-size: 16px; }
+    .iconbtn { width: 44px; height: 44px; }
+    .linkbtn { font-size: 14px; padding: 10px 2px; }
+    .peek { position: fixed; left: 0; right: 0; top: 0; z-index: 25; display: flex; align-items: center; gap: 10px; padding: 8px 10px 8px 14px; background: rgba(255,255,255,.97); border-bottom: 1px solid var(--line); box-shadow: 0 2px 8px rgba(0,0,0,.06); transform: translateY(-110%); transition: transform .18s; }
+    .peek.on { transform: none; }
+    .peek .pthumb { width: 30px; height: 44px; flex: none; background: var(--soft); overflow: hidden; }
+    .peek .pthumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .peek .ptxt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .peek b { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .peek small { font-size: 12px; font-weight: 700; color: var(--purple-deep); }
+    .peek small.bad { color: #b3261e; }
+    .peek .btn { flex: none; }
+  }
 </style>
 </head>
 <body>
 <div class="app">
   <aside class="panel">
-    <h1>고성 추천 카드 만들기<small><span class="only-desktop">가게를 고르면 카드가 채워지고, 카드 위 글자는 바로 클릭해서 고칠 수 있어요.</span><span class="only-mobile">가게를 고르면 카드가 채워지고, 카드 위 글자를 누르면 고칠 수 있어요.</span></small></h1>
+    <div class="phead">
+      <h1>고성 추천 카드</h1>
+      <button class="savestate" id="saveState" type="button"></button>
+      <button class="btn ghost" id="btnOpenDrafts" type="button">불러오기</button>
+      <button class="iconbtn" id="btnOpenTpl" type="button" aria-label="기본 문구 설정" title="기본 문구 설정"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg></button>
+    </div>
+    <div class="conflict" id="conflictBar" hidden>
+      <div id="conflictText"></div>
+      <div class="btnrow">
+        <button class="btn" id="btnConflictMine" type="button">여기 것으로 덮어쓰기</button>
+        <button class="btn" id="btnConflictNew" type="button">따로 저장</button>
+        <button class="btn" id="btnConflictTheirs" type="button">그쪽 불러오기</button>
+      </div>
+    </div>
     <div class="rows">
-    <div class="sec">가게</div>
+    <div class="sec">1 가게</div>
     <div class="field search">
       <label for="q">가게 검색</label>
       <input type="text" id="q" placeholder="가게 이름을 입력하세요" autocomplete="off">
@@ -269,87 +358,51 @@
     </div>
 
     <div class="field">
-      <label for="date">카드 날짜 (영업시간·요일 기준)</label>
+      <label for="date">카드 날짜</label>
       <input type="date" id="date">
+      <div class="hint">바꾸면 요일·영업시간 문장만 다시 계산해요. 고친 문구는 그대로.</div>
+      <div class="status" id="dateStatus"></div>
     </div>
 
-    <div class="field" id="linkField" hidden>
-      <div class="lbl">네이버 지도 링크 (카드와 같이 올릴 때 붙여넣기)</div>
-      <div class="linkrow"><a id="naverLink" href="#" target="_blank" rel="noopener"></a><button class="btn" id="btnCopyLink" type="button">복사</button></div>
-    </div>
-
-    <div class="sec">사진</div>
+    <div class="sec">2 후기 고르기 <span class="sec-meta" id="rvMeta"></span></div>
     <div class="field">
-      <div class="lbl">사진 고르기</div>
+      <div class="rvlist" id="rvList"><div class="rv-empty">가게를 고르면 후기 후보가 나와요.</div></div>
+      <div class="rvfoot"><button class="btn" id="btnQuoteAdd" type="button">+ 직접 쓰기</button><span class="hint">체크한 순서대로 카드에 들어가요. 모두 끄면 후기 칸이 빠져요.</span></div>
+      <div class="status err" id="rvOverflow"></div>
+    </div>
+
+    <div class="sec">3 사진</div>
+    <div class="field">
       <div class="photo-grid" id="photoGrid"></div>
       <div class="photo-note" id="photoNote">가게를 고르면 네이버에 등록된 사진을 불러와요.</div>
-      <div class="zoomrow"><span class="lbl">확대</span><input type="range" id="zoom" min="1" max="2.5" step="0.05" value="1"><span id="zoomVal">1.00×</span></div>
+      <div class="zoomrow"><label for="zoom" class="lbl">확대</label><input type="range" id="zoom" min="1" max="2.5" step="0.05" value="1"><span id="zoomVal">1.00×</span></div>
       <div class="photo-note">카드 위 사진을 끌어서 보이는 부분을 맞출 수 있어요. 가로로 넓은 사진은 확대를 올리면 위아래로도 움직여요.</div>
       <input type="file" id="photoFile" accept="image/*" hidden>
       <input type="url" id="photo" placeholder="또는 사진 주소 직접 입력 (https://...)">
     </div>
 
-    <div class="sec">내용</div>
+    <div class="sec">4 나머지 내용</div>
     <div class="field">
-      <div class="lbl">보일 항목</div>
       <div class="toggles">
-        <label><input type="checkbox" id="tgReviews" checked> 실제 방문 후기</label>
         <label><input type="checkbox" id="tgNote" checked> 코멘트</label>
         <label><input type="checkbox" id="tgClosing" checked> 오픈채팅 안내</label>
       </div>
-    </div>
-
-    <div class="field">
-      <div class="lbl">문장 도구</div>
       <div class="btnrow">
-        <button class="btn" id="btnMoreReview">후기 1개 더 넣기</button>
-        <button class="btn" id="btnReroll">후기 다시 뽑기</button>
-        <button class="btn" id="btnMenuLine">대표 메뉴 문장</button>
-        <button class="btn" id="btnReset">처음으로</button>
+        <button class="btn" id="btnMenuLine" type="button">대표 메뉴 문장</button>
+        <button class="btn" id="btnReset" type="button">처음으로</button>
       </div>
-      <div class="hint"><span class="only-desktop">문장·후기 위에 마우스를 올리면 오른쪽에 삭제(×) 버튼이 나와요. </span><span class="only-mobile">문장·후기를 누르면 고치거나 지울 수 있어요. </span>후기는 네이버 리뷰에서 긍정 문장만 골라 넣어요.</div>
+      <div class="hint"><span class="only-desktop">카드 위 글자는 바로 클릭해서 고쳐요. 문장·후기 위에 마우스를 올리면 오른쪽에 삭제(×) 버튼이 나와요.</span><span class="only-mobile">카드 위 글자를 누르면 고치거나 지울 수 있어요.</span></div>
     </div>
 
-    <div class="sec">기본 문구</div>
-    <details class="field" id="tplBox">
-      <summary>기본 문구 바꾸기</summary>
-      <div class="hint">새 카드를 만들 때 자동으로 채워지는 문구예요. 중괄호 부분은 가게 정보로 바뀌어요. 서버에 저장되어 폰·PC 모두 같은 문구를 써요.</div>
-      <div id="tplRows"></div>
-      <div class="btnrow" style="margin-top:8px">
-        <button class="btn" id="btnTplSave" type="button">서버에 저장</button>
-        <button class="btn" id="btnTplReset" type="button">기본값으로</button>
-        <button class="btn" id="btnTplApply" type="button">지금 카드에 적용</button>
-      </div>
-      <div class="status" id="tplStatus"></div>
-    </details>
-
-    <div class="sec">임시저장</div>
-    <div class="field">
-      <div class="lbl">띠에 있는 카드 전부를 한 묶음으로 서버에 보관 — 폰·PC 어디서든 이어서 편집</div>
-      <div class="btnrow">
-        <button class="btn" id="btnDraftSave">묶음 임시저장</button>
-        <button class="btn" id="btnDraftSaveNew" hidden>새 임시저장으로</button>
-        <button class="btn" id="btnDraftList">목록 새로고침</button>
-      </div>
-      <div class="drafts" id="drafts"><div class="empty">아직 불러온 목록이 없어요. 어드민 비밀번호로 한 번 로그인하면 목록이 보여요.</div></div>
-      <div class="status" id="draftStatus"></div>
-    </div>
-
-    <div class="sec">결과</div>
     <div class="field">
       <div class="status" id="status"></div>
       <div class="saved" id="saved"></div>
-      <div class="sendbox" id="sendbox">
-        <div class="lbl">트립코스 채널로 보내기 — 같이 나갈 문구 (고쳐도 돼요)</div>
-        <textarea id="sendText"></textarea>
-        <div class="hint">🔗 네이버 링크는 보낼 때 클릭 수를 세는 주소로 바뀌어요. (어드민 📊 조회수 탭에서 확인)</div>
-        <button class="btn send" id="btnSend" type="button">이 카드 트립코스로 보내기</button>
-        <div class="status" id="sendStatus"></div>
-      </div>
-      <div class="hint"><span class="only-desktop">저장을 누르면 바로 내려받아져요.</span><span class="only-mobile">저장을 누르면 카드가 만들어지고, 그 아래 "사진첩에 저장 / 공유" 버튼으로 사진첩에 넣을 수 있어요. (버튼이 안 뜨는 기기는 이미지를 길게 눌러 저장)</span></div>
     </div>
     </div>
-    <div class="btns"><button class="btn" id="btnRenderAll" disabled>전체 저장</button><button class="btn primary" id="btnRender" disabled>이미지 저장</button></div>
+    <div class="btns">
+      <button class="btn primary" id="btnSendFlow" type="button" disabled>트립코스로 보내기</button>
+      <div class="sublinks"><button class="linkbtn" id="btnRender" type="button" disabled>이미지만 내려받기</button><span aria-hidden="true">|</span><button class="linkbtn" id="btnRenderAll" type="button" disabled>전체 저장</button></div>
+    </div>
   </aside>
 
   <main class="stage">
@@ -391,18 +444,84 @@
   </main>
 </div>
 
-<div class="mobile-bar"><button class="btn" id="mobileSaveAll" hidden>전체 저장</button><button class="btn primary" id="mobileSave" disabled>이미지 저장</button></div>
+<div class="mobile-bar">
+  <button class="btn icon" id="mobileSave" type="button" aria-label="이미지 저장" title="이미지 저장" disabled><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg></button>
+  <button class="btn" id="mobileSaveAll" type="button" hidden>전체 저장</button>
+  <button class="btn primary" id="mobileSend" type="button" disabled>트립코스로 보내기</button>
+</div>
+
+<!-- 휴대폰: 아래로 내려 후기·사진을 고르는 동안 카드가 화면 밖으로 나가므로, 맨 위에 작은 요약을 띄운다 -->
+<div class="peek" id="peek">
+  <span class="pthumb"><img id="peekImg" alt=""></span>
+  <span class="ptxt"><b id="peekTitle"></b><small id="peekSub"></small></span>
+  <button class="btn" id="peekBtn" type="button">카드 보기</button>
+</div>
 
 <div class="sheet-bg" id="sheetBg"></div>
 <div class="sheet" id="sheet">
   <div class="sheet-title" id="sheetTitle">문구 수정</div>
   <textarea id="sheetText"></textarea>
+  <button class="linkbtn" id="sheetPick" type="button" hidden>후기 목록에서 고르기</button>
   <div class="btnrow">
     <button class="btn danger" id="sheetDelete" type="button">지우기</button>
     <button class="btn" id="sheetCancel" type="button">취소</button>
     <button class="btn primary" id="sheetApply" type="button">적용</button>
   </div>
 </div>
+
+<!-- 서랍: PC 는 오른쪽 패널 자리에, 휴대폰은 아래에서 올라온다. 같은 요소라 두 화면의 기능이 어긋나지 않는다. -->
+<div class="dr-bg" id="drBg"></div>
+<section class="drawer" id="sendView" aria-label="트립코스로 보내기">
+  <div class="dr-head"><button class="iconbtn" type="button" data-close aria-label="편집으로 돌아가기"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></button><h2 id="sendTitle">보내기</h2></div>
+  <div class="dr-body">
+    <div id="sendCompose">
+      <div class="sv-card">
+        <img id="sendThumb" alt="방금 만든 카드">
+        <div>
+          <div class="ok">방금 만든 카드</div>
+          <div class="hint">지금 화면 그대로 새로 만들었어요. 고친 내용이 다 들어가 있어요.</div>
+          <button class="linkbtn" id="btnSendSaveImg" type="button">이 이미지 저장</button>
+        </div>
+      </div>
+      <label class="lbl" for="sendText">같이 나갈 문구 (고쳐도 돼요)</label>
+      <textarea id="sendText"></textarea>
+      <div class="hint">🔗 네이버 링크는 보낼 때 클릭 수를 세는 주소로 바뀌어요. (어드민 📊 조회수 탭에서 확인)</div>
+      <div class="sv-link"><div><b>링크만 따로 쓸 때</b><small>클릭 수 세는 주소로 복사</small></div><button class="btn" id="btnCopyLink" type="button">링크 복사</button></div>
+      <div class="status" id="sendStatus"></div>
+    </div>
+    <div id="sendDone" hidden>
+      <div class="okbar">트립코스 채널로 보냈어요</div>
+      <div class="lbl">카톡에 올릴 문구 (이것만 복사돼요)</div>
+      <div class="copybox" id="copyText"></div>
+      <button class="btn primary" id="btnCopyKakao" type="button">카톡용 문구 복사</button>
+      <div class="hint">슬랙에서 복사하면 🔗 가 :link: 로 바뀌어 붙어요. 여기서 복사하면 그대로 들어가요.</div>
+      <div class="btnrow"><button class="btn" id="btnDoneSaveImg" type="button">이 이미지 저장</button><button class="btn" id="btnDoneNext" type="button">다음 칸</button></div>
+    </div>
+  </div>
+  <div class="dr-foot" id="sendFoot"><button class="btn primary" id="btnSend" type="button">트립코스 채널에 지금 보내기</button></div>
+</section>
+<section class="drawer" id="draftsView" aria-label="불러오기">
+  <div class="dr-head"><button class="iconbtn" type="button" data-close aria-label="닫기"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></button><h2>불러오기</h2></div>
+  <div class="dr-body">
+    <div class="hint">띠에 있는 카드 묶음은 편집하는 동안 서버에 자동으로 저장돼요. 폰·PC 어디서든 여기서 열어 이어서 고칠 수 있어요.</div>
+    <div class="drafts" id="drafts"><div class="empty">목록을 불러오는 중…</div></div>
+    <div class="status" id="draftStatus"></div>
+  </div>
+  <div class="dr-foot"><button class="btn" id="btnNewBundle" type="button">새 묶음 시작</button></div>
+</section>
+<section class="drawer" id="tplView" aria-label="기본 문구">
+  <div class="dr-head"><button class="iconbtn" type="button" data-close aria-label="닫기"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></button><h2>기본 문구</h2></div>
+  <div class="dr-body">
+    <div class="hint">새 카드를 만들 때 자동으로 채워지는 문구예요. 중괄호 부분은 가게 정보로 바뀌어요. 서버에 저장되어 폰·PC 모두 같은 문구를 써요.</div>
+    <div id="tplRows"></div>
+    <div class="status" id="tplStatus"></div>
+  </div>
+  <div class="dr-foot btnrow">
+    <button class="btn" id="btnTplReset" type="button">기본값으로</button>
+    <button class="btn" id="btnTplApply" type="button">지금 카드에 적용</button>
+    <button class="btn primary" id="btnTplSave" type="button">서버에 저장</button>
+  </div>
+</section>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.13/html-to-image.js"></script>
 <script src="places.js?v=8"></script>
@@ -608,29 +727,30 @@ function fillCard(p) {
   reviewPool = reviewFragments(p);
   $('quoteList').innerHTML = '';
   for (const q of [pickUnused('short'), pickUnused('long')]) if (q) addQuote(q);
-  $('tgReviews').checked = currentQuotes().length > 0;
   $('noteEl').textContent = p.note || p.mr || '';
   $('closingEl').textContent = tpl('closing', {});
   $('reviewsEl').querySelector('.reviews-label').textContent = tpl('reviewLabel', {});
   $('tgNote').checked = !!(p.note || p.mr);
   $('tgClosing').checked = true;
   applyToggles();
-  $('btnRender').disabled = false; $('mobileSave').disabled = false; $('btnDraftSave').disabled = false;
+  setMakeEnabled(true);
   $('frame').classList.remove('is-empty');
   if (!restoringDraft) { if (slots[active]) { slots[active].sent = false; slots[active].made = false; } captureActive(); renderStrip(); persistLocal(); }
   $('stageNote').textContent = `${p.n} · ${p.t}${p.c ? ' · ' + p.c : ''} · 리뷰 문장 후보 ${reviewPool.short.length + reviewPool.long.length}개`;
   $('status').textContent = ''; $('status').className = 'status'; $('saved').innerHTML = '';
-  $('linkField').hidden = !p.u;
-  if (p.u) { $('naverLink').href = p.u; $('naverLink').textContent = p.u; }
+  $('dateStatus').textContent = '';
   loadPhotos(p);
+  renderReviewPicker();
 }
 function applyToggles() {
-  $('reviewsEl').classList.toggle('hidden-block', !$('tgReviews').checked);
+  // 후기는 목록에서 하나라도 체크돼 있을 때만 보인다(예전 '실제 방문 후기' 켜기/끄기 대신)
+  $('reviewsEl').classList.toggle('hidden-block', $('quoteList').children.length === 0);
   // 코멘트와 오픈채팅 안내는 따로 켜고 끈다. 둘 다 꺼지면 테두리 블록 자체를 숨긴다.
   $('noteEl').classList.toggle('hidden-block', !$('tgNote').checked);
   $('closingEl').classList.toggle('hidden-block', !$('tgClosing').checked);
   $('closingEl').style.marginTop = $('tgNote').checked ? '' : '0';
   $('blurbEl').classList.toggle('hidden-block', !$('tgNote').checked && !$('tgClosing').checked);
+  checkOverflow();
 }
 
 // ───────── 사진 고르기 ─────────
@@ -703,32 +823,19 @@ function shrinkImage(dataUrl, maxW) {
 }
 $('photo').addEventListener('change', () => { const u = $('photo').value.trim(); if (u) setPhoto(u); });
 
-$('tgReviews').addEventListener('change', applyToggles);
 $('tgNote').addEventListener('change', applyToggles);
 $('tgClosing').addEventListener('change', applyToggles);
-$('date').addEventListener('change', () => { if (slots[active]) slots[active].date = $('date').value || slots[active].date; if (current) fillCard(current); else { $('dateEl').textContent = fmtDate(pickDate()); renderStrip(); persistLocal(); } });
+// 날짜를 바꾸면 카드를 통째로 다시 채우던 것을(고친 문구가 전부 사라졌다) 요일·영업시간 문장과 아래 날짜만 바꾸게 했다 (2026-09-30)
+$('date').addEventListener('change', () => {
+  const s = slots[active], v = $('date').value;
+  const oldYmd = s ? s.date : v;
+  if (!v) { $('date').value = oldYmd; return; }
+  if (s) { s.date = v; s.made = false; s.sent = false; }
+  $('dateStatus').textContent = '';
+  if (current) retimeCard(oldYmd, v); else $('dateEl').textContent = fmtDate(pickDate());
+  renderStrip(); persistLocal();
+});
 $('btnMenuLine').addEventListener('click', () => { if (current) addLine(menuSentence(current), !isNarrow()); });
-$('btnMoreReview').addEventListener('click', () => {
-  if (!current) return;
-  const q = pickUnused(null);
-  if (!q) { const st = $('status'); st.className = 'status'; st.textContent = '더 넣을 후기가 없어요.'; return; }
-  addQuote(q); $('tgReviews').checked = true; applyToggles();
-});
-$('btnReroll').addEventListener('click', () => {
-  if (!current) return;
-  // 지금 있는 후기 수만큼 새로 뽑는다 (첫 줄은 짧은 것, 둘째 줄은 긴 것, 그 뒤는 아무거나)
-  const n = Math.max(1, currentQuotes().length);
-  const before = new Set(currentQuotes());
-  $('quoteList').innerHTML = '';
-  for (let i = 0; i < n; i++) {
-    const kind = i === 0 ? 'short' : i === 1 ? 'long' : null;
-    const used = new Set([...currentQuotes(), ...before]);
-    const pool = (kind === 'short' ? reviewPool.short : kind === 'long' ? reviewPool.long : [...reviewPool.short, ...reviewPool.long]).filter(f => !used.has(f));
-    const q = pool.length ? sample(pool) : pickUnused(kind);
-    if (q) addQuote(q);
-  }
-  applyToggles();
-});
 $('btnReset').addEventListener('click', () => { if (current) fillCard(current); });
 
 // ───────── 사진 위치·확대 (끌어서 보이는 부분 조정) ─────────
@@ -833,11 +940,17 @@ function openSheet(el) {
     el.classList.contains('quote') ? '방문 후기' : el.id === 'noteEl' ? '코멘트' : el.id === 'closingEl' ? '오픈채팅 안내' : el.closest('.line') ? '문장' : '문구 수정';
   $('sheetText').value = el.textContent;
   $('sheetDelete').style.display = removable ? '' : 'none';
+  $('sheetPick').hidden = !el.classList.contains('quote');
   $('sheetBg').classList.add('on'); $('sheet').classList.add('on');
   document.body.classList.add('sheet-open');            // 시트가 떠 있는 동안 뒤 화면 스크롤 잠금
   setTimeout(() => $('sheetText').focus(), 50);
 }
-function closeSheet() { $('sheetBg').classList.remove('on'); $('sheet').classList.remove('on'); document.body.classList.remove('sheet-open'); sheetTarget = null; }
+function closeSheet() {
+  // '직접 쓰기'로 만든 빈 후기를 적용하지 않고 닫으면 빈 줄이 카드에 남지 않게 지운다
+  if (sheetTarget && sheetTarget.classList.contains('quote') && !sheetTarget.textContent.trim()) { const w = sheetTarget.closest('.qwrap'); if (w) w.remove(); applyToggles(); }
+  $('sheetBg').classList.remove('on'); $('sheet').classList.remove('on'); document.body.classList.remove('sheet-open'); sheetTarget = null;
+}
+$('sheetPick').addEventListener('click', () => { closeSheet(); $('rvList').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 $('card').addEventListener('click', e => {
   if (!isNarrow() || Date.now() < suppressClickUntil) return;
   const el = e.target.closest('[data-ed]');
@@ -853,7 +966,7 @@ $('sheetApply').addEventListener('click', () => {
 $('sheetDelete').addEventListener('click', () => { const r = sheetTarget && sheetTarget.closest('.line, .qwrap'); if (r) r.remove(); closeSheet(); });
 $('sheetCancel').addEventListener('click', closeSheet);
 $('sheetBg').addEventListener('click', closeSheet);
-$('mobileSave').addEventListener('click', () => $('btnRender').click());
+$('mobileSave').addEventListener('click', () => renderCurrent(false));
 const copyLinks = {};   // 가게(sid)별로 만든 추적 주소 — 복사를 여러 번 눌러도 링크를 새로 만들지 않게
 $('btnCopyLink').addEventListener('click', async () => {
   const u = current && current.u; if (!u) return;
@@ -866,13 +979,13 @@ $('btnCopyLink').addEventListener('click', async () => {
     } catch (e) {
       // 못 만들면 네이버 주소라도 복사하되, 클릭이 안 세진다는 걸 화면에 남긴다
       out = u;
-      $('status').className = 'status err';
-      $('status').textContent = '클릭 세는 주소를 못 만들어 네이버 주소를 복사했어요 (이 링크는 클릭 수 안 셈): ' + (e && e.message || e);
+      $('sendStatus').className = 'status err';
+      $('sendStatus').textContent = '클릭 세는 주소를 못 만들어 네이버 주소를 복사했어요 (이 링크는 클릭 수 안 셈): ' + (e && e.message || e);
     }
   }
   try { await navigator.clipboard.writeText(out); b.textContent = '복사됨'; }
   catch (e) { window.prompt('링크를 길게 눌러 복사하세요', out); }
-  setTimeout(() => { b.textContent = '복사'; }, 1500);
+  setTimeout(() => { b.textContent = '링크 복사'; }, 1500);
 });
 
 // ───────── 화면 맞춤 축소 ─────────
@@ -881,7 +994,7 @@ function fitStage() {
   const vw = document.documentElement.clientWidth || window.innerWidth;
   const vh = window.innerHeight;
   // PC: 오른쪽 패널(340px)을 뺀 영역에서 가로·세로 모두 들어가게 (세로가 보통 더 빡빡함 → 화면 높이에 맞춰 작아진다)
-  const availW = narrow ? vw - 28 : vw - 340 - 48;
+  const availW = narrow ? vw - 28 : vw - 380 - 48;
   const stripH = ($('strip') && $('strip').offsetHeight) || 0;
   const availH = narrow ? Infinity : vh - 40 - 28 - stripH - 10;
   const k = Math.min(1, availW / 1080, availH / 1560);
@@ -961,10 +1074,13 @@ async function bakeComposite(card, img, opts) {
   g.drawImage(layer, 0, 0, c.width, c.height);
   return c.toDataURL('image/jpeg', opts.quality || 0.9);
 }
-async function renderCurrent(batch) {
+// mode 'send': 보내기 직전에 지금 화면 그대로 새로 굽는다 — 내려받기·미리보기 없이 lastFile 만 만든다.
+// (예전엔 저장 뒤 글자를 고치고 보내면 고치기 전 카드가 나갔다. 보낼 때마다 새로 구우면 그럴 일이 없다)
+async function renderCurrent(batch, mode) {
   if (!current) return false;
+  const forSend = mode === 'send';
   const st = $('status'); st.className = 'status'; st.textContent = batch ? `이미지 굽는 중… (${active + 1}/${slots.length})` : '이미지 굽는 중… (5~15초, 처음엔 폰트를 받아서 더 걸려요)';
-  $('btnRender').disabled = true; $('mobileSave').disabled = true;
+  setMakeEnabled(false);
   document.activeElement && document.activeElement.blur();
   applyToggles();
   document.body.classList.add('capturing');
@@ -1014,6 +1130,8 @@ async function renderCurrent(batch) {
       slots[active].made = false; renderStrip(); persistLocal();
       return false;
     }
+    lastDataUrl = dataUrl;
+    if (forSend) { st.textContent = ''; return true; }
     const canShare = !!(navigator.canShare && navigator.canShare({ files: [lastFile] }));
     $('saved').innerHTML = `<img src="${dataUrl}" alt="완성된 카드">` +
       (canShare ? `<button class="btn primary share" id="btnShare" type="button">사진첩에 저장 / 공유</button>` : '');
@@ -1024,14 +1142,14 @@ async function renderCurrent(batch) {
     if (!canShare || !isNarrow()) { const a = document.createElement('a'); a.href = dataUrl; a.download = file; document.body.appendChild(a); a.click(); a.remove(); }
     st.textContent = canShare && isNarrow() ? `완성: ${file} — 아래 버튼으로 사진첩에 저장하세요` : `완성: ${file}`;
     slots[active].made = true; renderStrip(); persistLocal();
-    if (!batch) { openSendBox(); $('saved').scrollIntoView({ behavior: 'smooth', block: isNarrow() ? 'center' : 'nearest' }); }
+    if (!batch) $('saved').scrollIntoView({ behavior: 'smooth', block: isNarrow() ? 'center' : 'nearest' });
     return true;
   } catch (e) {
     st.className = 'status err'; st.textContent = '이미지 굽기 실패: ' + (e && e.message || e);
     return false;
   } finally {
     document.body.classList.remove('capturing');
-    $('btnRender').disabled = false; $('mobileSave').disabled = false;
+    setMakeEnabled(!!current);
   }
 }
 $('btnRender').addEventListener('click', () => renderCurrent(false));
@@ -1054,9 +1172,9 @@ $('btnRenderAll').addEventListener('click', async () => {
     activate(orig, false);
     // 전체 저장 뒤에는 '마지막으로 구운 카드'가 지금 보고 있는 칸과 다를 수 있다.
     // 그대로 두면 '트립코스로 보내기'가 엉뚱한 카드를 보낼 수 있어, 보낼 카드를 비우고 보내기 칸을 닫는다.
-    lastFile = null; $('sendbox').classList.remove('on');
+    lastFile = null;
     $('btnRenderAll').disabled = false;
-    const st = $('status'); st.className = 'status'; st.textContent = `전체 저장 끝: ${ok}/${targets.length}장 (보내려면 그 칸에서 '이미지 저장'을 한 번 더 눌러주세요)`;
+    const st = $('status'); st.className = 'status'; st.textContent = `전체 저장 끝: ${ok}/${targets.length}장`;
   }
 });
 // 휴대폰 전체 저장: 휴대폰은 파일이 자동으로 안 떨어지고 공유 시트로만 사진첩에 들어간다.
@@ -1080,7 +1198,7 @@ $('mobileSaveAll').addEventListener('click', async () => {
   } finally {
     activate(orig, false);                 // 원래 보던 칸으로 되돌림
     // 마지막으로 구운 카드가 지금 보고 있는 칸과 다를 수 있으므로 보낼 카드를 비운다(엉뚱한 카드 발송 방지)
-    lastFile = null; $('sendbox').classList.remove('on');
+    lastFile = null;
     $('mobileSaveAll').disabled = false;
   }
   if (!files.length) { st.className = 'status err'; st.textContent = '저장된 카드가 없어요.'; return; }
@@ -1177,11 +1295,12 @@ function clearCard() {
   $('dateEl').textContent = fmtDate(pickDate());
   $('sentEl').innerHTML = ''; $('quoteList').innerHTML = ''; $('noteEl').textContent = ''; $('closingEl').textContent = '';
   setPhoto(''); renderPhotoGrid([]); $('photoNote').textContent = '가게를 고르면 네이버에 등록된 사진을 불러와요.'; $('photo').value = '';
-  $('linkField').hidden = true;
-  $('btnRender').disabled = true; $('mobileSave').disabled = true;
+  setMakeEnabled(false);
   $('stageNote').textContent = '가게를 검색해서 골라주세요.';
-  $('status').textContent = ''; $('status').className = 'status'; $('saved').innerHTML = ''; $('sendbox').classList.remove('on'); lastFile = null;
+  $('status').textContent = ''; $('status').className = 'status'; $('saved').innerHTML = ''; lastFile = null;
+  $('dateStatus').textContent = '';
   $('frame').classList.add('is-empty');
+  renderReviewPicker();
 }
 function restoreState(st) {
   const p = PLACES.find(x => String(x.s) === String(st.sid));
@@ -1252,7 +1371,7 @@ function waitPhoto() {
   return new Promise(r => { const done = () => r(); img.addEventListener('load', done, { once: true }); img.addEventListener('error', done, { once: true }); setTimeout(done, 15000); });
 }
 function persistLocal() {
-  try { localStorage.setItem(LOCAL_BUNDLE_KEY, JSON.stringify({ slots, active, draftId: currentDraftId, draftAt: currentDraftAt })); } catch (e) { /* 저장 공간 부족 등 — 서버 임시저장이 본체라 무시 */ }
+  try { localStorage.setItem(LOCAL_BUNDLE_KEY, JSON.stringify({ slots, active, draftId: currentDraftId, draftAt: currentDraftAt, savedHash })); } catch (e) { /* 저장 공간 부족 등 — 서버 임시저장이 본체라 무시 */ }
 }
 function bundleTitle() {
   const filled = slots.filter(s => s.state);
@@ -1295,7 +1414,7 @@ function collectState() {
     reviewLabel: $('reviewsEl').querySelector('.reviews-label').textContent,
     quotes: currentQuotes(),
     note: $('noteEl').textContent, closing: $('closingEl').textContent,
-    toggles: { reviews: $('tgReviews').checked, note: $('tgNote').checked, closing: $('tgClosing').checked },
+    toggles: { reviews: $('quoteList').children.length > 0, note: $('tgNote').checked, closing: $('tgClosing').checked },
     photo: { url: currentPhotoUrl, zoom: photoView.zoom, left: photoView.left, top: photoView.top },
   };
 }
@@ -1304,9 +1423,10 @@ function applyState(s) {
   $('nameEl').textContent = s.name || ''; $('catEl').textContent = s.cat || ''; $('dateEl').textContent = s.dateText || $('dateEl').textContent;
   $('sentEl').innerHTML = ''; (s.lines || []).forEach(x => addLine(x));
   $('reviewsEl').querySelector('.reviews-label').textContent = s.reviewLabel || '실제 방문 후기';
-  $('quoteList').innerHTML = ''; (s.quotes || []).forEach(q => addQuote(q));
+  // 예전 초안에서 '후기 끔'으로 저장한 카드는 카드에 후기가 안 보였으므로 후기를 넣지 않는다(지금은 체크 개수가 곧 켜기/끄기)
+  $('quoteList').innerHTML = ''; if (!(s.toggles && s.toggles.reviews === false)) (s.quotes || []).forEach(q => addQuote(q));
   $('noteEl').textContent = s.note || ''; $('closingEl').textContent = s.closing || CLOSING_DEFAULT;
-  if (s.toggles) { $('tgReviews').checked = !!s.toggles.reviews; $('tgNote').checked = !!s.toggles.note; $('tgClosing').checked = !!s.toggles.closing; }
+  if (s.toggles) { $('tgNote').checked = !!s.toggles.note; $('tgClosing').checked = !!s.toggles.closing; }
   applyToggles();
   if (s.photo && s.photo.url) {
     const img = $('photoImg');
@@ -1325,31 +1445,106 @@ function applyState(s) {
   }
 }
 function fmtAt(iso) { const d = new Date(iso); return isNaN(d) ? '' : `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; }
-async function draftFetch(pathname, init) {
-  let tok = await ensureToken(false);
+// silent: 자동 저장용 — 비밀번호를 절대 묻지 않는다(토큰이 없거나 만료면 null)
+async function draftFetch(pathname, init, silent) {
+  let tok = silent ? (authFailed ? '' : (localStorage.getItem(TOKEN_KEY) || localStorage.getItem('gstAdminSession') || '')) : await ensureToken(false);
   if (!tok) return null;
   const run = token => fetch(`${ADMIN_API}${pathname}`, { ...(init || {}), headers: { ...((init && init.headers) || {}), Authorization: 'Bearer ' + token } });
   let r = await run(tok);
-  if (r.status === 401) { localStorage.removeItem(TOKEN_KEY); tok = await ensureToken(true); if (!tok) return null; r = await run(tok); }
+  if (r.status === 401) {
+    localStorage.removeItem(TOKEN_KEY);
+    if (silent) { authFailed = true; return null; }
+    tok = await ensureToken(true); if (!tok) return null; r = await run(tok);
+  }
   return r;
 }
 let draftCache = [];
-// 지금 누르면 무엇이 되는지 버튼에 그대로 쓴다 — 덮어쓰는 줄 모르고 다른 기기 것을 지우는 일을 막는다
-function updateDraftButtons() {
-  const editing = draftCache.find(d => d.id === currentDraftId);
-  $('btnDraftSave').textContent = currentDraftId ? '덮어쓰기 저장' : '묶음 임시저장';
-  $('btnDraftSave').title = currentDraftId ? `"${(editing && (editing.title || editing.place)) || '불러온 초안'}"에 덮어씁니다` : '';
-  $('btnDraftSaveNew').hidden = !currentDraftId;
+// ── 자동 저장 (2026-09-30): '묶음 임시저장' 버튼 4개를 없애고, 편집하는 동안 서버에 알아서 올린다 ──
+// 워커가 초안 요청을 IP당 10분 60회로 막는다. 한 번 저장 = 확인(GET)+저장(PUT) 2회라, 40초 간격이면 10분에 최대 30회로 여유가 있다.
+// 다른 기기가 그 사이 같은 묶음을 바꿨으면(2026-09-19 폰·PC 가 서로 덮어쓴 사고) 자동 저장을 멈추고 위에 선택지를 띄운다.
+const AUTOSAVE_GAP_MS = 40000;
+let savedHash = null;        // 서버에 마지막으로 올린 묶음 내용의 지문 — 같으면 안 올린다
+let lastSaveAt = 0, saving = false, saveError = '', authFailed = false;
+let conflict = null;         // 다른 기기가 바꾼 초안 {id, at, device, placeName}
+function hashStr(t) { let h = 5381; for (let i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0; return (h >>> 0) + ':' + t.length; }
+function bundleSlots() { return slots.map(x => ({ date: x.date, state: x.state, made: !!x.made, sent: !!x.sent })); }
+function bundleJson() { captureActive(); return JSON.stringify({ slots: bundleSlots(), active }); }
+function hasToken() { return !authFailed && !!(localStorage.getItem(TOKEN_KEY) || localStorage.getItem('gstAdminSession')); }
+// 사진이 아직 들어오는 중이면 확대·위치 값이 초기값이라 그 순간을 저장하면 안 된다
+function photoPending() { const img = $('photoImg'); return !!(img.getAttribute('src') && !(img.complete && img.naturalWidth)); }
+function setSaveState(kind, text) { const b = $('saveState'); b.className = 'savestate' + (kind ? ' ' + kind : ''); b.textContent = text || ''; }
+function refreshSaveState() {
+  if (conflict) return setSaveState('err', '자동 저장 멈춤');
+  if (!slots.some(x => x.state)) return setSaveState('', '');
+  if (!hasToken()) return setSaveState('act', '로그인하면 자동 저장');
+  if (saving) return setSaveState('', '저장 중…');
+  if (saveError) return setSaveState('err', '저장 실패 · 다시');
+  if (savedHash && savedHash === hashStr(bundleJson())) return setSaveState('ok', `✓ 자동 저장됨${currentDraftAt ? ' · ' + fmtAt(currentDraftAt).slice(6) : ''}`);
+  return setSaveState('', '저장 대기 중');
 }
+async function autosave(now, opts) {
+  opts = opts || {};
+  if (saving || restoringDraft || photoPending() || !hasToken() || (conflict && !opts.resolve) || !slots.some(x => x.state)) { refreshSaveState(); return false; }
+  const json = bundleJson(), h = hashStr(json);
+  if (h === savedHash && !opts.asNew) { refreshSaveState(); return true; }
+  if (!now && Date.now() - lastSaveAt < AUTOSAVE_GAP_MS) { refreshSaveState(); return false; }
+  saving = true; saveError = ''; refreshSaveState();
+  try {
+    const id = (!opts.asNew && currentDraftId) || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    if (id === currentDraftId && !opts.force) {
+      const chk = await draftFetch(`/card/drafts/${id}`, null, true).catch(() => null);
+      if (chk && chk.ok) {
+        const cur = await chk.json().catch(() => null);
+        if (cur && cur.at && currentDraftAt && cur.at !== currentDraftAt) { showConflict({ id, at: cur.at, device: cur.device, placeName: cur.placeName }); return false; }
+      }
+    }
+    const filled = slots.filter(x => x.state);
+    const state = { v: 2, kind: 'bundle', title: bundleTitle(), placeName: filled.map(slotName).filter(Boolean).join(', '), active,
+      at: new Date().toISOString(), device: deviceLabel(), slots: bundleSlots() };
+    const r = await draftFetch(`/card/drafts/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(state) }, true);
+    if (!r) return false;                                   // 로그인 만료 — 머리의 '로그인하면 자동 저장'으로 안내
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) throw new Error(j.error || 'HTTP ' + r.status);
+    currentDraftId = id; currentDraftAt = state.at; savedHash = h; lastSaveAt = Date.now();
+    // KV 목록 반영이 늦을 수 있어 화면 목록은 바로 고친다
+    draftCache = [{ id, title: j.title || state.title, place: state.placeName, at: j.at || state.at }, ...draftCache.filter(d => d.id !== id)];
+    if ($('draftsView').classList.contains('on')) renderDrafts();
+    persistLocal();
+    return true;
+  } catch (e) {
+    lastSaveAt = Date.now();                                // 실패해도 40초는 쉰다(요청 한도 보호)
+    saveError = String(e && e.message || e);
+    console.debug('자동 저장 실패:', saveError);
+    return false;
+  } finally { saving = false; refreshSaveState(); }
+}
+function showConflict(c) {
+  conflict = c;
+  $('conflictText').textContent = `이 묶음을 ${c.device ? c.device + '에서 ' : '다른 곳에서 '}${fmtAt(c.at)}에 바꿨어요 (${c.placeName || '내용 없음'}). 서로 덮어쓰지 않게 자동 저장을 멈췄어요.`;
+  $('conflictBar').hidden = false;
+  refreshSaveState();
+}
+function clearConflict() { conflict = null; $('conflictBar').hidden = true; }
+$('btnConflictMine').addEventListener('click', () => { clearConflict(); autosave(true, { force: true, resolve: true }); });
+$('btnConflictNew').addEventListener('click', () => { clearConflict(); autosave(true, { asNew: true }); });
+$('btnConflictTheirs').addEventListener('click', () => { const id = conflict && conflict.id; clearConflict(); if (id) loadDraft(id, true); });
+$('saveState').addEventListener('click', async () => {
+  if (conflict) { $('conflictBar').scrollIntoView({ block: 'nearest' }); return; }
+  if (!hasToken()) {
+    try { if (await ensureToken(true)) autosave(true); }
+    catch (e) { setSaveState('err', '로그인 실패'); }
+  } else if (saveError) autosave(true);
+});
+setInterval(() => autosave(false), 10000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { captureActive(); persistLocal(); autosave(true); } });
 function renderDrafts() {
   const box = $('drafts');
-  updateDraftButtons();
-  if (!draftCache.length) { box.innerHTML = '<div class="empty">임시저장한 카드가 없어요.</div>'; return; }
+  if (!draftCache.length) { box.innerHTML = '<div class="empty">저장된 묶음이 없어요.</div>'; return; }
   box.innerHTML = '';
   for (const d of draftCache) {
     const row = document.createElement('div'); row.className = 'row';
     row.innerHTML = `<div class="ttl"></div><button class="btn" type="button">불러오기</button><button class="btn danger" type="button">삭제</button>`;
-    row.querySelector('.ttl').innerHTML = `${esc(d.title || d.place || '(이름 없음)')}<small>${esc(fmtAt(d.at))}${d.id === currentDraftId ? ' · 편집 중' : ''}</small>`;
+    row.querySelector('.ttl').innerHTML = `${esc(d.title || d.place || '(이름 없음)')}<small>${esc(fmtAt(d.at))}${d.id === currentDraftId ? ' · 지금 편집 중' : ''}</small>`;
     row.children[1].addEventListener('click', () => loadDraft(d.id));
     row.children[2].addEventListener('click', () => deleteDraft(d.id));
     box.appendChild(row);
@@ -1358,44 +1553,16 @@ function renderDrafts() {
 async function listDrafts(silent) {
   const st = $('draftStatus');
   try {
-    const r = await draftFetch('/card/drafts'); if (!r) return;
+    const r = await draftFetch('/card/drafts'); if (!r) { $('drafts').innerHTML = '<div class="empty">어드민 비밀번호로 로그인하면 목록이 보여요.</div>'; return; }
     const j = await r.json(); if (!r.ok || !j.ok) throw new Error(j.error || 'HTTP ' + r.status);
-    draftCache = j.drafts || []; renderDrafts();
-    if (!silent) { st.className = 'status'; st.textContent = `임시저장 ${draftCache.length}건`; }
+    draftCache = j.drafts || []; renderDrafts(); refreshSaveState();
+    if (!silent) { st.className = 'status'; st.textContent = `저장된 묶음 ${draftCache.length}개`; }
   } catch (e) { st.className = 'status err'; st.textContent = '목록 실패: ' + (e && e.message || e); }
 }
-async function saveDraft(asNew) {
-  captureActive();
-  if (!slots.some(s => s.state)) { const st = $('draftStatus'); st.className = 'status'; st.textContent = '저장할 카드가 없어요. 가게를 먼저 골라주세요.'; return; }
-  const st = $('draftStatus'); st.className = 'status'; st.textContent = '저장 중…';
-  try {
-    let id = (!asNew && currentDraftId) || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-    // 덮어쓰기 전에 서버 쪽이 그 사이 바뀌었는지 본다. 폰에서 저장한 걸 PC가 모르고 덮어쓰던 일이 있었다(2026-09-19).
-    if (id === currentDraftId) {
-      const chk = await draftFetch(`/card/drafts/${id}`).catch(() => null);
-      if (chk && chk.ok) {
-        const cur = await chk.json().catch(() => null);
-        if (cur && cur.at && currentDraftAt && cur.at !== currentDraftAt) {
-          const who = cur.device ? `${cur.device}에서 ` : '';
-          const ok = window.confirm(`이 임시저장은 ${who}${fmtAt(cur.at)}에 바뀌었어요 (${cur.placeName || '내용 없음'}).\n\n확인: 지금 화면 내용으로 덮어씁니다\n취소: 새 임시저장으로 따로 저장합니다`);
-          if (!ok) id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-        }
-      }
-    }
-    const state = { v: 2, kind: 'bundle', title: bundleTitle(), placeName: slots.filter(s => s.state).map(slotName).filter(Boolean).join(', '), active,
-      at: new Date().toISOString(), device: deviceLabel(),
-      slots: slots.map(s => ({ date: s.date, state: s.state, made: !!s.made, sent: !!s.sent })) };
-    const r = await draftFetch(`/card/drafts/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(state) }); if (!r) { st.textContent = ''; return; }
-    const j = await r.json(); if (!r.ok || !j.ok) throw new Error(j.error || 'HTTP ' + r.status);
-    currentDraftId = id; currentDraftAt = state.at;
-    // KV 목록 반영이 늦을 수 있어 화면 목록은 바로 고친다
-    draftCache = [{ id, title: j.title || state.title, place: state.placeName, at: j.at }, ...draftCache.filter(d => d.id !== id)];
-    renderDrafts();
-    st.textContent = `임시저장됨 (${fmtAt(j.at)}, ${deviceLabel()})`;
-  } catch (e) { st.className = 'status err'; st.textContent = '저장 실패: ' + (e && e.message || e); }
-}
-async function loadDraft(id) {
+async function loadDraft(id, skipFlush) {
   const st = $('draftStatus'); st.className = 'status'; st.textContent = '불러오는 중…';
+  // 다른 묶음을 열기 전에 지금 묶음의 안 올라간 변경부터 올린다
+  if (!skipFlush && id !== currentDraftId && hasToken() && !conflict) await autosave(true);
   try {
     const r = await draftFetch(`/card/drafts/${id}`); if (!r) { st.textContent = ''; return; }
     const s = await r.json(); if (!r.ok || s.ok === false) throw new Error(s.error || 'HTTP ' + r.status);
@@ -1411,7 +1578,11 @@ async function loadDraft(id) {
       activate(0, false);
     }
     renderDrafts();
-    st.textContent = `불러왔어요${s.device ? ` (${s.device}에서 ${fmtAt(s.at)} 저장)` : ''}. 고친 뒤 "덮어쓰기 저장"을 누르면 이 초안에 덮어써요.`;
+    st.textContent = `불러왔어요${s.device ? ` (${s.device}에서 ${fmtAt(s.at)} 저장)` : ''}.`;
+    // 불러온 내용이 곧 서버 내용이다 — 사진 위치까지 다 들어온 뒤 지문을 떠서, 안 고쳤으면 다시 올리지 않게 한다
+    saveError = ''; lastSaveAt = Date.now();
+    waitPhoto().then(() => setTimeout(() => { if (currentDraftId === id) { savedHash = hashStr(bundleJson()); persistLocal(); refreshSaveState(); } }, 80));
+    closeDrawers();
     if (isNarrow()) document.querySelector('.stage').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) { st.className = 'status err'; st.textContent = '불러오기 실패: ' + (e && e.message || e); }
 }
@@ -1421,15 +1592,20 @@ async function deleteDraft(id) {
   try {
     const r = await draftFetch(`/card/drafts/${id}`, { method: 'DELETE' }); if (!r) return;
     const j = await r.json(); if (!r.ok || !j.ok) throw new Error(j.error || 'HTTP ' + r.status);
-    draftCache = draftCache.filter(d => d.id !== id); if (currentDraftId === id) { currentDraftId = null; currentDraftAt = null; } renderDrafts();
+    draftCache = draftCache.filter(d => d.id !== id); if (currentDraftId === id) { currentDraftId = null; currentDraftAt = null; savedHash = null; persistLocal(); } renderDrafts(); refreshSaveState();
     st.className = 'status'; st.textContent = '지웠어요.';
   } catch (e) { st.className = 'status err'; st.textContent = '삭제 실패: ' + (e && e.message || e); }
 }
-$('btnDraftSave').addEventListener('click', () => saveDraft(false));
-$('btnDraftSaveNew').addEventListener('click', () => saveDraft(true));   // 불러온 초안은 그대로 두고 따로 저장
-$('btnDraftList').addEventListener('click', () => listDrafts(false));
-// 토큰이 이미 있으면(전에 로그인한 기기) 열자마자 목록을 조용히 채운다 — 비밀번호는 안 묻는다
-if (localStorage.getItem('gs-card-maker-token')) setTimeout(() => listDrafts(true), 300);
+$('btnOpenDrafts').addEventListener('click', () => { openDrawer('draftsView'); listDrafts(false); });
+$('btnNewBundle').addEventListener('click', async () => {
+  const msg = hasToken() ? '지금 묶음은 서버에 저장해 두고 새 묶음을 시작할까요? (불러오기 목록에 남아요)'
+    : '로그인이 안 돼 있어서 지금 묶음은 서버에 없어요. 새로 시작하면 지금 카드는 이 기기에서도 사라져요. 계속할까요?';
+  if (!window.confirm(msg)) return;
+  if (hasToken() && !conflict) await autosave(true);
+  slots = [newSlot(ymdOf(new Date()))];
+  currentDraftId = null; currentDraftAt = null; savedHash = null; saveError = '';
+  activate(0, false); renderDrafts(); closeDrawers(); refreshSaveState();
+});
 
 // ───────── 트립코스 채널로 보내기 ─────────
 // 어드민 비밀번호로 한 번 로그인하면(토큰은 이 기기에 저장) 이후엔 바로 보내진다. 자동 추천(매일 11시)은 껐고 이 버튼이 그 자리를 대신한다.
@@ -1446,12 +1622,6 @@ function sendMessageDefault() {
   return src.split('\n').filter(line => !Object.entries(vars).some(([k, v]) => line.includes(k) && !v))
     .map(line => Object.entries(vars).reduce((s, [k, v]) => s.split(k).join(v), line)).join('\n');
 }
-function openSendBox() {
-  if (!lastFile) return;
-  $('sendText').value = sendMessageDefault();
-  $('sendStatus').textContent = ''; $('sendStatus').className = 'status';
-  $('sendbox').classList.add('on');
-}
 async function ensureToken(force) {
   // 같은 주소(mgrv-company.github.io)의 admin.html 에 로그인돼 있으면 그 세션을 그대로 쓴다 — 비밀번호를 또 안 물어봄
   let tok = force ? '' : (localStorage.getItem(TOKEN_KEY) || localStorage.getItem('gstAdminSession') || '');
@@ -1462,6 +1632,7 @@ async function ensureToken(force) {
   const j = await r.json().catch(() => ({}));
   if (!r.ok || !j.token) throw new Error(j.error || '로그인 실패');
   localStorage.setItem(TOKEN_KEY, j.token);
+  authFailed = false;
   return j.token;
 }
 // '복사' 버튼용 — 서버에 클릭 세는 주소(/go/번호)를 만들어 받는다 (로그인 필요)
@@ -1479,18 +1650,20 @@ $('btnSend').addEventListener('click', async () => {
   if (!lastFile) return;
   const text = $('sendText').value.trim();
   if (!text) { $('sendStatus').className = 'status err'; $('sendStatus').textContent = '문구가 비어 있어요.'; return; }
-  if (!window.confirm(slots[active] && slots[active].sent ? '이미 보낸 카드예요. 다시 보낼까요?' : '트립코스 채널로 지금 보낼까요?')) return;
+  // 확인 화면(이 서랍)을 한 번 거치므로 처음 보낼 땐 묻지 않는다. 이미 보낸 칸만 한 번 더 묻는다.
+  if (slots[active] && slots[active].sent && !window.confirm('이미 보낸 카드예요. 다시 보낼까요?')) return;
   const b = $('btnSend'), st = $('sendStatus');
   b.disabled = true; st.className = 'status'; st.textContent = '보내는 중…';
   try {
     let tok = await ensureToken(false);
     if (!tok) { st.textContent = ''; return; }
+    const link = (current && current.u) || '';
     const post = async (token) => {
       const fd = new FormData();
       fd.append('image', lastFile, lastFile.name);
       fd.append('text', text);
       fd.append('name', $('nameEl').textContent.trim());
-      fd.append('link', (current && current.u) || '');   // 서버가 문구 속 이 주소를 클릭 세는 주소로 바꿈
+      fd.append('link', link);   // 서버가 문구 속 이 주소를 클릭 세는 주소로 바꿈
       fd.append('sid', current ? String(current.s) : '');
       return fetch(`${ADMIN_API}/card/send`, { method: 'POST', headers: { Authorization: 'Bearer ' + token }, body: fd });
     };
@@ -1498,13 +1671,167 @@ $('btnSend').addEventListener('click', async () => {
     if (r.status === 401) { localStorage.removeItem(TOKEN_KEY); tok = await ensureToken(true); if (!tok) { st.textContent = ''; return; } r = await post(tok); }
     const j = await r.json().catch(() => ({}));
     if (!r.ok || !j.ok) throw new Error(j.error || ('HTTP ' + r.status));
-    st.textContent = '트립코스 채널로 보냈어요.';
+    st.textContent = '';
     slots[active].sent = true; renderStrip(); persistLocal();
-    b.textContent = '보냄 (다시 보내려면 클릭)';
+    // 카톡용 문구 = 슬랙으로 나간 문구 그대로. 서버가 바꾼 것과 똑같이 네이버 주소를 클릭 세는 주소로 바꾼다.
+    // (슬랙 PC 앱에서 복사하면 🔗 가 :link: 글자로 바뀌어 붙어서, 여기서 바로 복사하게 했다 — 2026-09-30)
+    $('copyText').textContent = (j.goUrl && link && text.includes(link)) ? text.split(link).join(j.goUrl) : text;
+    const nx = slots[active + 1];
+    $('btnDoneNext').textContent = nx ? `다음 칸 (${slotLabel(nx)})` : (slots.length < MAX_SLOTS ? '다음 날 칸 추가' : '닫기');
+    $('sendCompose').hidden = true; $('sendFoot').hidden = true; $('sendDone').hidden = false;
   } catch (e) {
     st.className = 'status err'; st.textContent = '발송 실패: ' + (e && e.message || e);
   } finally { b.disabled = false; }
 });
+$('btnCopyKakao').addEventListener('click', async () => {
+  const t = $('copyText').textContent, b = $('btnCopyKakao');
+  let ok = false;
+  try { await navigator.clipboard.writeText(t); ok = true; }
+  catch (e) {
+    // 클립보드 권한이 없는 브라우저: 글을 선택해 복사 명령으로 (prompt 는 줄바꿈이 사라져서 안 쓴다)
+    const range = document.createRange(); range.selectNodeContents($('copyText'));
+    const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    try { ok = document.execCommand('copy'); } catch (e2) { ok = false; }
+  }
+  b.textContent = ok ? '복사됨 · 카톡에 붙여넣으세요' : '선택된 글을 길게 눌러 복사하세요';
+  setTimeout(() => { b.textContent = '카톡용 문구 복사'; }, 2200);
+});
+$('btnDoneNext').addEventListener('click', () => {
+  closeDrawers();
+  if (slots[active + 1]) activate(active + 1);
+  else if (slots.length < MAX_SLOTS) addSlot();
+  if (isNarrow()) document.querySelector('.stage').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+$('btnSendSaveImg').addEventListener('click', saveLastImage);
+$('btnDoneSaveImg').addEventListener('click', saveLastImage);
+$('btnSendFlow').addEventListener('click', startSend);
+$('mobileSend').addEventListener('click', startSend);
+let lastDataUrl = '';        // 마지막으로 구운 카드 (보내기 서랍의 미리보기·저장용)
+async function startSend() {
+  if (!current) return;
+  const btns = [$('btnSendFlow'), $('mobileSend')];
+  btns.forEach(b => { b.textContent = '카드 만드는 중…'; });
+  let ok = false;
+  try { ok = await renderCurrent(false, 'send'); }
+  finally { btns.forEach(b => { b.textContent = '트립코스로 보내기'; }); setMakeEnabled(!!current); }
+  if (!ok || !lastFile) { $('status').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+  const s = slots[active];
+  $('sendTitle').textContent = `${slotLabel(s)} · ${$('nameEl').textContent.trim() || current.n} 보내기`;
+  $('sendThumb').src = lastDataUrl;
+  $('sendText').value = sendMessageDefault();
+  $('sendStatus').textContent = ''; $('sendStatus').className = 'status';
+  $('sendCompose').hidden = false; $('sendDone').hidden = true; $('sendFoot').hidden = false;
+  $('btnSend').textContent = s.sent ? '다시 보내기 (이미 보낸 칸)' : '트립코스 채널에 지금 보내기';
+  openDrawer('sendView');
+}
+// 휴대폰은 공유 시트로 사진첩에, PC 는 파일로 내려받는다
+async function saveLastImage() {
+  if (!lastFile || !lastDataUrl) return;
+  const canShare = isNarrow() && !!(navigator.canShare && navigator.canShare({ files: [lastFile] }));
+  if (canShare) {
+    try { await navigator.share({ files: [lastFile], title: lastFile.name }); }
+    catch (e) { if (e && e.name !== 'AbortError') { $('sendStatus').className = 'status err'; $('sendStatus').textContent = '사진첩 저장 실패: ' + e.message; } }
+    return;
+  }
+  const a = document.createElement('a'); a.href = lastDataUrl; a.download = lastFile.name; document.body.appendChild(a); a.click(); a.remove();
+}
+
+// ───────── 서랍 (보내기·불러오기·기본 문구) ─────────
+function openDrawer(id) { closeDrawers(); $(id).classList.add('on'); $('drBg').classList.add('on'); document.body.classList.add('sheet-open'); }
+function closeDrawers() { document.querySelectorAll('.drawer.on').forEach(d => d.classList.remove('on')); $('drBg').classList.remove('on'); document.body.classList.remove('sheet-open'); }
+$('drBg').addEventListener('click', closeDrawers);
+document.querySelectorAll('.drawer [data-close]').forEach(b => b.addEventListener('click', closeDrawers));
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.querySelector('.drawer.on')) closeDrawers(); });
+$('btnOpenTpl').addEventListener('click', () => openDrawer('tplView'));
+function setMakeEnabled(on) { ['btnRender', 'mobileSave', 'btnSendFlow', 'mobileSend'].forEach(id => { $(id).disabled = !on; }); }
+
+// ───────── 후기 고르기 ─────────
+// 후보 = 네이버 리뷰에서 뽑은 긍정 문장 전부. 카드의 후기(#quoteList)가 진실이고, 목록은 그걸 비춰 보인다.
+// 목록에 없는 문장(직접 쓰거나 카드에서 고친 것)은 맨 위에 '직접 씀'으로 따로 보인다.
+const reviewCandidates = () => [...new Set([...reviewPool.short, ...reviewPool.long])];
+function renderReviewPicker() {
+  const box = $('rvList'), keep = box.scrollTop;
+  if (!current) { box.innerHTML = '<div class="rv-empty">가게를 고르면 후기 후보가 나와요.</div>'; box._rows = []; $('rvMeta').textContent = ''; return; }
+  const chosen = currentQuotes().filter(Boolean);
+  const cands = reviewCandidates();
+  const rows = [...chosen.filter(q => !cands.includes(q)).map(t => ({ t, custom: true })), ...cands.map(t => ({ t }))];
+  $('rvMeta').textContent = `카드에 ${chosen.length}개 · 후보 ${cands.length}개`;
+  box._rows = rows;
+  if (!rows.length) { box.innerHTML = '<div class="rv-empty">이 가게는 고를 후기 문장이 없어요. "직접 쓰기"로 넣을 수 있어요.</div>'; return; }
+  box.innerHTML = rows.map((r, i) => {
+    const n = chosen.indexOf(r.t);
+    return `<label class="rv${n >= 0 ? ' on' : ''}"><input type="checkbox" data-i="${i}"${n >= 0 ? ' checked' : ''}><span class="t">${esc(r.t)}${r.custom ? '<small>직접 씀</small>' : ''}</span>${n >= 0 ? `<span class="no">${n + 1}</span>` : ''}</label>`;
+  }).join('');
+  box.scrollTop = keep;
+}
+$('rvList').addEventListener('change', e => {
+  const cb = e.target.closest('input[data-i]'); if (!cb || !current) return;
+  const row = ($('rvList')._rows || [])[Number(cb.dataset.i)]; if (!row) return;
+  if (cb.checked) addQuote(row.t);
+  else { const w = [...$('quoteList').querySelectorAll('.qwrap')].find(x => x.querySelector('.quote').textContent.trim() === row.t); if (w) w.remove(); }
+  applyToggles();
+});
+$('btnQuoteAdd').addEventListener('click', () => {
+  if (!current) return;
+  const w = addQuote(''); applyToggles();
+  const q = w.querySelector('.quote');
+  if (isNarrow()) openSheet(q); else { q.scrollIntoView({ block: 'nearest' }); q.focus(); }
+});
+// 카드 본문이 바뀔 때마다(체크·직접 고치기·시트 편집·불러오기) 목록·넘침·요약줄을 다시 맞춘다
+let cardWatchTimer = 0;
+new MutationObserver(() => { clearTimeout(cardWatchTimer); cardWatchTimer = setTimeout(() => { renderReviewPicker(); applyToggles(); updatePeek(); }, 60); })
+  .observe($('card').querySelector('.body'), { childList: true, subtree: true, characterData: true });
+// 카드 높이는 1560px 고정이라 글이 많으면 아래가 잘려 나간다 — 본문 끝이 카드 밖으로 나가는지 본다
+function cardOverflows() { const b = $('card').querySelector('.body'); return !!current && b.offsetTop + b.offsetHeight > 1561; }
+function checkOverflow() {
+  const over = cardOverflows();
+  $('rvOverflow').textContent = over ? '카드 아래가 넘쳐서 잘려요. 후기를 빼거나 짧은 걸로 바꿔주세요.' : '';
+  return over;
+}
+
+// ───────── 날짜만 바꾸기 ─────────
+// 요일에 따라 달라지는 문장(영업시간/휴무)만 새 날짜 것으로 바꾸고, 손으로 고친 문장은 건드리지 않는다.
+function retimeCard(oldYmd, newYmd) {
+  if (!current || oldYmd === newYmd) return;
+  const oldD = parseYmd(oldYmd), newD = parseYmd(newYmd);
+  const olds = buildSentences(current, oldD), news = buildSentences(current, newD);
+  const gone = olds.filter(x => !news.includes(x)), added = news.filter(x => !olds.includes(x));
+  const lines = [...$('sentEl').querySelectorAll('.line')];
+  const textOf = l => l.querySelector('.txt').textContent.trim();
+  const notes = [];
+  if (gone.length || added.length) {
+    const hit = lines.find(l => gone.includes(textOf(l)));
+    if (hit) { if (added[0]) hit.querySelector('.txt').textContent = added[0]; else hit.remove(); }
+    else if (!gone.length && added[0]) {
+      // 전 날짜엔 없던 문장(그 요일 영업 정보가 없었음): 새 날짜 문장 목록의 순서대로 끼워 넣는다
+      const idx = news.indexOf(added[0]);
+      const prev = lines.find(l => textOf(l) === news[idx - 1]);
+      const nl = addLine(added[0]);
+      if (prev) prev.after(nl); else if (idx === 0) $('sentEl').prepend(nl);
+    } else if (added[0]) notes.push(`영업시간 문장은 직접 고쳐 둬서 그대로 뒀어요. 새 날짜 기준: "${added[0]}"`);
+  }
+  if ($('dateEl').textContent.trim() === fmtDate(oldD)) $('dateEl').textContent = fmtDate(newD);
+  else notes.push(`카드 아래 날짜는 직접 고쳐 둬서 그대로 뒀어요 (${fmtDate(newD)}).`);
+  const st = $('dateStatus'); st.className = 'status'; st.textContent = notes.join(' ');
+}
+
+// ───────── 휴대폰 맨 위 카드 요약 ─────────
+let frameVisible = true;
+function updatePeek() {
+  const pk = $('peek');
+  if (!isNarrow() || !current) { pk.classList.remove('on'); return; }
+  const s = slots[active];
+  $('peekTitle').textContent = `${s ? slotLabel(s) + ' ' : ''}${$('nameEl').textContent.trim() || current.n}`;
+  const over = cardOverflows();
+  $('peekSub').textContent = `후기 ${currentQuotes().filter(Boolean).length}개 · ${over ? '카드가 넘쳐요' : '넘침 없음'}`;
+  $('peekSub').classList.toggle('bad', over);
+  const pi = $('peekImg');
+  if (currentPhotoUrl) { if (pi.dataset.u !== currentPhotoUrl) { pi.src = currentPhotoUrl.startsWith('data:') ? currentPhotoUrl : proxied(currentPhotoUrl); pi.dataset.u = currentPhotoUrl; } pi.style.display = ''; }
+  else pi.style.display = 'none';
+  pk.classList.toggle('on', !frameVisible);
+}
+new IntersectionObserver(es => { frameVisible = es[0].isIntersecting; updatePeek(); }, { threshold: 0.12 }).observe($('frame'));
+$('peekBtn').addEventListener('click', () => document.querySelector('.stage').scrollIntoView({ behavior: 'smooth', block: 'start' }));
 
 function ymd() { const t = new Date(); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
@@ -1525,7 +1852,9 @@ renderPhotoGrid([]);
     slots = [newSlot($('date').value || ymdOf(new Date()))];
     activate(0, false);
   }
-  updateDraftButtons();
+  savedHash = (saved && saved.savedHash) || null;
+  persistLocal();
+  setTimeout(refreshSaveState, 400);
 })();
 fitStage();
 </script>
