@@ -8803,5 +8803,24 @@
   "thumb": "",
   "naver": "https://map.naver.com/p/entry/place/1691628985",
   "guessed": false
+ },
+ {
+  "name": "홍연식당",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 7.98,
+  "address": "강원 속초시 중앙로 394",
+  "lat": 38.2232135,
+  "lng": 128.5892084,
+  "sid": "1677482329",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1677482329",
+  "guessed": false
  }
 ]
