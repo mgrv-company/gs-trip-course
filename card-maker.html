@@ -368,7 +368,7 @@
     </div>
 
     <div class="field kakao" id="kakaoField" hidden>
-      <div class="lbl">카톡에 올릴 문구 · 트립코스로 보낸 그대로</div>
+      <div class="lbl">카톡에 올릴 문구 · 링크 두 줄만</div>
       <div class="copybox" id="kakaoText"></div>
       <button class="btn primary" id="btnKakaoCopy" type="button">카톡용 문구 복사</button>
     </div>
@@ -1686,7 +1686,7 @@ $('btnSend').addEventListener('click', async () => {
     // 카톡용 문구 = 슬랙으로 나간 문구 그대로. 서버가 바꾼 것과 똑같이 네이버 주소를 클릭 세는 주소로 바꾼다.
     // (슬랙 PC 앱에서 복사하면 🔗 가 :link: 글자로 바뀌어 붙어서, 여기서 바로 복사하게 했다 — 2026-09-30)
     // 칸에 보관해 서랍을 닫은 뒤에도 패널의 '카톡에 올릴 문구' 칸에서 다시 복사할 수 있다(2026-10-01 요청)
-    const kakao = (j.goUrl && link && text.includes(link)) ? text.split(link).join(j.goUrl) : text;
+    const kakao = kakaoLines((j.goUrl && link && text.includes(link)) ? text.split(link).join(j.goUrl) : text);
     slots[active].sent = true; slots[active].kakao = kakao; renderStrip(); persistLocal();
     $('copyText').textContent = kakao;
     const nx = slots[active + 1];
@@ -1696,8 +1696,16 @@ $('btnSend').addEventListener('click', async () => {
     st.className = 'status err'; st.textContent = '발송 실패: ' + (e && e.message || e);
   } finally { b.disabled = false; }
 });
+// 카톡에는 링크 줄(🔗 로 시작하는 줄)만 올린다 — 가게 이름·코멘트 줄은 카드 그림에 이미 있다(2026-10-02 사용자 요청).
+// 🔗 줄이 없으면 주소가 든 줄, 그것도 없으면 전체.
+function kakaoLines(text) {
+  const lines = String(text || '').split('\n').map(x => x.trim());
+  const pick = lines.filter(x => x.startsWith('🔗'));
+  const withUrl = lines.filter(x => /https?:\/\//.test(x));
+  return (pick.length ? pick : withUrl.length ? withUrl : [String(text || '').trim()]).join('\n');
+}
 function renderKakaoBox() {
-  const s = slots[active], t = (s && s.kakao) || '';
+  const s = slots[active], t = kakaoLines((s && s.kakao) || '');
   $('kakaoField').hidden = !t;
   $('kakaoText').textContent = t;
 }
