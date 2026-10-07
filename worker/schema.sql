@@ -165,3 +165,18 @@ CREATE TABLE IF NOT EXISTS card_blobs (
   PRIMARY KEY (key, idx)
 );
 CREATE INDEX IF NOT EXISTS idx_card_blobs_created ON card_blobs(created_at);
+
+-- 추천 가게 모음 (picks.html, 2026-10-07): 카드 만들기에서 트립코스로 보낸 카드를 날짜별로 한 장씩 보관.
+-- day 가 키라 같은 날짜 카드를 다시 보내면 마지막 것이 이전 것을 대신한다(수정본 재발송).
+-- hidden=1 은 보냈지만 손님에게 안 나간 카드(어드민 '모음에서 숨기기').
+CREATE TABLE IF NOT EXISTS picks (
+  day        TEXT PRIMARY KEY,              -- 카드에 찍힌 날짜 YYYY-MM-DD (보낸 날이 아님 — 묶음으로 미리 보내는 카드가 있다)
+  sid        TEXT NOT NULL DEFAULT '',
+  name       TEXT NOT NULL DEFAULT '',
+  cat        TEXT NOT NULL DEFAULT '',      -- 업종(네이버 분류 그대로)
+  target     TEXT NOT NULL DEFAULT '',      -- 네이버 지도 주소
+  card       TEXT NOT NULL DEFAULT '',      -- 전체 카드 그림 KV 키
+  thumb      TEXT NOT NULL DEFAULT '',      -- 작은 그림: KV 키 또는 절대 주소(지난 카드는 사이트 picks/thumbs/)
+  hidden     INTEGER NOT NULL DEFAULT 0,
+  sent_at    TEXT NOT NULL
+);

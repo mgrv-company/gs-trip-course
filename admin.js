@@ -531,6 +531,8 @@ async function loadViews() {
   } catch (e) {
     $('#vCardLinks').textContent = '불러오기 실패: ' + e.message;
   }
+  // 9-2) 추천 가게 모음(picks.html) 목록 — 숨기기/되살리기, 지난 카드 넣기 (2026-10-07)
+  await loadPicks();
   await loadWeeklyReport();
   // 10) 오픈채팅 트립코스 바로가기(네이버 짧은 주소) — 지난주 숫자 입력칸
   try {
@@ -543,6 +545,36 @@ async function loadViews() {
   } catch (e) {
     $('#slWeekLabel').textContent = '짧은 주소 조회수 불러오기 실패: ' + e.message;
   }
+}
+// 추천 가게 모음(워크앤스테이 가이드 picks.html)에 든 카드 목록. 보냈지만 카톡에 안 올린 카드는 여기서 숨긴다 (2026-10-07)
+async function loadPicks() {
+  const box = $('#vPicks'); if (!box) return;
+  const msg = $('#picksBackfillMsg');
+  try {
+    const picks = (await api('/admin/picks')).picks || [];
+    const md = d => Number(d.slice(5, 7)) + '/' + Number(d.slice(8, 10));
+    box.innerHTML = picks.length
+      ? picks.map(x => '<div class="lowitem"><b>' + esc(md(x.day)) + '</b> ' + esc(x.name) + (x.cat ? ' <span class="small">· ' + esc(x.cat) + '</span>' : '')
+          + (x.hidden ? ' <span class="small">(숨김)</span>' : '')
+          + ' <button class="btn ghost sm" type="button" data-pick-day="' + esc(x.day) + '" data-pick-hidden="' + (x.hidden ? 0 : 1) + '">' + (x.hidden ? '다시 보이기' : '모음에서 숨기기') + '</button></div>').join('')
+      : '<div class="lowitem small">아직 모음에 든 카드가 없어요. 위 "지난 카드 22장 넣기"를 눌러 주세요.</div>';
+    box.onclick = async e => {
+      const b = e.target.closest('[data-pick-day]'); if (!b) return;
+      b.disabled = true;
+      try { await api('/admin/picks/hide', { method: 'POST', body: JSON.stringify({ day: b.dataset.pickDay, hidden: b.dataset.pickHidden === '1' }) }); await loadPicks(); }
+      catch (err) { msg.textContent = '실패: ' + err.message; b.disabled = false; }
+    };
+    const bf = $('#btnPicksBackfill');
+    if (bf) bf.onclick = async () => {
+      bf.disabled = true; msg.textContent = '넣는 중…';
+      try {
+        const r = await api('/admin/picks/backfill', { method: 'POST' });
+        msg.textContent = r.skipped ? '이미 넣었어요.' : ('새로 ' + r.inserted + '장 · 이미 있던 ' + r.kept + '장 · 그림 보관 연장 ' + r.relinked + '장' + (r.missingImage && r.missingImage.length ? ' · 그림 없음 ' + r.missingImage.length + '장' : ''));
+        await loadPicks();
+      } catch (err) { msg.textContent = '실패: ' + err.message; }
+      finally { bf.disabled = false; }
+    };
+  } catch (e) { box.textContent = '불러오기 실패: ' + e.message; }
 }
 // 트립코스 주간 보고 — 슬랙과 같은 숫자를 표로 보여주고, 노션에 붙일 마크다운을 들고 있는다
 let _wrMarkdown = '';

@@ -1676,6 +1676,11 @@ $('btnSend').addEventListener('click', async () => {
       fd.append('name', $('nameEl').textContent.trim());
       fd.append('link', link);   // 서버가 문구 속 이 주소를 클릭 세는 주소로 바꿈
       fd.append('sid', current ? String(current.s) : '');
+      // 추천 가게 모음(picks.html)용 — 카드에 찍힌 날짜(이 칸의 날짜)·업종·목록용 작은 그림 (2026-10-07)
+      fd.append('day', (slots[active] && slots[active].date) || $('date').value || '');
+      fd.append('cat', $('catEl').textContent.trim());
+      const thumb = await makeThumb(lastDataUrl);
+      if (thumb) fd.append('thumb', thumb, 'thumb.jpg');
       return fetch(`${ADMIN_API}/card/send`, { method: 'POST', headers: { Authorization: 'Bearer ' + token }, body: fd });
     };
     let r = await post(tok);
@@ -1696,6 +1701,17 @@ $('btnSend').addEventListener('click', async () => {
     st.className = 'status err'; st.textContent = '발송 실패: ' + (e && e.message || e);
   } finally { b.disabled = false; }
 });
+// 추천 가게 모음 목록용 작은 그림(가로 720px, JPEG 0.78, 100KB 안팎). 원본(1MB 안팎)을 목록에 다 띄우면 휴대폰에서 무거워서.
+// 실패하면 서버가 원본을 대신 쓰므로 발송은 막지 않는다.
+async function makeThumb(dataUrl) {
+  try {
+    const img = new Image(); img.src = dataUrl; await img.decode();
+    const w = 720, h = Math.round(img.naturalHeight * w / img.naturalWidth);
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    c.getContext('2d').drawImage(img, 0, 0, w, h);
+    return await new Promise(r => c.toBlob(r, 'image/jpeg', 0.78));
+  } catch (e) { console.debug('작은 그림 실패(원본으로 대신):', e && e.message); return null; }
+}
 // 카톡에는 링크 줄(🔗 로 시작하는 줄)만 올린다 — 가게 이름·코멘트 줄은 카드 그림에 이미 있다(2026-10-02 사용자 요청).
 // 🔗 줄이 없으면 주소가 든 줄, 그것도 없으면 전체.
 function kakaoLines(text) {

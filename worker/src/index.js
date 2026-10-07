@@ -8,6 +8,9 @@
 // 비밀값(코드 밖, wrangler secret): ADMIN_PASSWORD, SLACK_WEBHOOK
 // 공개값(wrangler.jsonc vars): FB_TOKEN
 
+import PICKS_BACKFILL from './picks-backfill.js';   // 모음 페이지 이전에 보낸 카드 22장 (2026-10-07)
+
+const SITE_URL = 'https://mgrv-company.github.io/gs-trip-course';   // 투숙객 페이지 주소 (지난 카드 작은 그림이 여기 있다)
 const SESSION_DAYS = 60;            // 어드민 로그인 유지 기간
 const FB_LIMIT = 15;                // 피드백: 10분당 최대 건수
 const LOGIN_LIMIT = 10;             // 로그인 시도: IP당 10분에 최대 횟수 (무차별 대입 방지)
@@ -21,7 +24,7 @@ const NAVER_PHOTO_LIMIT = 40;      // 네이버 사진 목록(/public/naver-phot
 const NAVER_PHOTO_CACHE_MS = 3600000; // 네이버 사진 목록 메모리 캐시 1시간
 const CARD_SEND_LIMIT = 20;        // 카드 트립코스 발송: IP당 10분 최대 (로그인 필요하지만 실수 연타 방지)
 const CARD_MAX_BYTES = 6 * 1024 * 1024;   // 카드 이미지 최대 크기 (JPEG 0.9 기준 1MB 안팎, 여유 있게)
-const CARD_TTL_SEC = 180 * 86400;  // KV 보관 기간 — 슬랙에서 다시 열어볼 수 있게 6개월
+// (2026-10-07) 카드 그림 KV 보관 기한 6개월 → 없음. 추천 가게 모음(picks.html)에서 계속 보여야 해서. 지난 카드는 backfillPicks() 가 다시 넣는다.
 const DRAFT_MAX_BYTES = 4 * 1024 * 1024;  // 임시저장 1건 최대 (내 사진을 넣으면 data: 주소가 포함돼 수백 KB)
 const DRAFT_TTL_SEC = 90 * 86400;  // 임시저장 보관 기간 3개월 (그 뒤 자동 삭제)
 const DRAFT_LIMIT = 60;            // 임시저장 읽기/쓰기: IP당 10분 최대
@@ -155,6 +158,30 @@ async function visitorHash(env, day, req) {
   const raw = [day, req.headers.get('CF-Connecting-IP') || 'local', req.headers.get('User-Agent') || '', env.ADMIN_PASSWORD || ''].join('|');
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
   return Array.from(new Uint8Array(buf).slice(0, 8), b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// ── 추천 가게 모음: 모음 페이지를 만들기 전(2026-09-14~10-07)에 보낸 카드 22장을 picks 표에 넣고 그림 보관 기한을 없앤다 ──────
+// 여러 번 돌아도 안전: 한 번 끝나면 settings.picks_backfill='done' 으로 건너뛰고, 날짜가 이미 있으면 그 줄은 안 건드린다.
+// sid·네이버 주소는 보낼 때 만든 card_links 줄에서 가져오고(없으면 모듈의 값), 작은 그림은 사이트의 picks/thumbs/ 에 올려 둔 것.
+async function backfillPicks(env) {
+  const db = env.DB;
+  const out = { inserted: 0, kept: 0, relinked: 0, missingImage: [] };
+  const done = await db.prepare("SELECT value FROM settings WHERE key = 'picks_backfill'").first();
+  if (done && done.value === 'done') return { ...out, skipped: true };
+  for (const p of PICKS_BACKFILL) {
+    const link = await db.prepare("SELECT sid, target FROM card_links WHERE card = ? AND source = 'send' ORDER BY created_at DESC LIMIT 1").bind(p.card).first().catch(() => null);
+    const r = await db.prepare('INSERT OR IGNORE INTO picks (day, sid, name, cat, target, card, thumb, hidden, sent_at) VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?)')
+      .bind(p.day, (link && link.sid) || p.sid || '', p.name, p.cat, (link && link.target) || p.target || '', p.card, `${SITE_URL}/${p.thumb}`, `${p.day}T02:00:00.000Z`).run();
+    if (r.meta && r.meta.changes) out.inserted++; else out.kept++;
+    if (env.CARDS) {
+      const v = await env.CARDS.getWithMetadata(p.card, { type: 'arrayBuffer' });
+      if (v && v.value) { await env.CARDS.put(p.card, v.value, { metadata: v.metadata || { type: 'image/jpeg' } }); out.relinked++; }   // 기한 없이 다시 저장
+      else out.missingImage.push(p.card);
+    }
+  }
+  await db.prepare("INSERT INTO settings (key, value, updated_at) VALUES ('picks_backfill', 'done', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at")
+    .bind(new Date().toISOString()).run();
+  return out;
 }
 
 // ── 트립코스 주간 보고 (2026-09-15, 2026-09-28 형식 변경) ──────
@@ -372,6 +399,14 @@ export default {
 
       // ── 공개: 사이트 문구·테마 (투숙객 페이지가 기본값 위에 덮어씀) ──
       // 캐시 정책은 /public/data 와 동일. 어드민 저장 시 pubCache 비워져 즉시 반영.
+      // ── 공개: 추천 가게 모음 (picks.html, 2026-10-07) — 숨기지 않은 카드를 카드 날짜 최신순으로 ──────
+      if (path === '/public/picks' && req.method === 'GET') {
+        const rows = await db.prepare('SELECT day, sid, name, cat, target, card, thumb FROM picks WHERE hidden = 0 ORDER BY day DESC').all().then(r => r.results || []);
+        const abs = k => !k ? '' : /^https?:/.test(k) ? k : `${url.origin}/public/card/${k}`;
+        const picks = rows.map(r => ({ day: r.day, sid: r.sid, name: r.name, cat: r.cat, target: r.target, card: abs(r.card), thumb: abs(r.thumb) || abs(r.card) }));
+        return json(req, { picks }, 200, { 'Cache-Control': 'public, max-age=300' });
+      }
+
       if (path === '/public/settings' && req.method === 'GET') {
         const pubHdr = { 'Cache-Control': 'public, max-age=15' };
         const hit = pubCache[path];
@@ -696,6 +731,10 @@ export default {
         const file = form.get('image');
         const text = String(form.get('text') || '').trim().slice(0, 2000);
         const name = String(form.get('name') || '').trim().slice(0, 80);
+        // 추천 가게 모음용(2026-10-07): 카드에 찍힌 날짜(묶음으로 미리 보내면 보낸 날과 다르다)·업종·목록용 작은 그림
+        const day = /^\d{4}-\d{2}-\d{2}$/.test(String(form.get('day') || '')) ? String(form.get('day')) : kstDay();
+        const cat = String(form.get('cat') || '').trim().slice(0, 40);
+        const thumbFile = form.get('thumb');
         if (!file || typeof file === 'string' || !file.size) return json(req, { ok: false, error: '이미지가 없어요' }, 400);
         if (file.size > CARD_MAX_BYTES) return json(req, { ok: false, error: '이미지가 너무 커요 (6MB 초과)' }, 413);
         if (!text) return json(req, { ok: false, error: '보낼 문구가 비어 있어요' }, 400);
@@ -704,6 +743,7 @@ export default {
         // 같은 사진을 새 주소로 다시 저장할 수 있게 함수로 둔다 — 슬랙은 한 번 거부한 주소를 고친 뒤에도 계속 거부하므로(2026-09-19 실측) 재시도는 새 주소여야 한다
         const storeCard = async () => {
           const k = `${kstDay()}-${crypto.randomUUID().slice(0, 8)}.${type === 'image/png' ? 'png' : 'jpg'}`;
+          storedKeys.push(k);
           const at = new Date().toISOString();
           // R2 가 연결돼 있으면 거기 한 곳에만 넣는다 — R2 는 어느 지역에서 읽어도 저장 직후 바로 보인다(강한 일관성).
           // 보관 기간은 버킷 수명 규칙(180일)이 맡는다. 예전 카드는 아래 KV/D1 경로로 계속 읽힌다.
@@ -718,12 +758,13 @@ export default {
             stmts.push(db.prepare('INSERT INTO card_blobs (key, idx, type, data, created_at) VALUES (?, ?, ?, ?, ?)').bind(k, idx, type, bytes.slice(i, i + CHUNK), at));
           }
           await Promise.all([
-            env.CARDS.put(k, bytes, { expirationTtl: CARD_TTL_SEC, metadata: { type, name, at } }),
+            env.CARDS.put(k, bytes, { metadata: { type, name, at } }),   // 기한 없음
             db.batch(stmts).catch(e => { d1Err = String(e && e.message || e).slice(0, 120); }),   // D1 사본 실패는 발송을 막지 않고 기록만
           ]);
           return k;
         };
         let d1Err = '';
+        const storedKeys = [];   // 저장한 키 전부 — 재시도로 버려진 키는 발송 뒤 지운다(기한이 없어졌으므로)
         // 7일 지난 D1 사본 정리 (발송 때마다 한 번, 실패해도 발송엔 영향 없음)
         if (ctx) ctx.waitUntil(db.prepare("DELETE FROM card_blobs WHERE created_at < datetime('now', '-7 days')").run().catch(() => {}));
         let key = await storeCard();
@@ -784,7 +825,21 @@ export default {
           if (linkId) await db.prepare('DELETE FROM card_links WHERE id = ?').bind(linkId).run();
           return json(req, { ok: false, error: `슬랙 발송 실패 (${r.status}) ${body2}${firstErr ? ' / 1차: ' + firstErr : ''}`, imageUrl }, 502);
         }
-        return json(req, { ok: true, mode, imageUrl, goUrl: linkId ? `${url.origin}/go/${linkId}` : null });
+        // 추천 가게 모음(picks.html)에 넣는다 — 같은 날짜 카드를 다시 보내면 마지막 것이 이전 것을 대신한다(수정본 재발송)
+        let thumbKey = '';
+        if (thumbFile && typeof thumbFile !== 'string' && thumbFile.size && thumbFile.size <= CARD_MAX_BYTES) {
+          thumbKey = key.replace(/\.(jpe?g|png)$/i, '') + '-s.jpg';
+          await env.CARDS.put(thumbKey, await thumbFile.arrayBuffer(), { metadata: { type: 'image/jpeg', name, at: new Date().toISOString() } }).catch(() => { thumbKey = ''; });
+        }
+        let pickTarget = '';
+        try { const t = new URL(link); if (t.protocol === 'https:' && GO_HOST_RE.test(t.hostname)) pickTarget = t.href.slice(0, 500); } catch (e) { /* 네이버 주소가 아니면 비워 둔다 */ }
+        let pickErr = '';
+        await db.prepare('INSERT INTO picks (day, sid, name, cat, target, card, thumb, hidden, sent_at) VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?) '
+          + 'ON CONFLICT(day) DO UPDATE SET sid = excluded.sid, name = excluded.name, cat = excluded.cat, target = excluded.target, card = excluded.card, thumb = excluded.thumb, hidden = 0, sent_at = excluded.sent_at')
+          .bind(day, String(form.get('sid') || '').slice(0, 20), name, cat, pickTarget, key, thumbKey, new Date().toISOString()).run()
+          .catch(e => { pickErr = String(e && e.message || e).slice(0, 120); console.error('picks upsert:', pickErr); });
+        if (ctx) ctx.waitUntil(Promise.all(storedKeys.filter(k => k !== key).map(k => env.CARDS.delete(k).catch(() => {}))));
+        return json(req, { ok: true, mode, imageUrl, goUrl: linkId ? `${url.origin}/go/${linkId}` : null, pick: { day, thumb: thumbKey, error: pickErr } });
       }
 
       // ── 카드 만들기: '복사' 버튼용 추적 링크 만들기 (2026-09-15) ──────
@@ -1134,6 +1189,22 @@ export default {
 
       // 어드민: 카드 만들기에서 만든 링크별 클릭 수 — 최근 100개
       // devices 는 (날짜, 기기) 줄 수라 같은 기기가 다른 날 또 누르면 1 더해진다
+      // ── 어드민: 추천 가게 모음 (2026-10-07) ──────
+      if (path === '/admin/picks' && req.method === 'GET') {
+        const rows = await db.prepare('SELECT day, name, cat, card, thumb, hidden, sent_at FROM picks ORDER BY day DESC').all();
+        return json(req, { picks: rows.results });
+      }
+      // 보냈지만 카톡에 안 올린 카드를 모음에서 빼거나 다시 넣는다
+      if (path === '/admin/picks/hide' && req.method === 'POST') {
+        let b; try { b = await req.json(); } catch (e) { return json(req, { ok: false, error: '형식 오류' }, 400); }
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(String(b.day || ''))) return json(req, { ok: false, error: '날짜 형식' }, 400);
+        const r = await db.prepare('UPDATE picks SET hidden = ? WHERE day = ?').bind(b.hidden ? 1 : 0, b.day).run();
+        return json(req, { ok: true, changed: (r.meta && r.meta.changes) || 0 });
+      }
+      if (path === '/admin/picks/backfill' && req.method === 'POST') {
+        return json(req, await backfillPicks(env));
+      }
+
       if (path === '/admin/card-links' && req.method === 'GET') {
         const rows = await db.prepare(
           'SELECT l.id, l.name, l.source, l.card, l.created_at, COALESCE(SUM(h.n), 0) AS clicks, COUNT(h.visitor) AS devices ' +
@@ -1164,8 +1235,9 @@ export default {
     }
   },
 
-  // 예약 실행 (wrangler.jsonc triggers) — 지금은 월 10:00 KST 트립코스 주간 보고 하나뿐
+  // 예약 실행 (wrangler.jsonc triggers) — 월 10:00 KST 트립코스 주간 보고 + 추천 가게 모음 지난 카드 넣기(1회, 끝나면 건너뜀)
   async scheduled(event, env, ctx) {
     ctx.waitUntil(runWeeklyLinkReport(env, 'cron'));
+    ctx.waitUntil(backfillPicks(env).catch(e => console.error('picks backfill:', e.message)));
   },
 };
