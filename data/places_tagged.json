@@ -3105,25 +3105,6 @@
   "guessed": false
  },
  {
-  "name": "nde",
-  "type": "카페",
-  "list": "카페",
-  "category": "카페,디저트",
-  "food": [],
-  "vibe": [
-   "감성"
-  ],
-  "zone": "속초권(차 20~35분)",
-  "dist_km": 9.93,
-  "address": "강원 속초시 중앙로147번길 41",
-  "lat": 38.203969,
-  "lng": 128.5889535,
-  "sid": "2037129408",
-  "thumb": "https://ldb-phinf.pstatic.net/20250702_19/1751398941553eEO2f_JPEG/IMG_5508.jpeg",
-  "naver": "https://map.naver.com/p/entry/place/2037129408",
-  "guessed": false
- },
- {
   "name": "크로프트커피 속초점",
   "type": "카페",
   "list": "카페",
@@ -3387,25 +3368,6 @@
   "sid": "1410160465",
   "thumb": "https://ldb-phinf.pstatic.net/20240704_37/1720060773484PTTxA_JPEG/3472589692974352440_20240704104138769.jpeg",
   "naver": "https://map.naver.com/p/entry/place/1410160465",
-  "guessed": false
- },
- {
-  "name": "브알라 Cafe 속초",
-  "type": "카페",
-  "list": "카페",
-  "category": "아이스크림",
-  "food": [],
-  "vibe": [
-   "감성"
-  ],
-  "zone": "속초권(차 20~35분)",
-  "dist_km": 11.89,
-  "address": "강원 속초시 해오름로 171",
-  "lat": 38.1894139,
-  "lng": 128.6030391,
-  "sid": "1074722414",
-  "thumb": "https://ldb-phinf.pstatic.net/20220301_86/1646095545267aeTXm_JPEG/20220301_093959.jpg",
-  "naver": "https://map.naver.com/p/entry/place/1074722414",
   "guessed": false
  },
  {
@@ -4907,25 +4869,6 @@
   "sid": "1760035922",
   "thumb": "",
   "naver": "https://map.naver.com/p/entry/place/1760035922",
-  "guessed": false
- },
- {
-  "name": "과원",
-  "type": "카페",
-  "list": "카페",
-  "category": "카페",
-  "food": [],
-  "vibe": [
-   "무난"
-  ],
-  "zone": "고성권(차 10~15분)",
-  "dist_km": 8.94,
-  "address": "강원 속초시 중앙로 299",
-  "lat": 38.2155792,
-  "lng": 128.5943247,
-  "sid": "1650944455",
-  "thumb": "",
-  "naver": "https://map.naver.com/p/entry/place/1650944455",
   "guessed": false
  },
  {
