@@ -48,7 +48,7 @@
   .map:focus-visible { outline: 3px solid var(--purple); outline-offset: -4px; }
 
   /* NEW(최근 7일): 옆으로 넘기기. 휴대폰 1장(+다음 장 살짝), PC 3장 꼭 맞게 */
-  .track { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; margin: 0 -16px; padding: 0 16px 4px; }
+  .track { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; margin: 0 -16px; padding: 0 16px 4px; scroll-padding-inline: 16px; }
   .track::-webkit-scrollbar { display: none; }
   .slide { flex: 0 0 88%; scroll-snap-align: start; min-width: 0; }
   .slide .ph { aspect-ratio: 720 / 426; }
