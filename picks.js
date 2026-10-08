@@ -7,8 +7,6 @@
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const LINK = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/></svg>';
-  const ARROW_L = '<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"><path d="M10 2 4 8l6 6"/></svg>';
-  const ARROW_R = '<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"><path d="m6 2 6 6-6 6"/></svg>';
 
   // 업종: 카드의 네이버 분류를 손님이 묻는 세 갈래로 묶는다. 카드가 없는 갈래는 안 보여준다.
   const BAR_RE = /BAR|바$|술집|펍|와인|맥주/i, CAFE_RE = /카페|디저트|베이커리|빵|커피|아이스크림|젤라또/;
@@ -46,7 +44,7 @@
     // 다른 페이지(노션 가이드) 안에 작게 끼워진 상태면 새 창으로 여는 버튼을 먼저 둔다
     if (window.self !== window.top) { document.body.classList.add('framed'); h += '<p class="openfull"><a href="picks.html" target="_blank" rel="noopener">새 창에서 크게 보기 ↗</a></p>'; }
     if (recent.length) {
-      h += `<div class="sec"><h2>NEW</h2><div class="ctl"><span class="pos" id="pos"></span><button class="chev" type="button" id="prev" aria-label="더 최근 카드">${ARROW_L}</button><button class="chev" type="button" id="next" aria-label="지난 카드">${ARROW_R}</button></div></div>
+      h += `<div class="sec"><h2>NEW</h2></div>
         <div class="track" id="track">${recent.map(p => `<div class="slide">${card(p, p.day === today)}</div>`).join('')}</div>`;
     }
     if (archive.length) {
@@ -68,20 +66,25 @@
       show(cats[0][0]);
     }
 
+    // NEW 줄은 화살표 없이 옆으로 넘긴다(2026-10-08 사용자 요청). 휴대폰은 손가락, PC는 마우스로 끌기.
+    // 끌어서 넘긴 직후의 클릭은 카드 열기로 치지 않는다.
     const track = $('track');
     if (track) {
-      const pos = $('pos'), prev = $('prev'), next = $('next');
-      const step = () => track.firstElementChild.getBoundingClientRect().width + parseFloat(getComputedStyle(track).gap);
-      const perView = () => Math.max(1, Math.round(track.clientWidth / step()));
-      const sync = () => {
-        const i = Math.round(track.scrollLeft / step()), n = perView();
-        pos.textContent = `${Math.min(i + 1, recent.length)} / ${recent.length}`;
-        prev.disabled = i <= 0; next.disabled = i + n >= recent.length;
+      let drag = null;
+      track.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse') return; drag = { x: e.clientX, left: track.scrollLeft, moved: false }; track.classList.add('grab'); });
+      track.addEventListener('pointermove', e => {
+        if (!drag) return;
+        const dx = e.clientX - drag.x;
+        if (Math.abs(dx) > 4) { drag.moved = true; track.style.scrollSnapType = 'none'; track.scrollLeft = drag.left - dx; }
+      });
+      const end = () => {
+        if (!drag) return;
+        const moved = drag.moved; drag = null; track.classList.remove('grab');
+        if (moved) { track.dataset.justDragged = '1'; setTimeout(() => delete track.dataset.justDragged, 120); }
+        track.style.scrollSnapType = '';   // 놓으면 가까운 카드에 맞춰 선다
       };
-      track.addEventListener('scroll', sync, { passive: true });
-      prev.addEventListener('click', () => track.scrollBy({ left: -step() * perView(), behavior: 'smooth' }));
-      next.addEventListener('click', () => track.scrollBy({ left: step() * perView(), behavior: 'smooth' }));
-      sync();
+      track.addEventListener('pointerup', end); track.addEventListener('pointerleave', end); track.addEventListener('pointercancel', end);
+      track.addEventListener('click', e => { if (track.dataset.justDragged) { e.stopPropagation(); e.preventDefault(); } }, true);
     }
   }
 
