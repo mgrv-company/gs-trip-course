@@ -72,6 +72,11 @@
   .grid .sub { font-size: 12px; }
   @container (min-width: 620px) { .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px 16px; } }
   .empty { color: var(--gray); font-size: 14px; text-align: center; padding: 40px 10px; grid-column: 1 / -1; }
+  /* 노션(Oopy) 안에 끼워지면 창이 320px 정도로 작다 → 새 창으로 여는 길을 맨 위에 둔다 (picks.js 가 iframe 일 때만 켬) */
+  .openfull { display: none; justify-content: flex-end; margin: 8px 0 -8px; }
+  body.framed .openfull { display: flex; }
+  .openfull a { font-size: 12.5px; font-weight: 600; color: var(--ink); border: 1.5px solid var(--line); background: #fff; padding: 7px 12px; text-decoration: none; border-radius: 0; }
+  .openfull a:focus-visible { outline: 3px solid var(--purple); outline-offset: 2px; }
 
   /* 크게 보기 (iframe 안이라 그 창 전체를 덮는다) */
   .lb { position: fixed; inset: 0; background: rgba(31, 30, 29, .88); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 16px; z-index: 5; }
@@ -93,6 +98,6 @@
   <img id="lbImg" alt="">
   <div class="row"><a id="lbMap" target="_blank" rel="noopener">네이버 지도에서 보기</a><button type="button" id="lbClose">닫기</button></div>
 </div>
-<script src="picks.js?v=1"></script>
+<script src="picks.js?v=2"></script>
 </body>
 </html>

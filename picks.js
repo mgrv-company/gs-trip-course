@@ -43,6 +43,8 @@
     const recent = PICKS.filter(p => p.day >= sinceStr), archive = PICKS.filter(p => p.day < sinceStr);
 
     let h = '';
+    // 다른 페이지(노션 가이드) 안에 작게 끼워진 상태면 새 창으로 여는 버튼을 먼저 둔다
+    if (window.self !== window.top) { document.body.classList.add('framed'); h += '<p class="openfull"><a href="picks.html" target="_blank" rel="noopener">새 창에서 크게 보기 ↗</a></p>'; }
     if (recent.length) {
       h += `<div class="sec"><h2>NEW</h2><div class="ctl"><span class="pos" id="pos"></span><button class="chev" type="button" id="prev" aria-label="더 최근 카드">${ARROW_L}</button><button class="chev" type="button" id="next" aria-label="지난 카드">${ARROW_R}</button></div></div>
         <div class="track" id="track">${recent.map(p => `<div class="slide">${card(p, p.day === today)}</div>`).join('')}</div>`;
