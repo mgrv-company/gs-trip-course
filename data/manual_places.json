@@ -62,5 +62,24 @@
   "thumb": "https://ldb-phinf.pstatic.net/20260530_139/1780094714157i7Gw9_JPEG/4478.jpg",
   "naver": "https://map.naver.com/p/entry/place/2004251097",
   "guessed": false
+ },
+ {
+  "name": "금강산다과점",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "감성"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 5.44,
+  "address": "강원 고성군 토성면 잼버리동로 355",
+  "lat": 38.2384318,
+  "lng": 128.5459968,
+  "sid": "2087953913",
+  "thumb": "https://ldb-phinf.pstatic.net/20261002_205/1790909387858BvGmW_JPEG/IMG_0743.jpg",
+  "naver": "https://map.naver.com/p/entry/place/2087953913",
+  "guessed": false
  }
 ]
