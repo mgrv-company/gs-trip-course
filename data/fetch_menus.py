@@ -7,6 +7,15 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15'
 places = json.load(open('data/places_tagged.json', encoding='utf-8'))
 
+# 어드민에서 직접 추가한 가게도 수집 대상에 포함한다.
+# 이 병합이 없으면 직접 추가한 곳은 평점·리뷰·영업시간이 영영 안 붙는다(2026-10-09).
+try:
+    _manual = json.load(open('data/manual_places.json', encoding='utf-8'))
+    _have = {str(p.get('sid')) for p in places}
+    places += [m for m in _manual if m.get('sid') and str(m['sid']) not in _have]
+except FileNotFoundError:
+    pass
+
 try:
     menus = json.load(open('data/menus.json', encoding='utf-8'))
 except FileNotFoundError:

@@ -10,6 +10,15 @@ WAIT_PAT = re.compile(r'웨이팅|대기[가-힣]*\s|줄\s*서|줄이\s|오픈�
 BODIES_KEEP = 8  # 카드에서 짧은/긴 스타일 하나씩 고를 수 있게 여러 개 보관
 places = json.load(open('data/places_tagged.json', encoding='utf-8'))
 
+# 어드민에서 직접 추가한 가게도 수집 대상에 포함한다.
+# 이 병합이 없으면 직접 추가한 곳은 평점·리뷰·영업시간이 영영 안 붙는다(2026-10-09).
+try:
+    _manual = json.load(open('data/manual_places.json', encoding='utf-8'))
+    _have = {str(p.get('sid')) for p in places}
+    places += [m for m in _manual if m.get('sid') and str(m['sid']) not in _have]
+except FileNotFoundError:
+    pass
+
 try:
     stats = json.load(open('data/reviews_stats.json', encoding='utf-8'))
 except FileNotFoundError:
