@@ -1071,118 +1071,14 @@ document.addEventListener('click', async function (e) {
   }
 });
 
-// ── 디자인 코멘트 모드 (어드민 전용) ─────────────────
-// 어드민 로그인(같은 도메인이라 토큰 공유) 상태면, 메인 페이지에서 요소를 클릭해 메모를 남길 수 있음.
-// 남긴 코멘트는 백엔드에 쌓였다가 나중에 일괄 반영. 손님(비로그인)에겐 UI 자체가 안 생김.
+// ── 어드민 바로가기 (어드민 로그인 브라우저에만, 좌하단) ─────────────────
+// 디자인 코멘트 기능은 2026-10-12 사용 안 해서 제거했다. 어드민으로 돌아가는 버튼만 남김.
 (function () {
   const TOKEN = (function () { try { return localStorage.getItem('gstAdminSession'); } catch (e) { return null; } })();
   if (!TOKEN) return;
-
-  let mode = false;
-  let list = [];
-
-  async function apiA(path, opts) {
-    const r = await fetch(ADMIN_API + path, Object.assign({}, opts, {
-      headers: Object.assign({ 'Content-Type': 'application/json', Authorization: 'Bearer ' + TOKEN }, (opts && opts.headers) || {}),
-    }));
-    if (!r.ok) throw new Error(((await r.json().catch(() => ({}))).error) || ('오류 ' + r.status));
-    return r.json().catch(() => ({}));
-  }
-
-  // 클릭한 요소 설명: 문구는 data-copy key로 정확히, 그 외는 태그+텍스트로
-  function describe(el) {
-    const c = el.closest('[data-copy]') || el.closest('[data-copy-ph]');
-    if (c) return { target: 'copy:' + (c.dataset.copy || c.dataset.copyPh), label: (c.textContent || '').trim().slice(0, 120) };
-    const txt = (el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 80);
-    const cls = (typeof el.className === 'string' && el.className.trim()) ? '.' + el.className.trim().split(/\s+/).join('.') : '';
-    return { target: el.tagName.toLowerCase() + cls, label: txt };
-  }
-
-  // 어드민으로 돌아가기 (어드민에게만 보임, 좌하단)
   const adminBtn = document.createElement('a');
   adminBtn.id = 'cmAdmin';
   adminBtn.href = 'admin.html';
   adminBtn.textContent = '⚙️ 어드민';
   document.body.appendChild(adminBtn);
-
-  const dock = document.createElement('button');
-  dock.id = 'cmDock';
-  dock.type = 'button';
-  document.body.appendChild(dock);
-
-  const panel = document.createElement('div');
-  panel.id = 'cmPanel';
-  panel.style.display = 'none';
-  document.body.appendChild(panel);
-
-  function renderDock() { dock.textContent = mode ? '✏️ 코멘트 켜짐' : '✏️ 코멘트'; dock.classList.toggle('on', mode); }
-
-  let loadErr = '';
-  function renderPanel() {
-    // 전송(반영 요청) 대상은 '작성(open)'만. 'ready'는 반영 대기, 'review'는 자동반영이 코드변경으로 분류한 것.
-    const openN = list.filter(a => a.status === 'open').length;
-    const STLABEL = { ready: '<span class="cmSt ready">반영 대기</span>', review: '<span class="cmSt review">검토 필요</span>' };
-    const items = list.length ? list.map(a =>
-      '<div class="cmItem"><div class="cmNote">' + esc(a.note) + '</div>' +
-      '<div class="cmMeta">📍 ' + esc(a.label || a.target) + '</div>' +
-      '<div class="cmRow">' + (STLABEL[a.status] || '<span class="cmSt">작성</span>') +
-      '<button class="cmDel" type="button" data-id="' + a.id + '">삭제</button></div></div>'
-    ).join('') : (loadErr
-      ? '<div class="cmEmpty">' + esc(loadErr) + '</div>'
-      : '<div class="cmEmpty">코멘트가 없어요. 아래 "요소 클릭 모드"를 켜고 화면을 눌러보세요.</div>');
-    panel.innerHTML =
-      '<div class="cmHead"><b>디자인 코멘트 ' + list.length + '</b>' +
-      '<button id="cmMode" type="button">' + (mode ? '요소 클릭 모드 · 켜짐' : '요소 클릭 모드 켜기') + '</button>' +
-      '<button id="cmClose" type="button">✕</button></div>' +
-      '<div class="cmList">' + items + '</div>' +
-      '<div class="cmFoot"><button id="cmSend" type="button"' + (openN ? '' : ' disabled') + '>📮 반영 요청 (' + openN + '건)</button>' +
-      '<span class="cmHint">누르면 다음 자동 반영(하루 1회) 때 처리돼요</span></div>';
-  }
-
-  // 실패해도 기존 목록을 지우지 않고 사유를 표시 (빈 목록=코멘트 없음 으로 오해 방지)
-  async function load() {
-    try { list = (await apiA('/admin/annotations')).annotations || []; loadErr = ''; }
-    catch (e) { loadErr = '코멘트 불러오기 실패: ' + e.message + ' — 저장된 코멘트가 사라진 게 아니라 조회만 실패했어요.'; }
-    renderPanel(); renderDock();
-  }
-
-  function ask(el) {
-    const d = describe(el);
-    const note = window.prompt('이 부분에 남길 메모:\n[ ' + (d.label || d.target) + ' ]', '');
-    if (note == null) return;
-    const n = note.trim();
-    if (!n) return;
-    apiA('/admin/annotations', { method: 'POST', body: JSON.stringify(Object.assign(d, { note: n, page: 'index' })) })
-      .then(load).catch(e => alert('저장 실패: ' + e.message));
-  }
-
-  // 코멘트 모드일 때: 어떤 클릭이든 가로채서(내비게이션 방지) 메모 입력
-  document.addEventListener('click', function (e) {
-    if (!mode) return;
-    if (e.target.closest('#cmPanel') || e.target.closest('#cmDock') || e.target.closest('#cmAdmin')) return;
-    e.preventDefault(); e.stopPropagation();
-    ask(e.target);
-  }, true);
-
-  dock.addEventListener('click', function () {
-    const open = panel.style.display === 'none';
-    panel.style.display = open ? '' : 'none';
-    if (open) load();
-  });
-
-  panel.addEventListener('click', function (e) {
-    if (e.target.id === 'cmMode') { mode = !mode; document.body.classList.toggle('cm-on', mode); renderPanel(); renderDock(); return; }
-    if (e.target.id === 'cmClose') { panel.style.display = 'none'; return; }
-    if (e.target.id === 'cmSend') {
-      e.target.disabled = true;
-      apiA('/admin/annotations/send', { method: 'POST' })
-        .then(r => { alert((r.count || 0) + '건 반영 요청됨.\n다음 자동 반영(하루 1회) 때 처리돼요.'); return load(); })
-        .catch(err => { alert('전송 실패: ' + err.message); renderPanel(); });
-      return;
-    }
-    const del = e.target.closest('.cmDel');
-    if (del) { apiA('/admin/annotations?id=' + del.dataset.id, { method: 'DELETE' }).then(load).catch(function (e) { alert('삭제 실패: ' + e.message); }); }
-  });
-
-  load();   // 시작 시 개수 파악(백그라운드)
 })();

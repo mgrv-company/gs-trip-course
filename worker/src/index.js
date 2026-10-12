@@ -15,7 +15,6 @@ const SESSION_DAYS = 60;            // 어드민 로그인 유지 기간
 const FB_LIMIT = 15;                // 피드백: 10분당 최대 건수
 const LOGIN_LIMIT = 10;             // 로그인 시도: IP당 10분에 최대 횟수 (무차별 대입 방지)
 const VIEW_LIMIT = 40;             // 조회수 집계: IP당 10분 최대 (부풀리기·D1 쓰기 남용 방지)
-const SEND_LIMIT = 12;             // 코멘트 반영요청: IP당 10분 최대 (슬랙 스팸 방지)
 const CLICK_LIMIT = 120;           // 가게 클릭 집계: IP당 10분 최대 (남용 방지, 정상 사용엔 넉넉)
 const IMPRESSION_LIMIT = 300;      // 노출 집계: IP당 10분 최대 (렌더마다 1회·디바운스라 넉넉)
 const PUB_CACHE_MS = 15000;
@@ -1024,56 +1023,6 @@ export default {
         return json(req, { ok: true });
       }
 
-      // 어드민: 디자인 코멘트 남기기 (메인 페이지에서 요소 클릭 → 메모)
-      if (path === '/admin/annotations' && req.method === 'POST') {
-        let b;
-        try { b = await req.json(); } catch { return json(req, { error: '형식 오류' }, 400); }
-        const note = String(b.note || '').slice(0, 1000).trim();
-        if (!note) return json(req, { error: '메모가 비었어요.' }, 400);
-        await db.prepare(
-          'INSERT INTO annotations (target, label, note, page, status, created_at) VALUES (?, ?, ?, ?, ?, ?)'
-        ).bind(
-          String(b.target || '').slice(0, 300),
-          String(b.label || '').slice(0, 300),
-          note,
-          String(b.page || '').slice(0, 60),
-          'open',
-          new Date().toISOString()
-        ).run();
-        return json(req, { ok: true });
-      }
-
-      // 어드민: 코멘트 목록 (기본 미완료 전체 = 작성/반영대기 — 목록 표시용)
-      if (path === '/admin/annotations' && req.method === 'GET') {
-        const all = url.searchParams.get('all') === '1';
-        const rows = all
-          ? await db.prepare('SELECT * FROM annotations ORDER BY created_at DESC').all()
-          : await db.prepare("SELECT * FROM annotations WHERE status != 'done' ORDER BY created_at DESC").all();
-        return json(req, { annotations: rows.results });
-      }
-
-      // 어드민: 반영 요청(전송) — open 코멘트를 ready 로 표시하고 #gs-routine 에 알림.
-      // 실제 반영은 하루 1회 무인 실행이 ready 만 처리한다.
-      if (path === '/admin/annotations/send' && req.method === 'POST') {
-        const ip = req.headers.get('CF-Connecting-IP') || 'local';
-        if (await overLimit(db, 'send@' + ip, SEND_LIMIT)) return json(req, { error: '잠시 후 다시 시도해주세요.' }, 429);
-        const open = await db.prepare("SELECT label, note FROM annotations WHERE status = 'open'").all();
-        const n = open.results.length;
-        if (n === 0) return json(req, { count: 0 });
-        await db.prepare("UPDATE annotations SET status = 'ready' WHERE status = 'open'").run();
-        if (env.SLACK_WEBHOOK) {
-          const lines = open.results.slice(0, 15)
-            .map(r => '• ' + slackEsc(r.note) + (r.label ? '  _(' + slackEsc(String(r.label)).slice(0, 40) + ')_' : '')).join('\n');
-          const text = '<@U0AG0G63PTR> 📌 *트립코스 디자인 코멘트 ' + n + '건 반영 요청됨*\n\n' + lines
-            + '\n\n_다음 자동 반영 때 문구·색·크기는 자동 적용, 구조 변경은 검토 후 반영돼요._';
-          try {
-            await fetch(env.SLACK_WEBHOOK, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ text, username: SLACK_BOT_NAME }) });
-          } catch (e) { console.error('슬랙 전송 실패:', e.message); }
-        }
-        return json(req, { count: n });
-      }
-
       // 어드민: 조회수 (오늘/누적/최근 일자별) — 나만 보기
       if (path === '/admin/views' && req.method === 'GET') {
         const day = kstDay();
@@ -1217,14 +1166,6 @@ export default {
       if (path === '/admin/feedback' && req.method === 'GET') {
         const rows = await db.prepare('SELECT place, memo, at FROM feedback ORDER BY at DESC LIMIT 100').all();
         return json(req, { feedback: rows.results });
-      }
-
-      // 어드민: 코멘트 삭제
-      if (path === '/admin/annotations' && req.method === 'DELETE') {
-        const id = url.searchParams.get('id');
-        if (!id) return json(req, { error: 'id 누락' }, 400);
-        await db.prepare('DELETE FROM annotations WHERE id = ?').bind(id).run();
-        return json(req, { ok: true });
       }
 
       return json(req, { error: '없는 주소예요.' }, 404);
