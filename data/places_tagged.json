@@ -2915,25 +2915,6 @@
   "guessed": false
  },
  {
-  "name": "트리니타",
-  "type": "카페",
-  "list": "카페",
-  "category": "카페",
-  "food": [],
-  "vibe": [
-   "감성"
-  ],
-  "zone": "고성권(차 10~15분)",
-  "dist_km": 4.09,
-  "address": "강원 고성군 토성로 68",
-  "lat": 38.2529849,
-  "lng": 128.5649319,
-  "sid": "2001275235",
-  "thumb": "",
-  "naver": "https://map.naver.com/p/entry/place/2001275235",
-  "guessed": false
- },
- {
   "name": "스튜디오 토성당",
   "type": "카페",
   "list": "카페",
@@ -3482,25 +3463,6 @@
   "sid": "15012303",
   "thumb": "",
   "naver": "https://map.naver.com/p/entry/place/15012303",
-  "guessed": false
- },
- {
-  "name": "커피고 by MOHB",
-  "type": "카페",
-  "list": "카페",
-  "category": "카페,디저트",
-  "food": [],
-  "vibe": [
-   "감성"
-  ],
-  "zone": "고성권(차 10~15분)",
-  "dist_km": 3.96,
-  "address": "강원 고성군 토성면 토성로 84",
-  "lat": 38.2538434,
-  "lng": 128.5636062,
-  "sid": "1467957434",
-  "thumb": "https://ldb-phinf.pstatic.net/20250502_215/1746181119651Yxyq7_JPEG/IMG_4424.JPG",
-  "naver": "https://map.naver.com/p/entry/place/1467957434",
   "guessed": false
  },
  {
