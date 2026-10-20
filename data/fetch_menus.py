@@ -32,11 +32,24 @@ def fetch(sid):
     data = json.loads(m.group(1))
     items = []
     for k, v in data.items():
-        if k.startswith('Menu:') and isinstance(v, dict) and v.get('name'):
+        if not (isinstance(v, dict) and v.get('name')):
+            continue
+        if k.startswith('Menu:'):
             items.append({
                 'name': v['name'][:30],
                 'price': v.get('price') or '',
                 'rec': bool(v.get('recommend') or v.get('isRepresentative')),
+            })
+        # (2026-10-20) 네이버가 메뉴 형식을 바꿈: 이름표 PlaceMenuItem:, 가격은 {'displayText': '17,000원'},
+        # 대표 메뉴는 badges 의 'repr'. 옛 형식만 찾던 탓에 10-07 전체 재수집에서 메뉴가 367곳→19곳으로 비었다
+        elif k.startswith('PlaceMenuItem:'):
+            price = v.get('price')
+            if isinstance(price, dict):
+                price = re.sub(r'[^\d]', '', price.get('displayText') or '')
+            items.append({
+                'name': v['name'][:30],
+                'price': price or '',
+                'rec': 'repr' in (v.get('badges') or []),
             })
     # 추천 메뉴 먼저, 최대 5개
     items.sort(key=lambda x: not x['rec'])
