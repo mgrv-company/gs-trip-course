@@ -118,6 +118,7 @@
   .results button { display: flex; justify-content: space-between; gap: 10px; width: 100%; text-align: left; font: inherit; font-size: 14px; padding: 10px; background: none; border: 0; border-bottom: 1px solid var(--soft); cursor: pointer; }
   .results button:hover, .results button.hl { background: var(--purple-light); }
   .results button .meta { font-size: 12px; color: var(--gray); white-space: nowrap; }
+  .results button .made { display: inline-block; margin-left: 6px; padding: 1px 6px; font-size: 11px; color: var(--gray); border: 1px solid var(--line); white-space: nowrap; vertical-align: 1px; }
   .toggles { display: flex; flex-direction: column; gap: 8px; }
   .toggles label { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
   .btnrow { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -907,12 +908,24 @@ document.addEventListener('keydown', e => {
 // ───────── 검색 ─────────
 const norm = s => (s || '').replace(/\s+/g, '').toLowerCase();
 let hl = -1, matches = [];
+// 이미 카드로 만들어 손님에게 나간 가게 표시 — 같은 가게를 또 고르는 실수 방지. 못 받아 오면 표시만 빠진다
+const madeCards = {};   // sid → 보낸 날짜 목록(최신순)
+fetch(`${ADMIN_API}/public/picks`).then(r => r.ok ? r.json() : Promise.reject(r.status)).then(d => {
+  (d.picks || []).forEach(pk => { if (pk.sid) (madeCards[pk.sid] = madeCards[pk.sid] || []).push(pk.day); });
+  if ($('q').value && $('results').classList.contains('on')) search($('q').value);
+}).catch(err => console.warn('보낸 카드 목록을 못 받아 와서 검색 표시를 생략합니다:', err));
+function madeLabel(p) {
+  const days = madeCards[String(p.s)];
+  if (!days) return '';
+  const md = d => d.slice(5).replace(/^0/, '').replace('-0', '-').replace('-', '/');
+  return `<span class="made">${days.length > 1 ? `카드 ${days.length}회 · 최근 ` : '카드 '}${md(days[0])}</span>`;
+}
 function search(q) {
   q = norm(q);
   matches = q ? PLACES.filter(p => norm(p.n).includes(q) || norm(p.c).includes(q)).slice(0, 15) : [];
   hl = -1;
   const box = $('results');
-  box.innerHTML = matches.map((p, i) => `<button type="button" data-i="${i}"><span>${esc(p.n)}</span><span class="meta">${esc(p.t)}${p.c ? ' · ' + esc(p.c) : ''} · ${esc(p.z || '')}</span></button>`).join('');
+  box.innerHTML = matches.map((p, i) => `<button type="button" data-i="${i}"><span>${esc(p.n)}${madeLabel(p)}</span><span class="meta">${esc(p.t)}${p.c ? ' · ' + esc(p.c) : ''} · ${esc(p.z || '')}</span></button>`).join('');
   box.classList.toggle('on', matches.length > 0);
 }
 function choose(i) { const p = matches[i]; if (!p) return; $('q').value = p.n; $('results').classList.remove('on'); $('q').blur(); fillCard(p); }
