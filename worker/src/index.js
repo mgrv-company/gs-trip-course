@@ -1176,9 +1176,9 @@ export default {
     }
   },
 
-  // 예약 실행 (wrangler.jsonc triggers) — 월 10:00 KST 트립코스 주간 보고 + 추천 가게 모음 지난 카드 넣기(1회, 끝나면 건너뜀)
+  // 예약 실행 (wrangler.jsonc triggers) — 월 10:00 KST 추천 가게 모음 지난 카드 넣기(1회, 끝나면 건너뜀)
+  // (2026-10-19) 주간 보고 자동 발송은 뺐다 — 사용자가 클릭 수를 넣을 때 어드민 '지금 보내기'로 직접 받아서 필요 없음
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(runWeeklyLinkReport(env, 'cron'));
     ctx.waitUntil(backfillPicks(env).catch(e => console.error('picks backfill:', e.message)));
   },
 };
