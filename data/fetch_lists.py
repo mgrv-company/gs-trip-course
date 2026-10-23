@@ -9,13 +9,18 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 # naver.me 단축링크가 resolve된 공유 폴더 해시 (2026-06-23 확인, 해변·명소는 2026-07-14 추가)
 # ⚠️ 순서 중요: dict는 삽입 순서 유지 → sid 중복 시 "첫 리스트 우선"이라 기존 4개(술집/식사/카페) 뒤에 추가해야
 #    이미 식당·카페로 분류된 곳이 해변/명소로 잘못 재분류되지 않음
-LISTS = {
-    '술집': '0ee58cac96de6972cee1d29db96eb1cb',
-    '식사': '7f6aac8912cdd71450d290dce9bce503',
-    '카페': '805cd9a13b4064986884c509a89178aa',
-    '해변': 'c3f5835e70a6474489547ad16c5631fe',
-    '명소': 'cb13ac546124497aaf7138fd471eebaa',
-}
+# (2026-10-23) 같은 종류 리스트가 둘 이상일 수 있어 dict 대신 (종류, 해시) 줄 목록으로 바꿈.
+#   '카페(GS)'·'식사(GS)' 리스트는 공유받고도 등록이 빠져 참사랑해 등 35곳이 검색에 안 나왔다.
+#   카페(GS)를 식사(GS)보다 앞에 둔 건 두 리스트에 다 있는 카페길옥을 카페로 분류하려고.
+LISTS = [
+    ('술집', '0ee58cac96de6972cee1d29db96eb1cb'),
+    ('식사', '7f6aac8912cdd71450d290dce9bce503'),
+    ('카페', '805cd9a13b4064986884c509a89178aa'),
+    ('해변', 'c3f5835e70a6474489547ad16c5631fe'),
+    ('명소', 'cb13ac546124497aaf7138fd471eebaa'),
+    ('카페', '4831576889de4067b5d6b0ecefbbdf94'),   # 카페(GS)
+    ('식사', 'f3da96484284456996872a59107008b0'),   # 식사(GS)
+]
 API = 'https://pages.map.naver.com/save-pages/api/maps-bookmark/v3/shares/{}/bookmarks?start=0&limit=5000&sort=lastUseTime'
 HEADERS = {
     'Referer': 'https://pages.map.naver.com/',
@@ -45,10 +50,10 @@ def fetch_list(h):
 
 region = []
 raw_counts = {}
-for label, h in LISTS.items():
+for label, h in LISTS:
     data = fetch_list(h)
     bms = data.get('bookmarkList') or []
-    raw_counts[label] = len(bms)
+    raw_counts[label] = raw_counts.get(label, 0) + len(bms)
     for b in bms:
         if not b.get('available', True):
             continue

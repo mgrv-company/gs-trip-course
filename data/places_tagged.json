@@ -8727,5 +8727,784 @@
   "thumb": "",
   "naver": "https://map.naver.com/p/entry/place/1677482329",
   "guessed": false
+ },
+ {
+  "name": "그리운보리밥",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.07,
+  "address": "강원 속초시 법대로 34",
+  "lat": 38.214016,
+  "lng": 128.593715,
+  "sid": "11701026",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/11701026",
+  "guessed": false
+ },
+ {
+  "name": "싸리재칼국수",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.19,
+  "address": "강원 속초시 소평로 4",
+  "lat": 38.187052,
+  "lng": 128.5598163,
+  "sid": "38547698",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/38547698",
+  "guessed": false
+ },
+ {
+  "name": "고성한우수육",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 12.29,
+  "address": "강원 고성군 간성시장1길 4",
+  "lat": 38.3793856,
+  "lng": 128.4701792,
+  "sid": "1683454771",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1683454771",
+  "guessed": false
+ },
+ {
+  "name": "만카오",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.58,
+  "address": "강원 속초시 엑스포로 121-11",
+  "lat": 38.1956259,
+  "lng": 128.5807673,
+  "sid": "1477628710",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1477628710",
+  "guessed": false
+ },
+ {
+  "name": "고숲",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 3.6,
+  "address": "강원 고성군 죽왕면 삼포민박촌길 8-15",
+  "lat": 38.3159,
+  "lng": 128.52883,
+  "sid": "2077269918",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2077269918",
+  "guessed": false
+ },
+ {
+  "name": "체리다방",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.03,
+  "address": "강원 속초시 영랑해안6길 17",
+  "lat": 38.2153457,
+  "lng": 128.5960951,
+  "sid": "1940939105",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1940939105",
+  "guessed": false
+ },
+ {
+  "name": "소금숲",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.55,
+  "address": "강원 속초시 선사로4길 18",
+  "lat": 38.1888395,
+  "lng": 128.590373,
+  "sid": "2047208670",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2047208670",
+  "guessed": false
+ },
+ {
+  "name": "오하스 베이커리카페 설악비치점",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 5.37,
+  "address": "강원 고성군 동해대로 4800",
+  "lat": 38.2428915,
+  "lng": 128.5723962,
+  "sid": "2068926756",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2068926756",
+  "guessed": false
+ },
+ {
+  "name": "카푸네",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 2.43,
+  "address": "강원 고성군 청간정길 17-5",
+  "lat": 38.2665528,
+  "lng": 128.5570195,
+  "sid": "2011613723",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2011613723",
+  "guessed": false
+ },
+ {
+  "name": "금강산다과점",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 5.43,
+  "address": "강원 고성군 잼버리동로 355",
+  "lat": 38.2384318,
+  "lng": 128.5459968,
+  "sid": "2087953913",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2087953913",
+  "guessed": false
+ },
+ {
+  "name": "카페길옥",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 14.55,
+  "address": "강원 속초시 설악산로4번길 17",
+  "lat": 38.1650325,
+  "lng": 128.6074597,
+  "sid": "1312617823",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1312617823",
+  "guessed": false
+ },
+ {
+  "name": "셜터 스튜디오",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 12.16,
+  "address": "강원 속초시 새마을길 21",
+  "lat": 38.1866662,
+  "lng": 128.6026624,
+  "sid": "2001225023",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2001225023",
+  "guessed": false
+ },
+ {
+  "name": "고비치5311 고성본점",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "도보권",
+  "dist_km": 1.02,
+  "address": "강원 고성군 괘진길 53-11",
+  "lat": 38.2963908,
+  "lng": 128.5476367,
+  "sid": "311710132",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/311710132",
+  "guessed": false
+ },
+ {
+  "name": "하쿠나마타타",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 7.73,
+  "address": "강원 속초시 중앙로 420",
+  "lat": 38.2250584,
+  "lng": 128.5875956,
+  "sid": "2052493008",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2052493008",
+  "guessed": false
+ },
+ {
+  "name": "집카페 zipcafe",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 8.69,
+  "address": "강원 속초시 번영로200번길 5",
+  "lat": 38.2168021,
+  "lng": 128.5909611,
+  "sid": "1107945295",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1107945295",
+  "guessed": false
+ },
+ {
+  "name": "고성자연산섭성게마을",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 3.63,
+  "address": "강원 고성군 죽왕면 삼포민박촌2길 14",
+  "lat": 38.31657,
+  "lng": 128.52972,
+  "sid": "1267452695",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1267452695",
+  "guessed": false
+ },
+ {
+  "name": "속초설빙정막국수 냉면",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.19,
+  "address": "강원 속초시 응동길 32",
+  "lat": 38.18661,
+  "lng": 128.54605,
+  "sid": "1135337423",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1135337423",
+  "guessed": false
+ },
+ {
+  "name": "산모퉁이추어탕",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 4.35,
+  "address": "강원 고성군 토성면 봉포5길 13",
+  "lat": 38.25018,
+  "lng": 128.56383,
+  "sid": "13068956",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/13068956",
+  "guessed": false
+ },
+ {
+  "name": "참사랑해 참치숯불구이 강원고성1호점",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 3.32,
+  "address": "강원 고성군 토성로 154",
+  "lat": 38.2584973,
+  "lng": 128.558297,
+  "sid": "1061217198",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1061217198",
+  "guessed": false
+ },
+ {
+  "name": "무지개호횟집",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 1.83,
+  "address": "강원 고성군 아야진해변길 76",
+  "lat": 38.2718828,
+  "lng": 128.5556217,
+  "sid": "1369338328",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1369338328",
+  "guessed": false
+ },
+ {
+  "name": "옛날숯불녹원갈비",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.89,
+  "address": "강원 속초시 교동로 30",
+  "lat": 38.2017984,
+  "lng": 128.5793394,
+  "sid": "15093154",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15093154",
+  "guessed": false
+ },
+ {
+  "name": "동해쌀국수",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.34,
+  "address": "강원 속초시 엑스포로1길 9",
+  "lat": 38.1905115,
+  "lng": 128.5889291,
+  "sid": "1999057224",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1999057224",
+  "guessed": false
+ },
+ {
+  "name": "솥담순두부 속초점",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 12.23,
+  "address": "강원 속초시 해오름로 137",
+  "lat": 38.1867868,
+  "lng": 128.6049485,
+  "sid": "2094318776",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2094318776",
+  "guessed": false
+ },
+ {
+  "name": "제제네식탁",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.81,
+  "address": "강원 속초시 조양로105번길 12",
+  "lat": 38.1859904,
+  "lng": 128.5887626,
+  "sid": "1679854569",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1679854569",
+  "guessed": false
+ },
+ {
+  "name": "성원식당",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.71,
+  "address": "강원 속초시 선사로 7-4",
+  "lat": 38.1878222,
+  "lng": 128.5922184,
+  "sid": "15014731",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15014731",
+  "guessed": false
+ },
+ {
+  "name": "티각태각 속초점",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.92,
+  "address": "강원 속초시 중앙시장로6길 30",
+  "lat": 38.2043353,
+  "lng": 128.5898665,
+  "sid": "36792824",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/36792824",
+  "guessed": false
+ },
+ {
+  "name": "마숩당 속초의 아침",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 7.21,
+  "address": "강원 고성군 중앙로 482-16",
+  "lat": 38.2291392,
+  "lng": 128.5846645,
+  "sid": "2043959529",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2043959529",
+  "guessed": false
+ },
+ {
+  "name": "감뚜",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "도보권",
+  "dist_km": 0.86,
+  "address": "강원 고성군 교암2길 57",
+  "lat": 38.2949854,
+  "lng": 128.54839,
+  "sid": "2008462820",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2008462820",
+  "guessed": false
+ },
+ {
+  "name": "티무트",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.02,
+  "address": "강원 속초시 중앙로 148",
+  "lat": 38.2038871,
+  "lng": 128.5915708,
+  "sid": "2014313854",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2014313854",
+  "guessed": false
+ },
+ {
+  "name": "난장",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.45,
+  "address": "강원 속초시 만리공원길 48-13",
+  "lat": 38.2040028,
+  "lng": 128.5697766,
+  "sid": "12067631",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/12067631",
+  "guessed": false
+ },
+ {
+  "name": "동해안붉은대게",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.55,
+  "address": "강원 속초시 해오름로188번길 17",
+  "lat": 38.1921427,
+  "lng": 128.6010868,
+  "sid": "1016603144",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1016603144",
+  "guessed": false
+ },
+ {
+  "name": "요기국수김밥",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.7,
+  "address": "강원 속초시 조양로 102",
+  "lat": 38.1872411,
+  "lng": 128.5895631,
+  "sid": "1568045625",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1568045625",
+  "guessed": false
+ },
+ {
+  "name": "속초가마솥손두부",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.58,
+  "address": "강원 속초시 먹거리4길 3",
+  "lat": 38.1941311,
+  "lng": 128.5730179,
+  "sid": "1007772502",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1007772502",
+  "guessed": false
+ },
+ {
+  "name": "속초까막골막국수",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.26,
+  "address": "강원 속초시 엑스포로 12-8",
+  "lat": 38.1916684,
+  "lng": 128.590467,
+  "sid": "1839837367",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1839837367",
+  "guessed": false
+ },
+ {
+  "name": "진미막국수",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.14,
+  "address": "강원 속초시 설악금강대교로 46-1",
+  "lat": 38.1942062,
+  "lng": 128.5952418,
+  "sid": "15017240",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15017240",
+  "guessed": false
+ },
+ {
+  "name": "이목리막국수",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.4,
+  "address": "강원 속초시 이목로 104-43",
+  "lat": 38.202769,
+  "lng": 128.5529289,
+  "sid": "11834566",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/11834566",
+  "guessed": false
+ },
+ {
+  "name": "삼백조닭칼국수",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 13.71,
+  "address": "강원 고성군 진부령로 2809",
+  "lat": 38.3853013,
+  "lng": 128.4527098,
+  "sid": "37450752",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/37450752",
+  "guessed": false
+ },
+ {
+  "name": "장안호떡분식",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.14,
+  "address": "강원 속초시 수복로 71",
+  "lat": 38.1990282,
+  "lng": 128.5774943,
+  "sid": "19504623",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/19504623",
+  "guessed": false
+ },
+ {
+  "name": "백돈가",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.06,
+  "address": "강원 속초시 소평로 131",
+  "lat": 38.1898766,
+  "lng": 128.573923,
+  "sid": "1991310372",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1991310372",
+  "guessed": false
+ },
+ {
+  "name": "아야진식당",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 1.77,
+  "address": "강원 고성군 토성면 아야진해변길 86-1",
+  "lat": 38.27273,
+  "lng": 128.5563,
+  "sid": "2050096079",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2050096079",
+  "guessed": false
+ },
+ {
+  "name": "속초용대리황태해장국",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.78,
+  "address": "강원 속초시 온천로 147",
+  "lat": 38.19064,
+  "lng": 128.55834,
+  "sid": "2001791348",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2001791348",
+  "guessed": false
  }
 ]
