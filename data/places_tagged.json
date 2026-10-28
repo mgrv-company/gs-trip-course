@@ -1221,27 +1221,6 @@
   "guessed": false
  },
  {
-  "name": "문전성시닭강정",
-  "type": "식사",
-  "list": "식사",
-  "category": "치킨,닭강정",
-  "food": [
-   "고기"
-  ],
-  "vibe": [
-   "무난"
-  ],
-  "zone": "속초권(차 20~35분)",
-  "dist_km": 9.97,
-  "address": "강원 속초시 중앙로147번길 16",
-  "lat": 38.2039968,
-  "lng": 128.5902328,
-  "sid": "38642342",
-  "thumb": "https://ldb-phinf.pstatic.net/20200626_201/1593128472387EdGrh_JPEG/xg8OTL2SpGfuaCjCyp_aGrJm.jpg",
-  "naver": "https://map.naver.com/p/entry/place/38642342",
-  "guessed": false
- },
- {
   "name": "다경숯불구이",
   "type": "식사",
   "list": "식사",
@@ -8824,25 +8803,6 @@
   "guessed": false
  },
  {
-  "name": "체리다방",
-  "type": "카페",
-  "list": "카페",
-  "category": "카페",
-  "food": [],
-  "vibe": [
-   "무난"
-  ],
-  "zone": "속초권(차 20~35분)",
-  "dist_km": 9.03,
-  "address": "강원 속초시 영랑해안6길 17",
-  "lat": 38.2153457,
-  "lng": 128.5960951,
-  "sid": "1940939105",
-  "thumb": "",
-  "naver": "https://map.naver.com/p/entry/place/1940939105",
-  "guessed": false
- },
- {
   "name": "소금숲",
   "type": "카페",
   "list": "카페",
@@ -9505,6 +9465,215 @@
   "sid": "2001791348",
   "thumb": "",
   "naver": "https://map.naver.com/p/entry/place/2001791348",
+  "guessed": false
+ },
+ {
+  "name": "대만족 속초점",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.22,
+  "address": "강원 속초시 중앙로17번길 11",
+  "lat": 38.198305,
+  "lng": 128.5773641,
+  "sid": "1200337884",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1200337884",
+  "guessed": false
+ },
+ {
+  "name": "옛날전통팥죽",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.25,
+  "address": "강원 속초시 동해대로 4254",
+  "lat": 38.1976834,
+  "lng": 128.5757089,
+  "sid": "1908128313",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1908128313",
+  "guessed": false
+ },
+ {
+  "name": "영스시",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.78,
+  "address": "강원 속초시 밤골3길 11",
+  "lat": 38.2006597,
+  "lng": 128.5675647,
+  "sid": "36549048",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/36549048",
+  "guessed": false
+ },
+ {
+  "name": "추필여국시",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.6,
+  "address": "강원 속초시 선사로4길 4-1",
+  "lat": 38.1888402,
+  "lng": 128.5919359,
+  "sid": "1654107596",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1654107596",
+  "guessed": false
+ },
+ {
+  "name": "수향곤드레",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.37,
+  "address": "강원 속초시 도리원3길 107",
+  "lat": 38.2034245,
+  "lng": 128.5590249,
+  "sid": "15013473",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15013473",
+  "guessed": false
+ },
+ {
+  "name": "석청",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.77,
+  "address": "강원 속초시 밤골2길 15",
+  "lat": 38.2008368,
+  "lng": 128.5680834,
+  "sid": "274541204",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/274541204",
+  "guessed": false
+ },
+ {
+  "name": "대만족 본점",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 12.26,
+  "address": "강원 속초시 동해대로 3928",
+  "lat": 38.185349,
+  "lng": 128.601594,
+  "sid": "35453422",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/35453422",
+  "guessed": false
+ },
+ {
+  "name": "화톳불",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 10.37,
+  "address": "강원 속초시 먹거리길 10",
+  "lat": 38.1962524,
+  "lng": 128.573797,
+  "sid": "15012923",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15012923",
+  "guessed": false
+ },
+ {
+  "name": "장작보리밥",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 11.33,
+  "address": "강원 속초시 척산양지말길 47",
+  "lat": 38.1854902,
+  "lng": 128.5411617,
+  "sid": "2052491930",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2052491930",
+  "guessed": false
+ },
+ {
+  "name": "큰집",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "고성권(차 10~15분)",
+  "dist_km": 7.75,
+  "address": "강원 속초시 중앙로416번길 5",
+  "lat": 38.2251179,
+  "lng": 128.5881875,
+  "sid": "15019122",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/15019122",
+  "guessed": false
+ },
+ {
+  "name": "송도물회 2호점",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.92,
+  "address": "강원 속초시 중앙로147번길 43-5",
+  "lat": 38.20395,
+  "lng": 128.58867,
+  "sid": "2088652103",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2088652103",
   "guessed": false
  }
 ]
