@@ -9675,5 +9675,43 @@
   "thumb": "",
   "naver": "https://map.naver.com/p/entry/place/2088652103",
   "guessed": false
+ },
+ {
+  "name": "미라네집",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.73,
+  "address": "강원 속초시 수복로 205",
+  "lat": 38.2058611,
+  "lng": 128.5889451,
+  "sid": "1906255344",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1906255344",
+  "guessed": false
+ },
+ {
+  "name": "동달속초",
+  "type": "식사",
+  "list": "식사",
+  "category": "음식점",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.12,
+  "address": "강원 속초시 미시령로 3225-11",
+  "lat": 38.2058082,
+  "lng": 128.5608935,
+  "sid": "1645822955",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/1645822955",
+  "guessed": false
  }
 ]
