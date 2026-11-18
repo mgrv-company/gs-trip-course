@@ -74,13 +74,17 @@ try:
     # 3) 신규 태깅 추가
     run(['data/tag_new.py'])
 
-    # 수집 저하 감지용: 재수집 전 영업시간 건수 기록 (--full 리셋 여부와 무관하게 항상 기록)
-    old_hours_count = None
-    if os.path.exists('data/hours.json'):
+    # 수집 저하 감지용: 재수집 전 '내용이 채워진' 가게 수 기록 (--full 리셋 여부와 무관하게 항상 기록)
+    # (2026-11-18) 영업시간만 보던 것을 메뉴·사진까지 넓히고, 칸 수가 아니라 내용이 있는 칸 수로 센다.
+    #   10-07 --full 에서 네이버 형식 변경으로 메뉴가 367→19곳으로 비었는데, 칸(가게 키)은 그대로라 못 잡았다.
+    GATE_FILES = {'hours.json': '영업시간', 'menus.json': '메뉴', 'photos.json': '사진'}
+    def filled_count(f):
         try:
-            old_hours_count = len(json.load(open('data/hours.json', encoding='utf-8')))
+            d = json.load(open('data/' + f, encoding='utf-8'))
         except Exception:
-            old_hours_count = None
+            return None
+        return sum(1 for v in (d.values() if isinstance(d, dict) else d) if v)
+    old_counts = {f: filled_count(f) for f in GATE_FILES if os.path.exists('data/' + f)}
 
     # 4) --full 이면 기존 수집물을 백업 후 비워 전체 재수집
     if FULL:
@@ -94,23 +98,31 @@ try:
     for s in ['fetch_hours.py', 'fetch_extras.py', 'fetch_menus.py', 'fetch_reviews.py', 'fetch_photos.py']:
         run(['data/' + s])
 
-    # 5.5) 수집 저하 게이트: 재수집 후 영업시간 건수가 크게 줄었으면 배포 중단 + (--full 이면) 백업 복원
-    if old_hours_count is not None and old_hours_count >= 50:
-        new_hours_count = 0
-        if os.path.exists('data/hours.json'):
-            try:
-                new_hours_count = len(json.load(open('data/hours.json', encoding='utf-8')))
-            except Exception:
-                new_hours_count = 0
-        if new_hours_count < old_hours_count * 0.6:
-            if FULL:
-                for f in ['hours.json', 'extras.json', 'menus.json', 'reviews_stats.json']:
-                    p = 'data/' + f
-                    if os.path.exists(p + '.bak'):
-                        os.replace(p + '.bak', p)
-            print(f'⚠️ 수집 저하 감지: 영업시간 {old_hours_count}→{new_hours_count}곳 — 배포 중단, 백업 복원')
-            notify_slack(f'<@U0AG0G63PTR> ⚠️ [트립코스] 수집 저하 감지(영업시간 {old_hours_count}→{new_hours_count}곳) — 배포 중단, 백업 복원함 (네이버 429 가능성 — 다음 주 갱신에서 재시도)')
-            sys.exit(1)
+    # 5.5) 수집 저하 게이트: 재수집 후 영업시간·메뉴·사진 중 하나라도 60% 밑으로 줄면 배포 중단 + 수집물 되돌림
+    drops = []
+    for f, label in GATE_FILES.items():
+        old = old_counts.get(f)
+        if old is None or old < 50:
+            continue
+        new = filled_count(f) or 0   # 파일이 없거나 깨졌으면 0으로 본다
+        if new < old * 0.6:
+            drops.append(f'{label} {old}→{new}곳')
+    if drops:
+        if FULL:
+            for f in ['hours.json', 'extras.json', 'menus.json', 'reviews_stats.json']:
+                p = 'data/' + f
+                if os.path.exists(p + '.bak'):
+                    os.replace(p + '.bak', p)
+            restore = ['data/photos.json']   # --full 은 사진을 백업하지 않으므로 마지막 커밋본으로
+        else:
+            # 주간(증분) 갱신에서 멈출 때도 되돌린다. 안 그러면 줄어든 파일이 남아 다음 주 실행이 이걸 기준 삼아 그대로 올린다.
+            restore = ['data/hours.json', 'data/extras.json', 'data/menus.json', 'data/reviews_stats.json', 'data/photos.json']
+        rs = subprocess.run(['git', 'checkout', '--'] + restore, capture_output=True, text=True, encoding='utf-8')
+        restored = '백업 복원함' if rs.returncode == 0 else f'⚠️ 되돌리기 실패({(rs.stderr or "").strip()[:120]}) — 수동 확인 필요'
+        what = ', '.join(drops)
+        print(f'⚠️ 수집 저하 감지: {what} — 배포 중단, {restored}')
+        notify_slack(f'<@U0AG0G63PTR> ⚠️ [트립코스] 수집 저하 감지({what}) — 배포 중단, {restored} (네이버 429·형식 변경 가능성 — 다음 주 갱신에서 재시도)')
+        sys.exit(1)
 
     # 6) TourAPI (액티비티·해수욕장)
     if cfg.get('tourapi_key'):
