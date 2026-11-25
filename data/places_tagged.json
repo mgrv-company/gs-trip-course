@@ -9713,5 +9713,24 @@
   "thumb": "",
   "naver": "https://map.naver.com/p/entry/place/1645822955",
   "guessed": false
+ },
+ {
+  "name": "원강희제과점",
+  "type": "카페",
+  "list": "카페",
+  "category": "카페",
+  "food": [],
+  "vibe": [
+   "무난"
+  ],
+  "zone": "속초권(차 20~35분)",
+  "dist_km": 9.69,
+  "address": "강원 속초시 노학동 1071-17 ",
+  "lat": 38.2040528,
+  "lng": 128.5148596,
+  "sid": "2032818528",
+  "thumb": "",
+  "naver": "https://map.naver.com/p/entry/place/2032818528",
+  "guessed": false
  }
 ]
